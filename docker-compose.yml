@@ -1,0 +1,44 @@
+services:
+  db:
+      image: postgres:18-alpine
+      container_name: store_db
+      restart: always
+      environment:
+        POSTGRES_DB: store_db
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: "iR90H9tV"
+      volumes:
+        - postgres_data:/var/lib/postgresql/data
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U postgres -d store_db"]
+        interval: 5s
+        timeout: 5s
+        retries: 5
+  backend:
+    image: ${DOCKER_USERNAME}/store-backend:latest
+    container_name: store-backend
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/store_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=iR90H9tV
+      - SPRING_FLYWAY_BASELINE_ON_MIGRATE=true
+  
+  frontend:
+    image: ${DOCKER_USERNAME}/store-nextjs:latest
+    container_name: store_nextjs
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+     - backend
+    environment:
+      - NEXT_PUBLIC_API_URL=https://localhost:8080/api
+      - BACKEND_URL=http://backend:8080
+volumes:
+  postgres_data:
