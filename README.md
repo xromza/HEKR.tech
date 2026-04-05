@@ -73,8 +73,10 @@
 | **Разработчик БД** | Петров К. Д. ([xromza](https://github.com/xromza/)) |
 | **Дизайнер** | Капитонов П. О. ([pavalapi](https://github.com/Pavel-Kapitonov)) |
 | **Frontend-разработчик** | Капитонов П. О. ([pavalapi](https://github.com/Pavel-Kapitonov)) |
-| **Frontend-разработчик** | Приймак А. Д.([Priymalex](https://github.com/Priymalex)) |
-| **Тестировщик** | Капитонов П. О. ([pavalapi](https://github.com/Pavel-Kapitonov)), Приймак А. Д. |
+| **Frontend-разработчик** | Приймак А. Д. ([Priymalex](https://github.com/Priymalex)) |
+| **Тестировщик Frontend** | Капитонов П. О. ([pavalapi](https://github.com/Pavel-Kapitonov)) |
+| **Тестировщик Frontend** | Приймак А. Д. ([Priymalex](https://github.com/Priymalex))|
+| **Тестировщик Backend** | Ливерова А. В. ([angelinaliverova06-eng](https://github.com/angelinaliverova06-eng))|
 | **Backend-разработчик** | Овсепян Н. А. ([kklaha](https://github.com/kklaha)) |
 | **DevOps** | Петров К. Д. ([xromza](https://github.com/xromza/)) |
 | **Full stack-разработчик** | Петров К. Д. ([xromza](https://github.com/xromza/)) |
