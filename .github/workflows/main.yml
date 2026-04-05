@@ -38,10 +38,10 @@ jobs:
         run: |
           if [[ ${{ github.ref_name }} == 'prod' ]]; then
             echo "TAG=latest" >> $GITHUB_ENV
-            echo "DEPLOY_PATH=~/shop-prod/store_project" >> $GITHUB_ENV
+            echo "DEPLOY_PATH=/home/xromza/shop-prod/store_project" >> $GITHUB_ENV
           else
             echo "TAG=dev" >> $GITHUB_ENV
-            echo "DEPLOY_PATH=~/shop-dev/store_project" >> $GITHUB_ENV
+            echo "DEPLOY_PATH=/home/xromza/shop-dev/store_project" >> $GITHUB_ENV
           fi
 
       - name: Build and push Backend
