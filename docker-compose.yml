@@ -20,7 +20,7 @@ services:
           memory: 512M
 
   backend-dev:
-    image: ${DOCKER_USERNAME}/shop-backend:dev
+    image: xromza/hekr-store-backend:dev
     container_name: store-backend-dev
     restart: always
     expose:
@@ -42,7 +42,7 @@ services:
           memory: 1G
 
   frontend-dev:
-    image: ${DOCKER_USERNAME}/shop-nextjs:dev
+    image: xromza/hekr-store-nextjs:dev
     container_name: store-nextjs-dev
     restart: always
     expose:
