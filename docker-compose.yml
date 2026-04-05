@@ -1,44 +1,76 @@
 services:
-  db:
-      image: postgres:18-alpine
-      container_name: store_db
-      restart: always
-      environment:
-        POSTGRES_DB: store_db
-        POSTGRES_USER: postgres
-        POSTGRES_PASSWORD: "iR90H9tV"
-      volumes:
-        - postgres_data:/var/lib/postgresql/data
-      healthcheck:
-        test: ["CMD-SHELL", "pg_isready -U postgres -d store_db"]
-        interval: 5s
-        timeout: 5s
-        retries: 5
-  backend:
-    image: ${DOCKER_USERNAME}/store-backend:latest
-    container_name: store-backend
+  db-dev:
+    image: postgres:18-alpine
+    container_name: store_db_dev
     restart: always
-    ports:
-      - "8080:8080"
+    environment:
+      POSTGRES_DB: store_db_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "iR90H9tV"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d store_db_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  backend-dev:
+    image: ${DOCKER_USERNAME}/shop-backend:dev
+    container_name: store-backend-dev
+    restart: always
+    expose:
+      - "8080"
     depends_on:
-      db:
+      db-dev:
         condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/store_db
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-dev:5432/store_db_dev
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=iR90H9tV
       - SPRING_FLYWAY_BASELINE_ON_MIGRATE=true
-  
-  frontend:
-    image: ${DOCKER_USERNAME}/store-nextjs:latest
-    container_name: store_nextjs
+      - JAVA_OPTS=-Xmx768m -XX:ActiveProcessorCount=2
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+
+  frontend-dev:
+    image: ${DOCKER_USERNAME}/shop-nextjs:dev
+    container_name: store-nextjs-dev
     restart: always
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     depends_on:
-     - backend
+      - backend-dev
     environment:
-      - NEXT_PUBLIC_API_URL=https://localhost:8080/api
-      - BACKEND_URL=http://backend:8080
+      - NEXT_PUBLIC_API_URL=/api 
+      - BACKEND_URL=http://backend-dev:8080
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  nginx-dev:
+    image: nginx:stable-alpine
+    container_name: store_nginx_dev
+    ports:
+      - "8081:80" 
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend-dev
+      - backend-dev
+    restart: always
+
 volumes:
-  postgres_data:
+  postgres_data_dev:
+networks:
+  default:
+    external: true
+    name: shop-network
