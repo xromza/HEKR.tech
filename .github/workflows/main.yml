@@ -66,18 +66,26 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
+          envs: DOCKER_USERNAME,DOCKER_PASSWORD
           script: |
             set -e
-            DEPLOY_PATH="/home/xromza/shop-${{ github.ref_name }}/store_project"
             
-            echo "Deploying to $DEPLOY_PATH..."
+            if [[ "${{ github.ref_name }}" == "prod" ]]; then
+              DEPLOY_PATH="~/shop-prod/store_project"
+            else
+              DEPLOY_PATH="~/shop-dev/store_project"
+            fi
+            
+            echo "Moving to $DEPLOY_PATH"
             cd $DEPLOY_PATH
             
             git pull origin ${{ github.ref_name }}
             
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+            
+            export DOCKER_USERNAME="$DOCKER_USERNAME"
             
             docker compose pull
-            docker compose up -d --no-build --remove-orphans
+            docker compose up -d --remove-orphans
             
-            # Очистка старых образов
+            docker image prune -af
