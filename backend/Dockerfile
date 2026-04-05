@@ -15,8 +15,8 @@ USER spring
 
 COPY --from=build /app/target/*.jar app.jar
 
-ENV JAVA_OPTS="-Xms256m -Xmx512m -XX:+UseParallelGC -XX:ActiveProcessorCount=2 -Dfile.encoding=UTF-8"
-
+ENV JAVA_OPTS="-XX:+UseParallelGC -XX:ActiveProcessorCount=2 -Dfile.encoding=UTF-8"
+ENV SERVER_PORT=8081
 EXPOSE 8081
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

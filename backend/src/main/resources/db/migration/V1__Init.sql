@@ -1,5 +1,5 @@
 CREATE TYPE user_role AS ENUM ('INDIVIDUAL', 'LEGAL', 'MANAGER', 'ADMIN');
-CREATE TYPE deliver_status AS ENUM ('PENDING', 'PAID', 'ASSEMBLED', 'SHIPPED', 'DELIVERED')
+CREATE TYPE deliver_status AS ENUM ('PENDING', 'PAID', 'ASSEMBLED', 'SHIPPED', 'DELIVERED');
 
 -- =============================================================================
 -- 1. СПРАВОЧНИКИ (Таблицы, на которые все ссылаются)
