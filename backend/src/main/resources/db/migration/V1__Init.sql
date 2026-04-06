@@ -75,7 +75,7 @@ CREATE TABLE public.orders (
     price numeric(12,2) NOT NULL,
     address text NOT NULL,
     status varchar(32) NOT NULL,
-    payment_method varchar(32) NOT NULL DEFAULT "CASH",
+    payment_method varchar(32) NOT NULL DEFAULT 'CASH',
     date timestamp without time zone DEFAULT CURRENT_TIMESTAMP
 );
 
