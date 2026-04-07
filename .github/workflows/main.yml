@@ -58,9 +58,9 @@ jobs:
             set -e
             
             if [[ "${{ github.ref_name }}" == "prod" ]]; then
-              DEPLOY_PATH="$HOME/shop-prod/store_project"
+              DEPLOY_PATH="$HOME/shop-prod"
             else
-              DEPLOY_PATH="$HOME/shop-dev/store_project"
+              DEPLOY_PATH="$HOME/shop-dev"
             fi
             
             cd $DEPLOY_PATH
