@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: store_db_dev
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: iR90H9tV
+      POSTGRES_PASSWORD: 1234
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
     healthcheck:
@@ -32,7 +32,7 @@ services:
       - SERVER_PORT=8081
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db-dev:5432/store_db_dev
       - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=iR90H9tV
+      - SPRING_DATASOURCE_PASSWORD=1234
       - SPRING_FLYWAY_BASELINE_ON_MIGRATE=true
       - JAVA_OPTS=-Xmx768m -XX:ActiveProcessorCount=2
     deploy:
