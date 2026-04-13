@@ -21,6 +21,7 @@ CREATE TABLE public.users (
     role varchar(32) NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
     is_approved boolean NOT NULL DEFAULT false
+    client_type varchar(32) NOT NULL
 );
 
 -- =============================================================================
