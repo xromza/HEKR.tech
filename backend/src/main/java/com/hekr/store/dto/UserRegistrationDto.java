@@ -23,6 +23,6 @@ public class UserRegistrationDto {
     @Schema(description = "Роль пользователя", example="LEGAL", accessMode = Schema.AccessMode.WRITE_ONLY)
     private String role;
 
-    private String email;
-    private String
+    private LegalDetailsRequestDto legalDetails;
+    private IndividualDetailsRequestDto individualDetails;
 }

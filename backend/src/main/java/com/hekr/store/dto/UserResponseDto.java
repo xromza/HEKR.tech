@@ -14,12 +14,21 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponseDto {
+
+
+    private Long id;
+
     @Schema(description = "Логин пользователя", example = "xromza", accessMode = Schema.AccessMode.READ_ONLY)
     private String login;
     @Schema(description = "Роль пользователя", example="LEGAL", accessMode = Schema.AccessMode.READ_ONLY)
     private String role;
-    @Schema(description = "Время создания аккаунта", example="2026.04.13 14:00:03", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Время создания аккаунта", example="2026-04-13T14:00:03", accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDateTime createdAt;
     @Schema(description = "Активен ли аккаунт", example = "true", accessMode = Schema.AccessMode.READ_ONLY)
     private Boolean isApproved;
+
+    private String clientType;
+
+    private IndividualDetailsResponseDto individualDetails;
+    private LegalDetailsResponseDto legalDetails;
 }

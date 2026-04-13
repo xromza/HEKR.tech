@@ -24,4 +24,7 @@ public class UserEditDto {
 
     @Schema(description = "Активен ли пользователь", example = "true", accessMode = Schema.AccessMode.WRITE_ONLY)
     private Boolean isApproved;
+
+    private LegalDetailsRequestDto legalDetails;
+    private IndividualDetailsRequestDto individualDetails;
 }
