@@ -43,12 +43,6 @@ public class IndividualDetails {
     @Column(name = "birthdate", nullable = false)
     private LocalDate birthDate;
 
-    @Column(length = 20, nullable = false)
-    private String phone;
-
-    @Column(length = 256, nullable = false)
-    private String email;
-
     @Column(name = "passport_series", length = 4, nullable = false)
     private String passportSeries;
 

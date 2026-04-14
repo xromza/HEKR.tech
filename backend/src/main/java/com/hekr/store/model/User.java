@@ -62,4 +62,10 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private LegalDetails legalDetails;
+
+    @Column(length = 20, nullable = false)
+    private String phone;
+
+    @Column(length = 256, nullable = false)
+    private String email;
 }
