@@ -26,26 +26,30 @@
 
 **Успешный ответ (200 OK):**
 ```json
-[
-  {
-    "id": 42,
-    "title": "Худи 'Over-size' Базовое",
-    "price_retail": 4500.00,
-    "price_wholesale": 3800.00
-  },
-  {
-    "id": 15,
-    "title": "Футболка 'Minimalism' Белая",
-    "price_retail": 1800.00,
-    "price_wholesale": 1400.00
-  },
-  {
-    "id": 8,
-    "title": "Джоггеры 'City-Style' Черные",
-    "price_retail": 3200.00,
-    "price_wholesale": 2700.00
-  }
-]
+{
+  "content": [
+    {
+      "id": 42,
+      "title": "Худи 'Over-size' Базовое",
+      "price_retail": 4500.00,
+      "price_wholesale": 3800.00,
+      "main_image_url": "https://res.cloudinary.com/hekr/image/upload/v1/products/hoodie_blk_main.jpg",
+      "category_id": 5
+    },
+    {
+      "id": 15,
+      "title": "Футболка 'Minimalism' Белая",
+      "price_retail": 1800.00,
+      "price_wholesale": 1400.00,
+      "main_image_url": "https://res.cloudinary.com/hekr/image/upload/v1/products/tshirt_white.jpg",
+      "category_id": 2
+    }
+  ],
+  "total_elements": 150,
+  "total_pages": 15,
+  "current_page": 0,
+  "is_last": false
+}
 ```
 ### 1.2. Найти товары по имени
 **Метод:** `GET`  
@@ -64,17 +68,25 @@
 | **query** | `string` | Строка поиска. | `?query='датчик'` |
 
 **Пример запроса**
-`GET /products/search?query="датчик"`
+`GET /products/search?query=худи`
 **Успешный ответ (200 OK):**
 ```json
-[
+{
+  "content": [
     {
-        "id": 1,
-        "title": "Ультразвуковой датчик HC-SR04",
-        "price_retail": 250.00,
-        "price_wholesale": 180.50
+      "id": 42,
+      "title": "Худи 'Over-size' Базовое",
+      "price_retail": 4500.00,
+      "price_wholesale": 3800.00,
+      "main_image_url": "https://res.cloudinary.com/xromza/image/upload/v1/products/hoodie_black.jpg",
+      "category_id": 5
     }
-]
+  ],
+  "total_elements": 1,
+  "total_pages": 1,
+  "current_page": 0,
+  "is_last": true
+}
 ```
 ### 1.3 Информация о товаре
 Получение детальной информации о модели товара, списке доступных модификаций и остатках.
@@ -96,6 +108,7 @@
     "description": "Плотный хлопок, свободный крой. Идеально для учебы в университете и долгих сессий кодинга.",
     "category_id": 5,
     "price_retail": 4500.00,
+    "price_wholesale": 3800.00,
     "wholesale_threshold": 10,
     "selected_variant": {
         "id": 101,
@@ -103,6 +116,16 @@
         "size": "XL",
         "color": "Черный",
         "weight": 0.85,
+        "images": [
+            {
+                "url": "https://res.cloudinary.com/hekr/image/upload/v1/products/hoodie_blk_front.jpg",
+                "type": "MAIN"
+            },
+            {
+                "url": "https://res.cloudinary.com/hekr/image/upload/v1/products/hoodie_blk_back.jpg",
+                "type": "GALLERY"
+            }
+        ],
         "stock": [
             {
                 "warehouse_id": 1,
@@ -120,17 +143,20 @@
         {
             "id": 101,
             "size": "XL",
-            "color": "Черный"
+            "color": "Черный",
+            "in_stock": true
         },
         {
             "id": 102,
             "size": "L",
-            "color": "Черный"
+            "color": "Черный",
+            "in_stock": true
         },
         {
             "id": 103,
             "size": "XL",
-            "color": "Серый меланж"
+            "color": "Серый меланж",
+            "in_stock": false
         }
     ]
 }
@@ -140,6 +166,14 @@
 {
     "error": "Not Found",
     "message": "Товар или указанный вариант не найден"
+}
+```
+
+**Безуспешный ответ (400 Bad Request):**
+```json
+{
+    "error": "Bad Request",
+    "message": "Вариант принадлежит другому товару"
 }
 ```
 ## 2. Аутентификация (Auth)
@@ -184,18 +218,19 @@
 **Тело запроса (Body):**
 ```json
 {
-    "login": "kirill_petrov",
-    "password": "securepass123",
-    "type": "INDIVIDUAL",
-    "individual_details": {
-        "first_name": "Кирилл",
-        "last_name": "Петров",
-        "middle_name": "Дмитриевич",
-        "phone": "+79991234567",
-        "birth_date": "2000-01-01",
-        "passport_series": "4510",
-        "passport_number": "123456"
-    }
+  "login": "kirill_petrov",
+  "password": "securepass123",
+  "client_type": "INDIVIDUAL",
+  "phone": "+79991234567",
+  "email": "petrov.k@example.com",
+  "individual_details": {
+    "first_name": "Кирилл",
+    "last_name": "Петров",
+    "midname": "Дмитриевич",
+    "birthdate": "2000-01-01",
+    "passport_series": "4510",
+    "passport_number": "123456"
+  }
 }
 **Успешный ответ (201 Created):**
 ```json
@@ -221,16 +256,18 @@
 **Тело запроса (Body):**
 ```json
 {
-    "login": "xromzas_software_llc",
-    "password": "securepass",
-    "type": "LEGAL",
-    "legal_details": {
-        "company_name": "ООО Программное Обеспечение ИксРомзас",
-        "inn" :"1337069420",
-        "legal_address": "г. Москва, ул. Заводская, 10",
-        "kpp": "177301001",
-        "ogrn": "1027710132195"
-    }
+  "login": "xromzas_software_llc",
+  "password": "securepass",
+  "client_type": "LEGAL",
+  "phone": "+74951234567",
+  "email": "corp@xromza.tech",
+  "legal_details": {
+    "company_name": "ООО Программное Обеспечение ИксРомзас",
+    "inn": "1337069420",
+    "kpp": "177301001",
+    "ogrn": "1027710132195",
+    "legal_address": "г. Москва, ул. Заводская, 10"
+  }
 }
 ```
 **Успешный ответ (201 Created):**
@@ -246,6 +283,14 @@
   "error": "Conflict",
   "message": "Пользователь с таким логином уже существует",
   "field": "login"
+}
+```
+**Безуспешный ответ (400 Bad Request):**
+```json
+{
+  "error": "Bad Request",
+  "message": "Поле 'email' обязательно для заполнения",
+  "field": "email"
 }
 ```
 
@@ -289,9 +334,25 @@
 {
   "id": 1,
   "login": "kirill_petrov",
-  "full_name": "Петров Кирилл Дмитриевич",
   "role": "CLIENT",
-  "created_at": "2026-03-15T12:00:00"
+  "client_type": "INDIVIDUAL",
+  "email": "petrov.k@example.com",
+  "phone": "+79991234567",
+  "created_at": "2026-03-15T12:00:00",
+  "is_approved": true,
+  
+  "first_name": "Кирилл",
+  "last_name": "Петров",
+  "midname": "Дмитриевич",
+  "birthdate": "2000-01-01",
+  "passport_series": "4510",
+  "passport_number": "123456",
+
+  "company_name": null,
+  "inn": null,
+  "kpp": null,
+  "ogrn": null,
+  "legal_address": null
 }
 ```
 **Безуспешный ответ (401 Unauthorized):**
@@ -363,22 +424,34 @@
     "date": "2026-03-20T15:30:00",
     "status": "DELIVERED",
     "total_price": 41800.00,
+    "price_type": "WHOLESALE", 
+    "payment_method": "INVOICE",
+    "delivery_method": "COURIER",
     "address": "г. Москва, ул. Арбат, д. 1, кв. 12",
     "status_history": [
         {
             "status": "NEW",
             "changed_at": "2026-03-20T15:30:00",
-            "changed_by_name": "System"
+            "changed_by_name": "System",
+            "comment": "Заказ был создан"
         },
         {
             "status": "ASSEMBLING",
             "changed_at": "2026-03-21T10:45:00",
-            "changed_by_name": "Мадин (Менеджер)"
+            "changed_by_name": "Мадин (Менеджер)",
+            "comment": "Заказ собран и готовится к отправке"
+        },
+        {
+            "status": "SHIPPING",
+            "changed_at": "2026-03-23T14:20:00",
+            "changed_by_name": "Мадин (Менеджер)",
+            "comment": "Товар в пути"
         },
         {
             "status": "DELIVERED",
             "changed_at": "2026-03-23T14:20:00",
-            "changed_by_name": "Система (Автоматически)"
+            "changed_by_name": "Система (Автоматически)",
+            "comment": "Товар успешно доставлен"
         }
     ],
     "items": [
@@ -386,6 +459,7 @@
             "product_id": 42,
             "variant_id": 101,
             "title": "Худи 'Over-size' Базовое",
+            "main_image_url": "https://res.cloudinary.com/xromza/image/upload/v1/products/hoodie_blk_thumb.jpg",
             "sku": "HD-BLK-XL",
             "size": "XL",
             "color": "Черный",
@@ -397,6 +471,7 @@
             "product_id": 15,
             "variant_id": 205,
             "title": "Футболка 'Minimalism' Белая",
+            "main_image_url": "https://res.cloudinary.com/xromza/image/upload/v1/products/tshirt_white_thumb.jpg",
             "sku": "TSH-WHT-M",
             "size": "M",
             "color": "Белый",
@@ -440,10 +515,6 @@
 `Authorization: Bearer <your_token_here>`<br/>
 
 **Тело запроса (Body):** *Отсутствует*<br/>
-**Параметры (Query):**
-* `page` (int) — номер страницы (с 0)
-* `size` (int) — элементов на странице
-
 **Успешный ответ (200 OK):**
 ```json
 {
@@ -452,10 +523,12 @@
             "product_id": 42,
             "variant_id": 101,
             "title": "Худи 'Over-size' Базовое",
+            "main_image_url": "https://res.cloudinary.com/xromza/image/upload/v1/products/hoodie_blk_thumb.jpg",
             "sku": "HD-BLK-XL",
             "size": "XL",
             "color": "Черный",
             "quantity": 12,
+            "available_stock": 50,
             "applied_price": 3800.00,
             "price_type": "WHOLESALE",
             "subtotal": 45600.00
@@ -464,16 +537,20 @@
             "product_id": 15,
             "variant_id": 205,
             "title": "Футболка хлопок 100%",
+            "main_image_url": "https://res.cloudinary.com/xromza/image/upload/v1/products/tshirt_white_thumb.jpg",
             "sku": "TSH-WHT-M",
             "size": "M",
             "color": "Белый",
             "quantity": 2,
+            "available_stock": 1, 
             "applied_price": 1500.00,
             "price_type": "RETAIL",
             "subtotal": 3000.00
         }
     ],
-    "total_price": 48600.00
+    "total_price": 48600.00,
+    "discount_applied": 0.00,
+    "can_checkout": true
 }
 ```
 **Безуспешный ответ (401 Unauthorized):**
@@ -661,6 +738,7 @@
 **Заголовки (Headers):**
 `Authorization: Bearer <your_token_here>`<br/>
  
+**Обязательные поля в body:** `comment`, `new_status`
 **Тело запроса (Body):**
 ```json
 {
@@ -732,15 +810,66 @@
   "price_wholesale": 3800.00,
   "wholesale_threshold": 10,
   "category_id": 5,
-  "weight": 0.85,
-  "size": "XL",
-  "color": "Черный"
 }
 ```
 **Успешный ответ (201 Created):**
 ```json
 {
-  "id": 42,
+  "id": 23,
+  "title": "Худи 'Over-size' Базовое",
+  "description": "Плотный хлопок 100%, свободный крой. Унисекс.",
+  "price_retail": 4500.00,
+  "price_wholesale": 3800.00,
+  "wholesale_threshold": 10,
+  "category_id": 5,
+  "variants": []
+}
+```
+**Безуспешный ответ (401 Unauthorized):**
+```json
+{
+  "error": "Unauthorized",
+  "message": "Для работы с панелью необходимо авторизоваться"
+}
+```
+
+**Безуспешный ответ (400 Bad Request):**
+```json
+{
+  "error": "Bad Request",
+  "message": "Ошибка валидации: поле 'title' не может быть пустым"
+}
+```
+
+**Безуспешный ответ (403 Forbidden):**
+```json
+{
+  "error": "Forbidden",
+  "message": "Недостаточно прав доступа (требуется роль ADMIN)"
+}
+```
+### 7.4 Создание вариантов товара
+Добавление позиции в таблицу `product_variants`.
+
+**Метод:** `POST`  
+**Путь:** `/admin/products/{product_id}/variants`  
+**Доступ:** `ADMIN`, `MANAGER`<br/>
+**Заголовки (Headers):**
+`Authorization: Bearer <your_token_here>`<br/>
+ 
+**Тело запроса (Body):**
+```json
+{
+  "size": "XL",
+  "color": "Чёрный",
+  "weigth": 0.85,
+  "sku": "HD-BLK-XL"
+}
+```
+**Успешный ответ (201 Created):**
+```json
+{
+  "id": 23,
   "title": "Худи 'Over-size' Базовое",
   "description": "Плотный хлопок 100%, свободный крой. Унисекс.",
   "price_retail": 4500.00,
@@ -770,7 +899,7 @@
 ```json
 {
   "error": "Bad Request",
-  "message": "Ошибка валидации: поле 'title' не может быть пустым"
+  "message": "Ошибка валидации: поле 'sku' не может быть пустым"
 }
 ```
 
@@ -778,10 +907,10 @@
 ```json
 {
   "error": "Forbidden",
-  "message": "Недостаточно прав доступа (требуется роль ADMIN)"
+  "message": "Недостаточно прав доступа (требуется роль ADMIN или MANAGER)"
 }
 ```
-### 7.4 Список всех пользователей
+### 7.5 Список всех пользователей
 Метод предназначен для административного управления доступом. Позволяет просматривать базу пользователей с применением гибкой фильтрации по статусу верификации и сортировки.
 
 **Метод:** `GET`  
@@ -813,27 +942,50 @@
 
 ```json
 [
-    {
-        "id": 1,
-        "login": "pavalapi",
-        "created_at": "2026-03-21T18:45:00",
-        "role": "LEGAL",
-        "is_approved": false
-    },
-    {
-        "id": 2,
-        "login": "xromza",
-        "created_at": "2026-03-16T05:12:03",
-        "role": "ADMIN",
-        "is_approved": true
-    },
-    {
-        "id": 4,
-        "login": "kklaha",
-        "created_at": "2026-03-21T18:45:00",
-        "role": "INDIVIDUAL",
-        "is_approved": true
-    }
+[
+  {
+    "id": 1,
+    "login": "pavalapi",
+    "role": "CLIENT",
+    "created_at": "2026-03-21T18:45:00",
+    "is_approved": false,
+    "client_type": "LEGAL",
+    "phone": "+78612003040",
+    "email": "info@technolab.ru",
+    "company_name": "ООО Технолаб",
+    "inn": "2310998877",
+    "kpp": "231001001",
+    "ogrn": "1022301611111",
+    "legal_address": "г. Краснодар, ул. Красная, д. 1",
+    "first_name": null,
+    "last_name": null,
+    "midname": null,
+    "birthdate": null,
+    "passport_series": null,
+    "passport_number": null
+  },
+  {
+    "id": 4,
+    "login": "kklaha",
+    "role": "CLIENT",
+    "created_at": "2026-03-21T18:45:00",
+    "is_approved": true,
+    "client_type": "INDIVIDUAL",
+    "phone": "+79181234567",
+    "email": "k.lazarev@example.com",
+    "company_name": null,
+    "inn": null,
+    "kpp": null,
+    "ogrn": null,
+    "legal_address": null,
+    "first_name": "Константин",
+    "last_name": "Лазарев",
+    "midname": "Дмитриевич",
+    "birthdate": "1995-05-15",
+    "passport_series": "0315",
+    "passport_number": "123456"
+  }
+]
 ]
 ```
 **Безуспешный ответ (401 Unauthorized):**
@@ -859,7 +1011,7 @@
 ```
 
 
-### 7.5 Изменение данных пользователя
+### 7.6 Изменение данных пользователя
 Изменение данных пользователя в таблице `users`
 
 **Метод:** `PATCH`  
@@ -880,7 +1032,8 @@
     "id": 1,
     "login": "pavalapi",
     "created_at": "2026-03-21T18:45:00",
-    "role": "LEGAL",
+    "role": "CLIENT",
+    "client_type": "LEGAL",
     "is_approved": true 
 }
 ```
@@ -907,6 +1060,7 @@
     "login": "kklaha",
     "created_at": "2026-03-21T18:45:00",
     "role": "ADMIN",
+    "client_type": null,
     "is_approved": true
 }
 ```
@@ -917,7 +1071,7 @@
   "message": "Пользователь с таким ID не найден"
 }
 ```
-### 7.6 Создание склада
+### 7.7 Создание склада
 Добавление склада в таблицу `warehouses`.
 
 **Метод:** `POST`  
@@ -946,7 +1100,7 @@
   "message": "Для работы с панелью необходимо авторизоваться"
 }
 ```
-### 7.7 Список всех складов
+### 7.8 Список всех складов
 Позволяет просматривать базу складов
 
 **Метод:** `GET`  
@@ -999,5 +1153,339 @@
 {
   "error": "Forbidden",
   "message": "У вас недостаточно прав для выполнения этой операции"
+}
+```
+### 7.9 Изменение общей информации о товаре
+Позволяет изменить информацию о товаре
+
+**Метод:** `PATCH`  
+**Путь:** `/admin/products/{id}`  
+**Доступ:** `ADMIN`<br/>
+**Заголовки (Headers):**
+`Authorization: Bearer <your_token_here>`<br/>
+ 
+**Тело запроса (Body):**
+```json
+{
+  "title": "Худи 'Over-size' Премиальное",
+  "price_retail": 4600.00,
+}
+```
+**Успешный ответ (202 Accepted):**
+```json
+{
+  "id": 23,
+  "title": "Худи 'Over-size' Премиальное",
+  "description": "Плотный хлопок 100%, свободный крой. Унисекс.",
+  "price_retail": 4600.00,
+  "price_wholesale": 3800.00,
+  "wholesale_threshold": 10,
+  "category_id": 5,
+  "variants": [],
+  "is_active": true
+}
+```
+**Безуспешный ответ (401 Unauthorized):**
+```json
+{
+  "error": "Unauthorized",
+  "message": "Для работы с панелью необходимо авторизоваться"
+}
+```
+
+**Безуспешный ответ (404 Not Found):**
+```json
+{
+  "error": "Not Found",
+  "message": "Такого товара существует"
+}
+```
+
+**Безуспешный ответ (403 Forbidden):**
+```json
+{
+  "error": "Forbidden",
+  "message": "Недостаточно прав доступа (требуется роль ADMIN)"
+}
+```
+
+**Тело запроса (Body):**
+```json
+{
+  "is_active": false
+}
+```
+**Успешный ответ (202 Accepted):**
+```json
+{
+  "id": 23,
+  "title": "Худи 'Over-size' Премиальное",
+  "description": "Плотный хлопок 100%, свободный крой. Унисекс.",
+  "price_retail": 4600.00,
+  "price_wholesale": 3800.00,
+  "wholesale_threshold": 10,
+  "category_id": 5,
+  "variants": [],
+  "is_active": false
+}
+```
+
+### 7.10 Изменение информации о варианте товара
+Позволяет изменить информацию о варианте товара
+
+**Метод:** `PATCH`  
+**Путь:** `/admin/products/{product_id}/variants/{variant_id}`  
+**Доступ:** `ADMIN`, `MANAGER`<br/>
+**Заголовки (Headers):**
+`Authorization: Bearer <your_token_here>`<br/>
+ 
+**Тело запроса (Body):**
+```json
+{
+  "weigth": 1.25,
+  "sku": "HD-BLK-XL-125"
+}
+```
+**Успешный ответ (201 Created):**
+```json
+{
+  "id": 23,
+  "title": "Худи 'Over-size' Базовое",
+  "description": "Плотный хлопок 100%, свободный крой. Унисекс.",
+  "price_retail": 4500.00,
+  "price_wholesale": 3800.00,
+  "wholesale_threshold": 10,
+  "category_id": 5,
+  "variants": [
+    {
+      "id": 101,
+      "sku": "HD-BLK-XL-125",
+      "size": "XL",
+      "color": "Черный",
+      "weight": 1.25
+    }
+  ],
+  "is_active": true
+}
+```
+**Безуспешный ответ (401 Unauthorized):**
+```json
+{
+  "error": "Unauthorized",
+  "message": "Для работы с панелью необходимо авторизоваться"
+}
+```
+
+**Безуспешный ответ (400 Bad Request):**
+```json
+{
+  "error": "Bad Request",
+  "message": "Ошибка валидации: поле 'sku' не может быть пустым"
+}
+```
+
+**Безуспешный ответ (403 Forbidden):**
+```json
+{
+  "error": "Forbidden",
+  "message": "Недостаточно прав доступа (требуется роль ADMIN или MANAGER)"
+}
+```
+
+**Тело запроса (Body):**
+```json
+{
+  "is_active": false
+}
+```
+**Успешный ответ (201 Created):**
+```json
+{
+  "id": 23,
+  "title": "Худи 'Over-size' Базовое",
+  "description": "Плотный хлопок 100%, свободный крой. Унисекс.",
+  "price_retail": 4500.00,
+  "price_wholesale": 3800.00,
+  "wholesale_threshold": 10,
+  "category_id": 5,
+  "variants": [
+    {
+      "id": 101,
+      "sku": "HD-BLK-XL-125",
+      "size": "XL",
+      "color": "Черный",
+      "weight": 1.25
+    }
+  ],
+  "is_active": false
+}
+```
+
+### 7.11 Получить полный список товаров
+Метод возвращает все товары системы для управления каталогом. Включает деактивированные товары и суммарный остаток.
+
+**Метод:** `GET`  
+**Путь:** `/admin/products`  
+**Доступ:** `ADMIN`, `MANAGER`  
+
+**Параметры запроса (Query Parameters):**
+| Параметр | Тип | Описание | Пример |
+| :--- | :--- | :--- | :--- |
+| **page** | `int` | Номер страницы (начиная с 0). | `0` |
+| **size** | `int` | Количество элементов на странице. | `20` |
+| **show_inactive** | `boolean` | Включить в выдачу товары с `is_active = false`. | `true` |
+
+**Успешный ответ (200 OK):**
+```json
+{
+  "content": [
+    {
+      "id": 42,
+      "title": "Худи 'Over-size' Базовое",
+      "price_retail": 4500.00,
+      "price_wholesale": 3800.00,
+      "is_active": true,
+      "category_id": 5,
+      "total_stock": 145
+    },
+    {
+      "id": 15,
+      "title": "Футболка 'Old Collection'",
+      "price_retail": 1200.00,
+      "price_wholesale": 900.00,
+      "is_active": false,
+      "category_id": 2,
+      "total_stock": 0
+    }
+  ],
+  "total_elements": 256,
+  "total_pages": 13,
+  "size": 20,
+  "number": 0
+}
+```
+### 7.12 Поиск товаров по фильтрам
+Расширенный поиск для административной панели. Позволяет комбинировать фильтры по названию, артикулу (SKU) и категории.
+
+**Метод:** `GET`  
+**Путь:** `/api/admin/products/search`  
+**Доступ:** `ADMIN`, `MANAGER`  
+
+**Параметры запроса (Query Parameters):**
+| Параметр | Тип | Описание | Пример |
+| :--- | :--- | :--- | :--- |
+| **query** | `string` | Поиск по названию товара (частичное совпадение). | `худи` |
+| **sku** | `string` | Поиск по точному артикулу (SKU) варианта. | `HD-BLK-XL` |
+| **category_id** | `int` | Фильтр по идентификатору категории. | `5` |
+| **is_active** | `boolean` | Фильтр по статусу (true — только активные, false — только удаленные). | `true` |
+| **page** | `int` | Номер страницы (с 0). | `0` |
+| **size** | `int` | Количество элементов на странице. | `10` |
+
+**Успешный ответ (200 OK):**
+```json
+{
+  "content": [
+    {
+      "id": 42,
+      "title": "Худи 'Over-size' Базовое",
+      "is_active": true,
+      "category_id": 5,
+      "variants": [
+        {
+          "id": 101,
+          "sku": "HD-BLK-XL",
+          "size": "XL",
+          "color": "Черный",
+          "price_retail": 4500.00,
+          "price_wholesale": 3800.00,
+          "stock": 15
+        }
+      ]
+    }
+  ],
+  "total_elements": 1,
+  "total_pages": 1,
+  "current_page": 0,
+  "size": 10
+}
+```
+### 7.13 Добавление фотографии к варианту товара
+Метод позволяет загрузить файл изображения и привязать его к конкретному варианту товара. Файлы сохраняются в хранилище, а запись о них — в таблицу `images`.
+
+**Метод:** `POST`  
+**Путь:** `/api/admin/products/{product_id}/variants/{variant_id}/images`  
+**Доступ:** `ADMIN`, `MANAGER`  
+
+**Тело запроса (Multipart Form Data):**
+| Параметр | Тип | Описание | Обязательно |
+| :--- | :--- | :--- | :--- |
+| **file** | `File` | Бинарный файл изображения (png, jpg, webp). | Да |
+| **type** | `string` | Тип изображения: `MAIN` (обложка) или `GALLERY` (доп. фото). или `THUMBNAIL`| Да |
+
+**Успешный ответ (201 Created):**
+```json
+{
+  "id": 501,
+  "variant_id": 101,
+  "url": "[https://res.cloudinary.com/xromza/image/upload/v1/products/hoodie_blk_new.jpg](https://res.cloudinary.com/xromza/image/upload/v1/products/hoodie_blk_new.jpg)",
+  "type": "MAIN",
+  "created_at": "2026-04-14T22:30:00"
+}
+```
+
+### 7.14 Удаление фотографии
+Метод удаляет запись об изображении из базы данных и инициирует удаление физического файла из хранилища.
+
+**Метод:** `DELETE`  
+**Путь:** `/admin/products/{product_id}/variants/{variant_id}/images/{image_id}`  
+**Доступ:** `ADMIN`, `MANAGER`  
+
+**Параметры пути (Path Parameters):**
+| Параметр | Тип | Описание |
+| :--- | :--- | :--- |
+| **product_id** | `long` | ID товара. |
+| **variant_id** | `long` | ID варианта. |
+| **image_id** | `long` | ID конкретной фотографии. |
+
+**Успешный ответ (204 No Content):**
+*Тело ответа отсутствует. Это подтверждает успешное удаление.*
+
+**Ошибки:**
+* **401 Unauthorized**: Пользователь не авторизован.
+* **403 Forbidden**: Недостаточно прав.
+* **404 Not Found**: Фотография с таким ID не найдена или она не принадлежит указанному варианту.
+### 7.15 Изменение скидки
+Метод изменяет скидку на категорию
+
+**Метод:** `PATCH`
+**Путь:** `/admin/discounts/{category_id}`
+**Доступ:** `ADMIN`, `MANAGER` 
+
+**Тело запроса (Body):**
+```json
+{
+  "discount": 0.1 
+}
+```
+
+**Успешный ответ (200 ОК):**
+```json
+{
+  "category_id": 2,
+  "discount": 0.1
+}
+```
+**Безуспешный ответ (404 Not Found)**
+```json
+{
+  "error": "Not Found",
+  "message": "Категория не найдена"
+}
+```
+**Безуспешный ответ (403 Forbidden):**
+```json
+{
+  "error": "Forbidden",
+  "message": "Недостаточно прав доступа (требуется роль ADMIN или MANAGER)"
 }
 ```
