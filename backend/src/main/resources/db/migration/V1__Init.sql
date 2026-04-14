@@ -81,6 +81,7 @@ CREATE TABLE public.orders (
     address text NOT NULL,
     status varchar(32) NOT NULL,
     payment_method varchar(32) NOT NULL DEFAULT 'CASH',
+    comment TEXT,
     date timestamp without time zone DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -93,7 +94,6 @@ CREATE TABLE public.order_items (
     quantity bigint NOT NULL,
     price_at_purchase numeric(12,2) NOT NULL,
     total_price numeric(12,2) NOT NULL,
-    comment TEXT,
     PRIMARY KEY (order_id, variant_id)
 );
 
