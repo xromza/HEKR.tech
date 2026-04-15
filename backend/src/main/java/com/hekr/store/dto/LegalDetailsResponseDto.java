@@ -6,6 +6,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Schema(
+    description = "Юридические детали компании в ответе",
+    example = """
+        {
+          "companyName": "ООО ХЕКР БЛОК",
+          "inn": "7707083892",
+          "kpp": "773601001",
+          "ogrn": "1027700132195",
+          "legalAddress": "г. Санкт-Петербург ул. Хекровская д. 67"
+        }
+        """
+)
 @Getter
 @Setter
 @AllArgsConstructor
@@ -15,15 +27,15 @@ public class LegalDetailsResponseDto {
     @Schema(description = "Название компании", example = "ООО ХЕКР БЛОК", accessMode = Schema.AccessMode.READ_ONLY)
     private String companyName;
 
-    @Schema(description = "ИНН", example = "7707083892", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "ИНН компании", example = "7707083892", accessMode = Schema.AccessMode.READ_ONLY)
     private String inn;
 
-    @Schema(description = "КПП", example = "773601001", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "КПП компании", example = "773601001", accessMode = Schema.AccessMode.READ_ONLY)
     private String kpp;
 
-    @Schema(description = "ОГРН", example = "1027700132195", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "ОГРН компании", example = "1027700132195", accessMode = Schema.AccessMode.READ_ONLY)
     private String ogrn;
 
-    @Schema(description = "Юридический адрес", example = "г. Санкт-Петербург ул. Хекровская д. 67")
+    @Schema(description = "Юридический адрес компании", example = "г. Санкт-Петербург ул. Хекровская д. 67", accessMode = Schema.AccessMode.READ_ONLY)
     private String legalAddress;
 }

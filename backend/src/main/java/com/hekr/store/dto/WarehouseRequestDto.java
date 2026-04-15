@@ -9,6 +9,14 @@ import jakarta.validation.constraints.NotBlank;
 
 
 
+@Schema(
+    description = "Запрос на создание склада",
+    example = """
+        {
+          "address": "г. Москва ул. Складская 12/2"
+        }
+        """
+)
 @Getter
 @Setter
 @AllArgsConstructor

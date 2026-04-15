@@ -6,6 +6,15 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(
+    description = "Информация о категории",
+    example = """
+        {
+          "id": 12345,
+          "name": "Аксессуары"
+        }
+        """
+)
 @Getter
 @Setter
 @AllArgsConstructor

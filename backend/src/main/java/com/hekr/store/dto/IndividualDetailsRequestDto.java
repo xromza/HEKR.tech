@@ -9,40 +9,45 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Schema(
+    description = "Детали физического лица для запроса",
+    example = """
+        {
+          "firstName": "Иван",
+          "lastName": "Петров",
+          "midName": "Сергеевич",
+          "birthDate": "1990-05-15",
+          "passportSeries": "1234",
+          "passportNumber": "567890"
+        }
+        """
+)
 @Setter
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class IndividualDetailsRequestDto {
     @NotBlank
-    @Schema(description = "Имя физического лица", example = "Иван", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Имя физического лица", example = "Иван")
     private String firstName;
 
     @NotBlank
-    @Schema(description = "Фамилия физического лица", example = "Петров", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Фамилия физического лица", example = "Петров")
     private String lastName;
 
-    @Schema(description = "Отчество физического лица", example = "Сергеевич", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Отчество физического лица", example = "Сергеевич")
     private String midName;
 
     @NotBlank
-    @Schema(description = "Дата рождения физического лица", example = "1990-05-15", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Дата рождения физического лица", example = "1990-05-15")
     private LocalDate birthDate;
 
     @NotBlank
-    @Schema(description = "Номер телефона физического лица", example = "+7 (999) 123-45-67", accessMode = Schema.AccessMode.READ_ONLY)
-    private String phone;
-    
-    @NotBlank
-    @Schema(description = "Адрес электронной почты физического лица", example = "ivan.petrov@example.ru", accessMode = Schema.AccessMode.READ_ONLY)
-    private String email;
+    @Schema(description = "Серия паспорта", example = "1234")
+    private String passportSeries;
 
     @NotBlank
-    @Schema(description = "Серия паспорта физического лица", example = "ivan.petrov@example.ru", accessMode = Schema.AccessMode.READ_ONLY)
-    private String passport_series;
-
-    @NotBlank
-    @Schema(description = "Номер паспорта физического лица", example = "ivan.petrov@example.ru", accessMode = Schema.AccessMode.READ_ONLY)
-    private String passport_number;
+    @Schema(description = "Номер паспорта", example = "567890")
+    private String passportNumber;
 
 }

@@ -8,16 +8,25 @@ import lombok.AllArgsConstructor;
 import lombok.Setter;
 import lombok.Getter;
 
+@Schema(
+    description = "Запрос на добавление товара в корзину",
+    example = """
+        {
+          "variantId": 3,
+          "quantity": 3
+        }
+        """
+)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 
 public class CartRequestDto {
-    @Schema(description = "Id варианта товара",example = "3")
+    @Schema(description = "Id варианта товара", example = "3")
     @NotNull
     private Long variantId;
-    @Schema(description = "Количество",example = "3")
+    @Schema(description = "Количество товара", example = "3")
     @NotNull
     @Min(1)
     private Long quantity;

@@ -8,6 +8,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Schema(
+    description = "Детали физического лица в ответе",
+    example = """
+        {
+          "firstName": "Иван",
+          "lastName": "Петров",
+          "midName": "Сергеевич",
+          "birthDate": "1990-05-15"
+        }
+        """
+)
 @Setter
 @Getter
 @NoArgsConstructor
@@ -24,11 +35,5 @@ public class IndividualDetailsResponseDto {
 
     @Schema(description = "Дата рождения физического лица", example = "1990-05-15", accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDate birthDate;
-
-    @Schema(description = "Номер телефона физического лица", example = "+7 (999) 123-45-67", accessMode = Schema.AccessMode.READ_ONLY)
-    private String phone;
-
-    @Schema(description = "Адрес электронной почты физического лица", example = "ivan.petrov@example.ru", accessMode = Schema.AccessMode.READ_ONLY)
-    private String email;
 
 }
