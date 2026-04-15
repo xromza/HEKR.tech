@@ -16,27 +16,29 @@ import java.time.LocalDateTime;
 @Builder
 @Table(name = "orders")
 
-public class Order{
+public class Order {
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="user_id",nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
-    @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="warehouse_id",nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "warehouse_id")
     private Warehouse warehouse;
-    @Column(nullable = false,precision = 12,scale=2)
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
-    @Column(nullable = false,columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String address;
-    @Column(nullable = false,length=32)
+    @Column(nullable = false, length = 32)
     @Enumerated(EnumType.STRING)
     private Status status;
-    @Column(name="payment_method",nullable = false,length=32)
+    @Column(name = "payment_method", nullable = false, length = 32)
     @Enumerated(EnumType.STRING)
     private PaymentMethod payment;
-    @Column(name="date")
+    @Column(name = "date")
     private LocalDateTime date;
+    @Column(columnDefinition = "TEXT")
+    private String comment;
 
 }

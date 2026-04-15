@@ -1,6 +1,8 @@
 package com.hekr.store.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
@@ -38,6 +40,4 @@ public class OrderItem{
     private BigDecimal priceAtPurchase;
     @Column(name="total_price",nullable = false,precision = 12,scale=2)
     private BigDecimal totalPrice;
-    @Column(columnDefinition = "TEXT",nullable = true)
-    private String comment;
 }
