@@ -1,16 +1,26 @@
 package com.hekr.store.dto;
 
-import lombok.Getter;
-import lombok.Setter;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
 
 
-@Getter
-@Setter
+@Schema(
+    description = "Запрос на создание склада",
+    example = """
+        {
+          "address": "г. Москва ул. Складская 12/2"
+        }
+        """
+)
+
+
+@Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class WarehouseRequestDto {

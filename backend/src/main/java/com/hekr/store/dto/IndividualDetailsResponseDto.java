@@ -4,12 +4,24 @@ import java.time.LocalDate;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Setter
-@Getter
+@Schema(
+    description = "Детали физического лица в ответе",
+    example = """
+        {
+          "firstName": "Иван",
+          "lastName": "Петров",
+          "midName": "Сергеевич",
+          "birthDate": "1990-05-15"
+        }
+        """
+)
+
+@Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class IndividualDetailsResponseDto {
@@ -24,11 +36,5 @@ public class IndividualDetailsResponseDto {
 
     @Schema(description = "Дата рождения физического лица", example = "1990-05-15", accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDate birthDate;
-
-    @Schema(description = "Номер телефона физического лица", example = "+7 (999) 123-45-67", accessMode = Schema.AccessMode.READ_ONLY)
-    private String phone;
-
-    @Schema(description = "Адрес электронной почты физического лица", example = "ivan.petrov@example.ru", accessMode = Schema.AccessMode.READ_ONLY)
-    private String email;
 
 }

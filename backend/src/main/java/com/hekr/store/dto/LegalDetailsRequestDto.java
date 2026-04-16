@@ -4,34 +4,46 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
+@Schema(
+    description = "Юридические детали компании для запроса",
+    example = """
+        {
+          "companyName": "ООО ХЕКР БЛОК",
+          "inn": "7707083892",
+          "kpp": "773601001",
+          "ogrn": "1027700132195",
+          "legalAddress": "г. Санкт-Петербург ул. Хекровская д. 67"
+        }
+        """
+)
+@Builder
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class LegalDetailsRequestDto {
 
     @NotBlank
-    @Schema(description = "Название компании", example = "ООО ХЕКР БЛОК", accessMode = Schema.AccessMode.WRITE_ONLY)
+    @Schema(description = "Название компании", example = "ООО ХЕКР БЛОК")
     private String companyName;
     
     @NotBlank
     @Size(max=12)
-    @Schema(description = "ИНН", example = "7707083892", accessMode = Schema.AccessMode.WRITE_ONLY)
+    @Schema(description = "ИНН компании", example = "7707083892")
     private String inn;
 
     @NotBlank
-    @Schema(description = "КПП", example = "773601001", accessMode = Schema.AccessMode.WRITE_ONLY)
+    @Schema(description = "КПП компании", example = "773601001")
     private String kpp;
 
     @NotBlank
-    @Schema(description = "ОГРН", example = "1027700132195", accessMode = Schema.AccessMode.WRITE_ONLY)
+    @Schema(description = "ОГРН компании", example = "1027700132195")
     private String ogrn;
 
     @NotBlank
-    @Schema(description = "Юридический адрес", example = "г. Санкт-Петербург ул. Хекровская д. 67", accessMode = Schema.AccessMode.WRITE_ONLY)
+    @Schema(description = "Юридический адрес компании", example = "г. Санкт-Петербург ул. Хекровская д. 67")
     private String legalAddress;
 }

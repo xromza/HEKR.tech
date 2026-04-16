@@ -8,14 +8,15 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "legal_details")
-@Getter
-@Setter
+
+@Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class LegalDetails {

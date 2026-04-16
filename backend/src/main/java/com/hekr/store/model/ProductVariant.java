@@ -2,6 +2,7 @@ package com.hekr.store.model;
 
 import java.math.BigDecimal;
 
+import org.hibernate.annotations.ColumnDefault;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,14 +14,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "product_variants")
-@Getter
-@Setter
+@Builder
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductVariant {
@@ -43,4 +44,9 @@ public class ProductVariant {
 
     @Column(length = 128, unique = true)
     private String sku;
+
+    @Column(name = "is_active", nullable = false)
+    @ColumnDefault("true")
+    @Builder.Default
+    private Boolean isActive = true;
 }
