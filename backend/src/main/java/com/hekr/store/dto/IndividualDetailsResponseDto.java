@@ -4,9 +4,9 @@ import java.time.LocalDate;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Schema(
     description = "Детали физического лица в ответе",
@@ -19,8 +19,9 @@ import lombok.Setter;
         }
         """
 )
-@Setter
-@Getter
+
+@Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class IndividualDetailsResponseDto {

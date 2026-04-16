@@ -5,9 +5,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import lombok.Setter;
-import lombok.Getter;
-
+import lombok.Builder;
+import lombok.Data;
 @Schema(
     description = "Запрос на добавление товара в корзину",
     example = """
@@ -19,8 +18,8 @@ import lombok.Getter;
 )
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@Builder
+@Data
 
 public class CartRequestDto {
     @Schema(description = "Id варианта товара", example = "3")

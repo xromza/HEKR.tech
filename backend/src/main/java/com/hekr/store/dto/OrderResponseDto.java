@@ -5,8 +5,8 @@ import com.hekr.store.utils.Status;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import lombok.Setter;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -49,8 +49,9 @@ import java.util.List;
         }
         """
 )
-@Getter
-@Setter
+
+@Builder
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderResponseDto{

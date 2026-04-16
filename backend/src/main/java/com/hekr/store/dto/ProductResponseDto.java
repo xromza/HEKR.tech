@@ -42,6 +42,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
         }
         """
 )
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductResponseDto {
     
     @Schema(description = "Уникальный идентификатор продукта", example = "1")

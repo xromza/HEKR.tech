@@ -3,8 +3,8 @@ package com.hekr.store.model;
 import jakarta.persistence.Entity;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import lombok.Setter;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
@@ -16,8 +16,8 @@ import jakarta.persistence.MapsId;
 import java.math.BigDecimal;
 
 @Entity
-@Getter
-@Setter
+@Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name="order_items")

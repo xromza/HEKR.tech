@@ -1,13 +1,12 @@
 package com.hekr.store.dto;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Schema(
@@ -34,8 +33,9 @@ import lombok.NoArgsConstructor;
         }
         """
 )
-@Getter
-@Setter
+
+@Builder
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponseDto {

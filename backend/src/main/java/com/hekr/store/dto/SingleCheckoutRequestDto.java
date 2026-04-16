@@ -6,8 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import lombok.Setter;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 
 @Schema(
     description = "Запрос на оформление заказа для одного товара",
@@ -22,8 +22,9 @@ import lombok.Getter;
         }
         """
 )
-@Getter
-@Setter
+
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class SingleCheckoutRequestDto {

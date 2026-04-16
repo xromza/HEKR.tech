@@ -3,8 +3,8 @@ package com.hekr.store.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import lombok.Setter;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import java.math.BigDecimal;
 
 @Schema(
@@ -22,8 +22,9 @@ import java.math.BigDecimal;
         }
         """
 )
-@Setter
-@Getter
+
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 

@@ -9,19 +9,18 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.io.Serializable;
 
 @Entity
 @Table(name = "stock", schema = "public")
 @IdClass(StockId.class)
-@Getter 
-@Setter
+@Builder
+@Data
 public class Stock {
 
     @Id
@@ -33,7 +32,7 @@ public class Stock {
     private Long warehouseId;
 
     @Column(nullable = false)
-    private Long quantity = 0L;
+    private Long quantity;
 
     
     @ManyToOne(fetch = FetchType.LAZY)

@@ -5,8 +5,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import lombok.Setter;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 
 @Schema(
     description = "Запрос на элемент заказа",
@@ -18,8 +18,8 @@ import lombok.Getter;
         """
 )
 @AllArgsConstructor
-@Getter
-@Setter
+@Data
+@Builder
 @NoArgsConstructor
 
 public class OrderItemRequestDto {

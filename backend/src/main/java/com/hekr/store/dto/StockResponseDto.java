@@ -1,9 +1,9 @@
 package com.hekr.store.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -18,8 +18,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
         }
         """
 )
-@Getter
-@Setter
+
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class StockResponseDto {
@@ -33,5 +34,6 @@ public class StockResponseDto {
     private String address;
 
     @Schema(description = "Количество товара на складе", example = "50")
+    @Builder.Default
     private Long quantity = 0L;
 }

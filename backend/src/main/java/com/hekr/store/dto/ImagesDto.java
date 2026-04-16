@@ -8,8 +8,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import lombok.Setter;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 
 @Schema(
     description = "Информация об изображении товара",
@@ -25,9 +25,8 @@ import lombok.Getter;
 )
 @NoArgsConstructor
 @AllArgsConstructor
-@Setter
-@Getter
-
+@Builder
+@Data
 public class ImagesDto {
     @Schema(description = "Идентификатор изображения", example = "67", nullable = true)
     private Long id;

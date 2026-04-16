@@ -18,13 +18,14 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "products")
-@Getter @Setter
+@Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
@@ -49,13 +50,15 @@ public class Product {
     private BigDecimal priceWholesale;
 
     @Column(name = "wholesale_threshold", nullable = false)
+    @Builder.Default
     private Integer wholesaleThreshold = 10;
 
-    // Двунаправленная связь с вариантами
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<ProductVariant> variants = new ArrayList<>();
     
     @Column(name = "is_active", nullable = false)
     @ColumnDefault("true")
+    @Builder.Default
     private Boolean isActive = true;
 }

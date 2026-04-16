@@ -12,14 +12,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "user_tokens")
-@Getter
-@Setter
+@Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserToken {
@@ -38,6 +38,7 @@ public class UserToken {
     private LocalDateTime expiryDate;
 
     @Column(nullable = false)
+    @Builder.Default
     private Boolean revoked = false;
 
 }

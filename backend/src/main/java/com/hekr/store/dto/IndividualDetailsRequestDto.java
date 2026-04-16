@@ -5,9 +5,9 @@ import java.time.LocalDate;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Schema(
     description = "Детали физического лица для запроса",
@@ -22,8 +22,9 @@ import lombok.Setter;
         }
         """
 )
-@Setter
-@Getter
+
+@Builder
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class IndividualDetailsRequestDto {
