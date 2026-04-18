@@ -7,9 +7,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 
 @Schema(
     description = "Информация об изображении товара",
@@ -26,7 +27,8 @@ import lombok.Data;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Data
+@Getter
+@Setter
 public class ImagesDto {
     @Schema(description = "Идентификатор изображения", example = "67", nullable = true)
     private Long id;

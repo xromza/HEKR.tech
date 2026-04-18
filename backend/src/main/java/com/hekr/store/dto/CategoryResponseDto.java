@@ -2,8 +2,12 @@ package com.hekr.store.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(
@@ -16,7 +20,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
         """
 )
 @Builder
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class CategoryResponseDto {
@@ -25,4 +30,7 @@ public class CategoryResponseDto {
     
     @Schema(description = "Название категории", example = "Аксессуары")
     private String name;
+
+    @Schema(description = "Скидка в данной категории", example="0.05")
+    private BigDecimal discount;
 }

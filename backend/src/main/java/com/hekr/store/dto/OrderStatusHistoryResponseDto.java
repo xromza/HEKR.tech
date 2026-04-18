@@ -2,9 +2,10 @@ package com.hekr.store.dto;
 
 import com.hekr.store.utils.Status;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
@@ -24,7 +25,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Data
+@Getter
+@Setter
 
 public class OrderStatusHistoryResponseDto {
     @Schema(description = "Идентификатор заказа", example = "69")

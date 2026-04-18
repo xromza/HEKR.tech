@@ -4,9 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 
 @Schema(
     description = "Запрос на элемент заказа",
@@ -18,7 +19,8 @@ import lombok.Data;
         """
 )
 @AllArgsConstructor
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 

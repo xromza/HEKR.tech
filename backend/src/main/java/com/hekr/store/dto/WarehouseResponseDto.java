@@ -2,8 +2,9 @@ package com.hekr.store.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 
@@ -19,7 +20,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 )
 
 @Builder
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class WarehouseResponseDto {

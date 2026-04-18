@@ -4,9 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 @Schema(
     description = "Запрос на добавление товара в корзину",
     example = """
@@ -19,7 +20,8 @@ import lombok.Data;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Data
+@Getter
+@Setter
 
 public class CartRequestDto {
     @Schema(description = "Id варианта товара", example = "3")

@@ -2,9 +2,11 @@ package com.hekr.store.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+
 import java.math.BigDecimal;
 
 /**
@@ -34,7 +36,8 @@ import java.math.BigDecimal;
         }
         """
 )
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
