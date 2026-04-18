@@ -2,20 +2,23 @@ package com.hekr.store.model;
 
 import jakarta.persistence.Entity;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.JoinColumn;
+
 import jakarta.persistence.Column;
 
 @Entity
 @Builder
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name="carts")
@@ -33,3 +36,5 @@ public class Cart {
     @Column(nullable = false)
     private Long quantity;
 }
+
+

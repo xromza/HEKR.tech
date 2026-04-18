@@ -1,26 +1,27 @@
 package com.hekr.store.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hekr.store.utils.ImageType;
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Builder
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@Entity
 @Table(name="images")
-public class Image{
+public class Image {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(columnDefinition = "TEXT",nullable = false)
     private String url;
     @Enumerated(EnumType.STRING)
@@ -30,8 +31,8 @@ public class Image{
     private Integer sortOrder;
     @Column(name="created_at")
     private LocalDateTime createdAt;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="product_variant_id",nullable = false)
-    @JsonIgnore
+    @JoinColumn(name="variant_id",nullable = false)
     private ProductVariant variant;
 }

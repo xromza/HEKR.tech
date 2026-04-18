@@ -5,4 +5,7 @@ import java.io.Serializable;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
-public record CartItemId(Long userId, Long variantId) implements Serializable{}
+public record StockId (
+    Long variantId, 
+    Long warehouseId
+) implements Serializable {};

@@ -12,12 +12,14 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Builder
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name="discounts")
@@ -28,7 +30,7 @@ public class Discount {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId 
     @JoinColumn(name = "category_id")
-    private Category category;
+    private Category category; 
 
     @Column(nullable = false, precision = 3, scale = 2)
     private BigDecimal discount;

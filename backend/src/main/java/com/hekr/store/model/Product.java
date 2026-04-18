@@ -19,15 +19,18 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
-@Entity
 @Table(name = "products")
-@Builder
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
+@Entity
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,6 +58,7 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @ToString.Exclude
     private List<ProductVariant> variants = new ArrayList<>();
     
     @Column(name = "is_active", nullable = false)
