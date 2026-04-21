@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import com.hekr.store.model.User;
 import com.hekr.store.model.UserToken;
 import com.hekr.store.repository.UserRepository;
-import com.hekr.store.repository.UserTokenRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -29,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JwtService {
 
-    private final UserTokenRepository userTokenRepository;
     private final UserRepository userRepository;
     @Value("${application.security.jwt.secret-key}")
     private String secretKey;
