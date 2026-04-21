@@ -51,6 +51,8 @@ public class AuthService {
         return AuthResponseDto.builder()
                               .accessToken(jwtToken)
                               .refreshToken(refreshToken.getToken())
+                              .description("Successful registered")
+                              .role(user.getRole())
                               .build();
                         
     }
@@ -70,6 +72,8 @@ public class AuthService {
         return AuthResponseDto.builder()
                                 .accessToken(jwtToken)
                                 .refreshToken(refreshToken)
+                                .role(user.getRole())
+                                .description("Token refreshed")
                                 .build();
     }
 
@@ -89,6 +93,8 @@ public class AuthService {
         return AuthResponseDto.builder()
                               .accessToken(jwtToken)
                               .refreshToken(refreshToken.getToken())
+                              .description("Успешный вход")
+                              .role(user.getRole())
                               .build();
     }
 
