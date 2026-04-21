@@ -27,7 +27,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
-                        .requestMatchers("/api/v1/auth/*").permitAll()
+                        .requestMatchers("/api/v1/auth").permitAll()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/products").permitAll()
                         .requestMatchers("/api/v1/products/*").permitAll()
                         .requestMatchers("/api/v1/profile").hasAnyRole("ADMIN", "CLIENT", "MANAGER")
@@ -37,7 +38,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/orders").hasAnyRole("ADMIN", "CLIENT", "MANAGER")
                         .requestMatchers("/api/v1/orders/single").hasAnyRole("ADMIN", "CLIENT", "MANAGER")
                         .requestMatchers("/api/v1/order_history").hasAnyRole("ADMIN", "CLIENT", "MANAGER")
-                        .requestMatchers("/api/v1/order_history").hasAnyRole("ADMIN", "CLIENT", "MANAGER")
+                        .requestMatchers("/api/v1/order_history/**").hasAnyRole("ADMIN", "CLIENT", "MANAGER")
 
                         .requestMatchers(HttpMethod.POST, "/api/v1/admin/products").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/products/*").hasRole("ADMIN")
