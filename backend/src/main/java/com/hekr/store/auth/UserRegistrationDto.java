@@ -54,6 +54,10 @@ public class UserRegistrationDto {
     @Schema(description = "Отчество физического лица", example = "Сергеевич")
     private String midName;
 
+    private String passportNumber;
+    
+    private String passportSeries;
+
     @Schema(description = "Дата рождения физического лица", example = "1990-05-15")
     private LocalDate birthDate;
 
