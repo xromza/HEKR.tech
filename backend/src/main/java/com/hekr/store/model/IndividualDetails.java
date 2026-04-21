@@ -24,11 +24,9 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class IndividualDetails {
-    
     @Id
-    @Column(name = "user_id")
-    private Long userId;
-
+    private Long id;
+    
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "user_id")
