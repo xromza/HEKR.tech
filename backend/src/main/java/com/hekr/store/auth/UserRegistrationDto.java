@@ -28,11 +28,11 @@ public class UserRegistrationDto {
     @Schema(description = "Пароль пользователя", example = "most_secure_password23@3")
     private String password;
     @NotBlank
-    @Schema(description = "Роль пользователя", example = "LEGAL")
+    @Schema(description = "Роль пользователя", example = "CLIENT")
     private String role;
 
     @Size(max = 32)
-    @Schema(description = "Тип клиента", example = "COMPANY")
+    @Schema(description = "Тип клиента", example = "LEGAL")
     private ClientType clientType;
     @NotBlank
     @Size(max = 20)

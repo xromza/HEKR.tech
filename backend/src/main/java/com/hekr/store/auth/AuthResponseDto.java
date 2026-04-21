@@ -1,5 +1,9 @@
 package com.hekr.store.auth;
 
+import com.hekr.store.utils.UserRole;
+
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,4 +16,9 @@ import lombok.NoArgsConstructor;
 public class AuthResponseDto {
     private String accessToken;
     private String refreshToken;
+    @Builder.Default
+    private String type = "Bearer";
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
+    private String description;
 }
