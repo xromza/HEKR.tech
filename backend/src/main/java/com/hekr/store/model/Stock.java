@@ -28,7 +28,7 @@ public class Stock {
     private StockId id;
 
     @Column(nullable = false)
-    private Long quantity;
+    private Integer quantity;
 
     
     @ManyToOne(fetch = FetchType.LAZY)
