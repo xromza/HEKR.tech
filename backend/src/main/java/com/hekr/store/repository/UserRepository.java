@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.hekr.store.model.User;
+import com.hekr.store.model.user.User;
 
 
 public interface UserRepository extends JpaRepository<User, Long> {

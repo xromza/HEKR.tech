@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.hekr.store.model.Cart;
-import com.hekr.store.model.CartItemId;
+import com.hekr.store.model.cart.Cart;
+import com.hekr.store.model.cart.CartItemId;
 
 import jakarta.transaction.Transactional;
 

@@ -6,7 +6,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import com.hekr.store.model.UserToken;
+import com.hekr.store.model.user.UserToken;
 
 public interface UserTokenRepository extends JpaRepository<UserToken, Long> {
     @Query("SELECT ut FROM UserToken ut WHERE ut.token = :token AND ut.revoked = false")

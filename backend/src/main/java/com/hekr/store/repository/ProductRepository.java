@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import com.hekr.store.model.Product;
+import com.hekr.store.model.product.Product;
 
 public interface ProductRepository  extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.variants WHERE p.id = :id")

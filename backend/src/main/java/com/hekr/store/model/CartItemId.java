@@ -1,8 +1,0 @@
-package com.hekr.store.model;
-
-import java.io.Serializable;
-
-import jakarta.persistence.Embeddable;
-
-@Embeddable
-public record CartItemId(Long userId, Long variantId) implements Serializable{}

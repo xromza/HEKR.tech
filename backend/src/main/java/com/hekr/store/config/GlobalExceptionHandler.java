@@ -7,7 +7,7 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.hekr.store.dto.ErrorResponseDto;
+import com.hekr.store.dto.error.ErrorResponseDto;
 import com.hekr.store.exceptions.UserAlreadyExistsException;
 
 @RestControllerAdvice

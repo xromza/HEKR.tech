@@ -3,17 +3,16 @@ package com.hekr.store.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hekr.store.auth.AuthRefreshRequestDto;
-import com.hekr.store.auth.AuthRequestDto;
-import com.hekr.store.auth.AuthResponseDto;
-import com.hekr.store.auth.UserRegistrationDto;
-import com.hekr.store.dto.StatusDto;
+import com.hekr.store.dto.auth.AuthRefreshRequestDto;
+import com.hekr.store.dto.auth.AuthRequestDto;
+import com.hekr.store.dto.auth.AuthResponseDto;
+import com.hekr.store.dto.auth.UserRegistrationDto;
+import com.hekr.store.dto.status.StatusDto;
 import com.hekr.store.service.AuthService;
 
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.catalina.connector.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

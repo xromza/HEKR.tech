@@ -14,8 +14,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.hekr.store.model.User;
-import com.hekr.store.model.UserToken;
+import com.hekr.store.model.user.User;
+import com.hekr.store.model.user.UserToken;
 import com.hekr.store.repository.UserRepository;
 
 import io.jsonwebtoken.Claims;

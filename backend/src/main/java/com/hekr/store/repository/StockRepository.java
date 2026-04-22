@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.hekr.store.model.Stock;
-import com.hekr.store.model.StockId;
+import com.hekr.store.model.stock.Stock;
+import com.hekr.store.model.stock.StockId;
 
 public interface StockRepository extends JpaRepository<Stock, StockId> {
     @Query("SELECT s FROM Stock s LEFT JOIN s.variant WHERE s.id.variantId = :variantId")

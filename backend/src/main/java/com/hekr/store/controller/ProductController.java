@@ -1,15 +1,12 @@
 package com.hekr.store.controller;
 
-import com.hekr.store.mapper.ProductCatalogResponseMapper;
-import com.hekr.store.mapper.ProductCatalogResponseMapperImpl;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hekr.store.dto.ProductCatalogResponseDto;
-import com.hekr.store.dto.ProductDtoInterface;
-import com.hekr.store.dto.ProductResponseDto;
-import com.hekr.store.mapper.ProductMapper;
-import com.hekr.store.model.Product;
+import com.hekr.store.interfaces.ProductDtoInterface;
+import com.hekr.store.mapper.product.ProductCatalogResponseMapper;
+import com.hekr.store.mapper.product.ProductMapper;
+import com.hekr.store.model.product.Product;
 import com.hekr.store.repository.ProductRepository;
 
 import io.swagger.v3.oas.annotations.tags.Tag;

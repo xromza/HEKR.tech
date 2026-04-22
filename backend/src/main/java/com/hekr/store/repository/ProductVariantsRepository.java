@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.hekr.store.model.ProductVariant;
+import com.hekr.store.model.product.ProductVariant;
 
 
 public interface ProductVariantsRepository extends JpaRepository<ProductVariant, Long> {

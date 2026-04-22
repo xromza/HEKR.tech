@@ -2,6 +2,6 @@ package com.hekr.store.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.hekr.store.model.Discount;
+import com.hekr.store.model.discount.Discount;
 
 public interface DiscountRepository extends JpaRepository<Discount, Long> { }
