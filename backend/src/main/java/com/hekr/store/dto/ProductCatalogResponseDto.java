@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductCatalogResponseDto {
+public class ProductCatalogResponseDto implements ProductDtoInterface {
     @Schema(description = "Уникальный идентификатор продукта", example = "1")
     private Long id;
     

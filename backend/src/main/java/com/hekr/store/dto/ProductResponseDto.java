@@ -48,7 +48,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductResponseDto {
+public class ProductResponseDto implements ProductDtoInterface {
     
     @Schema(description = "Уникальный идентификатор продукта", example = "1")
     private Long id;

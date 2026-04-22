@@ -62,11 +62,11 @@ public class OrderResponseDto{
     @Schema(description = "Идентификатор склада", example = "7")
     private Long warehouseId;
     @Schema(description = "Общая стоимость заказа", example = "1337.00", minimum = "0.01")
-    private BigDecimal total_price;
+    private BigDecimal totalPrice;
     @Schema(description = "Адрес доставки", example = "г. Токио, ул. Костенко 67, д.10")
     private String address;
     @Schema(description = "Способ оплаты", example = "CASH")
-    private PaymentMethod payment_method;
+    private PaymentMethod paymentMethod;
     @Schema(description = "Статус заказа", example = "SHIPPED")
     private Status status;
     @Schema(description = "Дата создания заказа", example = "2026-04-14T12:30:00")

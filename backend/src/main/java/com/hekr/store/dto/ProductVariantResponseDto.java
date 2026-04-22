@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -56,6 +57,8 @@ public class ProductVariantResponseDto {
     private String size;
     @Schema(description = "Цвет варианта", example = "Черный")
     private String color;
+    @Schema(description = "Вес товара в кг", example = "1")
+    private BigDecimal weight;
     @Schema(description = "Информация о запасах на складах")
     private List<StockResponseDto> stock;
     @Schema(description = "Активен ли вариант", example = "true")
