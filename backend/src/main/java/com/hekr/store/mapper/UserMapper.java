@@ -1,6 +1,6 @@
 package com.hekr.store.mapper;
 
-import com.hekr.store.dto.UserRegistrationDto;
+import com.hekr.store.auth.UserRegistrationDto;
 import com.hekr.store.dto.UserResponseDto;
 import com.hekr.store.model.IndividualDetails;
 import com.hekr.store.model.LegalDetails;
@@ -9,31 +9,21 @@ import org.mapstruct.*;
 
 import java.util.List;
 
-
 @Mapper(componentModel = "spring")
-
 public interface UserMapper {
-    @Mapping(target="id",ignore = true)
-    @Mapping(target = "createdAt",ignore = true)
-    @Mapping(target = "isApproved",ignore = true)
-    @Mapping(target="passwordHash",source = "password")
-    @Mapping(target="individualDetails",ignore = true)
-    @Mapping(target = "legalDetails",ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "isApproved", ignore = true)
+    @Mapping(target = "passwordHash", source = "password")
+    @Mapping(target = "individualDetails", ignore = true)
+    @Mapping(target = "legalDetails", ignore = true)
+    @Mapping(target = "role", source = "role")
+    @Mapping(target = "clientType", source = "clientType")
+    @Mapping(target = "login", source = "login")
+    @Mapping(target = "phone", source = "phone")
+    @Mapping(target = "email", source = "email")
     User toEntity(UserRegistrationDto registrationDto);
 
-    @Mapping(target = "passwordHash",ignore = true)
-    @Mapping(target = "firstName", source = "individualDetails.firstName")
-    @Mapping(target = "lastName", source = "individualDetails.lastName")
-    @Mapping(target = "midName", source = "individualDetails.midName")
-    @Mapping(target = "birthDate", source = "individualDetails.birthDate")
-    @Mapping(target = "companyName", source = "legalDetails.companyName")
-    @Mapping(target = "inn", source = "legalDetails.inn")
-    @Mapping(target = "kpp", source = "legalDetails.kpp")
-    @Mapping(target = "ogrn", source = "legalDetails.ogrn")
-    @Mapping(target = "legalAddress", source = "legalDetails.legalAddress")
-    UserResponseDto toResponse(User user);
-
-    List<UserResponseDto> toResponseList(List<User> user);
     @AfterMapping
     default void mapDetails(UserRegistrationDto dto, @MappingTarget User user) {
         if (hasData(dto.getFirstName(), dto.getLastName(), dto.getMidName(), dto.getBirthDate())) {
@@ -56,6 +46,51 @@ public interface UserMapper {
             user.setLegalDetails(leg);
         }
     }
+
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "login", source = "login")
+    @Mapping(target = "role", source = "role")
+    @Mapping(target = "createdAt", source = "createdAt")
+    @Mapping(target = "isApproved", source = "isApproved")
+    @Mapping(target = "clientType", source = "clientType")
+    @Mapping(target = "phone", source = "phone")
+    @Mapping(target = "email", source = "email")
+    @Mapping(target = "firstName", ignore = true)
+    @Mapping(target = "lastName", ignore = true)
+    @Mapping(target = "midName", ignore = true)
+    @Mapping(target = "birthDate", ignore = true)
+    @Mapping(target = "companyName", ignore = true)
+    @Mapping(target = "inn", ignore = true)
+    @Mapping(target = "kpp", ignore = true)
+    @Mapping(target = "ogrn", ignore = true)
+    @Mapping(target = "legalAddress", ignore = true)
+    UserResponseDto toResponse(User user);
+
+    @AfterMapping
+    default void mapIndividualDetailsToResponse(User user, @MappingTarget UserResponseDto dto) {
+        if (user.getIndividualDetails() != null) {
+            IndividualDetails details = user.getIndividualDetails();
+            dto.setFirstName(details.getFirstName());
+            dto.setLastName(details.getLastName());
+            dto.setMidName(details.getMidName());
+            dto.setBirthDate(details.getBirthDate());
+        }
+    }
+
+    @AfterMapping
+    default void mapLegalDetailsToResponse(User user, @MappingTarget UserResponseDto dto) {
+        if (user.getLegalDetails() != null) {
+            LegalDetails details = user.getLegalDetails();
+            dto.setCompanyName(details.getCompanyName());
+            dto.setInn(details.getInn());
+            dto.setKpp(details.getKpp());
+            dto.setOgrn(details.getOgrn());
+            dto.setLegalAddress(details.getLegalAddress());
+        }
+    }
+
+    List<UserResponseDto> toResponseList(List<User> users);
+
     private boolean hasData(Object... values) {
         for (Object v : values) if (v != null) return true;
         return false;
