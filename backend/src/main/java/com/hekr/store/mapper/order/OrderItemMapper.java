@@ -25,26 +25,32 @@ public interface OrderItemMapper {
     OrderItemResponseDto toDto(OrderItem orderItem);
 
     @AfterMapping
-    default void setMainImageUrl(OrderItem orderItem, @MappingTarget OrderItemResponseDto dto) {
+    default void setMainImageUrl(OrderItem orderItem,
+            @MappingTarget OrderItemResponseDto.OrderItemResponseDtoBuilder dtoBuilder) {
         if (orderItem.getProductVariant() != null && orderItem.getProductVariant().getImages() != null) {
             Optional<String> mainImageUrl = orderItem.getProductVariant().getImages().stream()
-                .filter(img -> img.getType() == ImageType.MAIN)
-                .map(Image::getUrl)
-                .findFirst()
-                .or(() -> orderItem.getProductVariant().getImages().stream()
+                    .filter(img -> img.getType() == ImageType.THUMBNAIL)
                     .map(Image::getUrl)
-                    .findFirst());
-            mainImageUrl.ifPresent(dto::setMainImageUrl);
+                    .findFirst()
+                    .or(() -> orderItem
+                            .getProductVariant()
+                            .getImages()
+                            .stream()
+                            .map(Image::getUrl)
+                            .findFirst());
+            mainImageUrl.ifPresent(dtoBuilder::mainImageUrl);
         }
     }
 
     @AfterMapping
-    default void setAvailableStock(OrderItem orderItem, @MappingTarget OrderItemResponseDto dto) {
-        if (orderItem.getProductVariant() != null && orderItem.getProductVariant().getStocks() != null && !orderItem.getProductVariant().getStocks().isEmpty()) {
+    default void setAvailableStock(OrderItem orderItem,
+            @MappingTarget OrderItemResponseDto.OrderItemResponseDtoBuilder dtoBuilder) {
+        if (orderItem.getProductVariant() != null && orderItem.getProductVariant().getStocks() != null
+                && !orderItem.getProductVariant().getStocks().isEmpty()) {
             Long totalStock = orderItem.getProductVariant().getStocks().stream()
-                .mapToLong(stock -> stock.getQuantity())
-                .sum();
-            dto.setAvailableStock(totalStock.intValue());
+                    .mapToLong(stock -> stock.getQuantity())
+                    .sum();
+            dtoBuilder.availableStock(totalStock.intValue());
         }
     }
 

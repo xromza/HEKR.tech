@@ -7,7 +7,6 @@ import com.hekr.store.utils.ImageType;
 import org.mapstruct.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @Mapper(componentModel = "spring")
 public interface ProductCatalogResponseMapper {
@@ -22,19 +21,29 @@ public interface ProductCatalogResponseMapper {
     ProductCatalogResponseDto toResponse(Product product);
 
     @AfterMapping
-    default void setMainImageUrl(Product product, @MappingTarget ProductCatalogResponseDto dto) {
-        if (product.getVariants() != null && !product.getVariants().isEmpty()) {
-            Optional<String> mainImageUrl = product.getVariants().stream()
+    default void setMainImageUrl(Product product,
+            @MappingTarget ProductCatalogResponseDto.ProductCatalogResponseDtoBuilder dtoBuilder) {
+        if (product.getVariants() == null)
+            return;
+
+        product.getVariants().stream()
+                .filter(v -> v.getImages() != null)
                 .flatMap(v -> v.getImages().stream())
-                .filter(img -> img.getType() == ImageType.MAIN)
+                .filter(img -> img.getType() == ImageType.THUMBNAIL)
                 .map(Image::getUrl)
                 .findFirst()
                 .or(() -> product.getVariants().stream()
-                    .flatMap(v -> v.getImages().stream())
-                    .map(Image::getUrl)
-                    .findFirst());
-            mainImageUrl.ifPresent(dto::setMainImageUrl);
-        }
+                        .filter(v -> v.getImages() != null)
+                        .flatMap(v -> v.getImages().stream())
+                        .filter(img -> img.getType() == ImageType.MAIN)
+                        .map(Image::getUrl)
+                        .findFirst())
+                .or(() -> product.getVariants().stream()
+                        .filter(v -> v.getImages() != null)
+                        .flatMap(v -> v.getImages().stream())
+                        .map(Image::getUrl)
+                        .findFirst())
+                .ifPresent(dtoBuilder::mainImageUrl);
     }
 
     List<ProductCatalogResponseDto> toResponseList(List<Product> products);

@@ -26,25 +26,23 @@ public interface UserMapper {
     User toEntity(UserRegistrationDto registrationDto);
 
     @AfterMapping
-    default void mapDetails(UserRegistrationDto dto, @MappingTarget User user) {
+    default void mapDetails(UserRegistrationDto dto, @MappingTarget User.UserBuilder userBuilder) {
         if (hasData(dto.getFirstName(), dto.getLastName(), dto.getMidName(), dto.getBirthDate())) {
             IndividualDetails ind = new IndividualDetails();
-            ind.setUser(user);
             ind.setFirstName(dto.getFirstName());
             ind.setLastName(dto.getLastName());
             ind.setMidName(dto.getMidName());
             ind.setBirthDate(dto.getBirthDate());
-            user.setIndividualDetails(ind);
+            userBuilder.individualDetails(ind);
         }
         if (hasData(dto.getCompanyName(), dto.getInn(), dto.getKpp(), dto.getOgrn(), dto.getLegalAddress())) {
             LegalDetails leg = new LegalDetails();
-            leg.setUser(user);
             leg.setCompanyName(dto.getCompanyName());
             leg.setInn(dto.getInn());
             leg.setKpp(dto.getKpp());
             leg.setOgrn(dto.getOgrn());
             leg.setLegalAddress(dto.getLegalAddress());
-            user.setLegalDetails(leg);
+            userBuilder.legalDetails(leg);
         }
     }
 
@@ -68,32 +66,31 @@ public interface UserMapper {
     UserResponseDto toResponse(User user);
 
     @AfterMapping
-    default void mapIndividualDetailsToResponse(User user, @MappingTarget UserResponseDto dto) {
+    default void fillDetails(User user, @MappingTarget UserResponseDto.UserResponseDtoBuilder dtoBuilder) {
         if (user.getIndividualDetails() != null) {
             IndividualDetails details = user.getIndividualDetails();
-            dto.setFirstName(details.getFirstName());
-            dto.setLastName(details.getLastName());
-            dto.setMidName(details.getMidName());
-            dto.setBirthDate(details.getBirthDate());
+            dtoBuilder.firstName(details.getFirstName())
+                    .lastName(details.getLastName())
+                    .midName(details.getMidName())
+                    .birthDate(details.getBirthDate());
         }
-    }
 
-    @AfterMapping
-    default void mapLegalDetailsToResponse(User user, @MappingTarget UserResponseDto dto) {
         if (user.getLegalDetails() != null) {
             LegalDetails details = user.getLegalDetails();
-            dto.setCompanyName(details.getCompanyName());
-            dto.setInn(details.getInn());
-            dto.setKpp(details.getKpp());
-            dto.setOgrn(details.getOgrn());
-            dto.setLegalAddress(details.getLegalAddress());
+            dtoBuilder.companyName(details.getCompanyName())
+                    .inn(details.getInn())
+                    .kpp(details.getKpp())
+                    .ogrn(details.getOgrn())
+                    .legalAddress(details.getLegalAddress());
         }
     }
 
     List<UserResponseDto> toResponseList(List<User> users);
 
     private boolean hasData(Object... values) {
-        for (Object v : values) if (v != null) return true;
+        for (Object v : values)
+            if (v != null)
+                return true;
         return false;
     }
 }
