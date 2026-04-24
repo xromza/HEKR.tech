@@ -6,40 +6,100 @@ import org.springframework.web.bind.annotation.RestController;
 import com.hekr.store.dto.auth.AuthRefreshRequestDto;
 import com.hekr.store.dto.auth.AuthRequestDto;
 import com.hekr.store.dto.auth.AuthResponseDto;
+import com.hekr.store.dto.auth.AuthResult;
 import com.hekr.store.dto.auth.UserRegistrationDto;
 import com.hekr.store.dto.status.StatusDto;
 import com.hekr.store.service.AuthService;
 
-
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Arrays;
+
+import org.jspecify.annotations.NonNull;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
 
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
-    
+
     @PostMapping("/login")
     public ResponseEntity<AuthResponseDto> login(@RequestBody AuthRequestDto request) {
-        return ResponseEntity.ok(authService.authenticate(request));
+        AuthResult result = authService.authenticate(request);
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", result.getRefreshToken().getToken())
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(result.getRefreshTokenDuration())
+                .sameSite("Lax")
+                .build();
+
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(result.getAuthResponseDto());
     }
-    
+
     @PostMapping("/register")
     public ResponseEntity<AuthResponseDto> register(@RequestBody UserRegistrationDto request) {
-        return ResponseEntity.ok(authService.register(request));
+
+        AuthResult result = authService.register(request);
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", result.getRefreshToken().getToken())
+                .httpOnly(true)
+                .secure(false)
+                .path("/")
+                .maxAge(result.getRefreshTokenDuration())
+                .sameSite("Lax")
+                .build();
+
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(result.getAuthResponseDto());
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<AuthResponseDto> refresh(@RequestBody AuthRefreshRequestDto request) {
-        return ResponseEntity.ok(authService.refreshAccessToken(request));
+    public ResponseEntity<AuthResponseDto> refresh(@NonNull HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        String refreshToken = null;
+
+        if (cookies != null) {
+            refreshToken = Arrays
+                    .stream(cookies)
+                    .filter(cookie -> "refreshToken".equals(cookie.getName()))
+                    .map(Cookie::getValue)
+                    .findFirst()
+                    .orElse(null);
+        }
+        if (refreshToken == null) {
+            throw new BadCredentialsException("Отсутствует токен");
+        }
+
+        AuthResult result = authService.refreshAccessToken(refreshToken);
+
+        return ResponseEntity.ok(result.getAuthResponseDto());
     }
+
     @PostMapping("/logout")
     public ResponseEntity<StatusDto> logout(@RequestBody AuthRefreshRequestDto request) {
-        return ResponseEntity.ok(authService.logout(request));
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .build();
+        return ResponseEntity
+                .ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(authService.logout(request));
     }
 }
