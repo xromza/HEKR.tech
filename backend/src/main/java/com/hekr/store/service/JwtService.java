@@ -52,23 +52,23 @@ public class JwtService {
     }
 
     public UserToken generateRefreshToken(UserDetails userDetails) {
-        User user = userRepository.findByLogin(userDetails.getUsername()).orElseThrow(() -> new UsernameNotFoundException("User not found during token generation"));
+        User user = userRepository.findByLogin(userDetails.getUsername())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found during token generation"));
         String refreshToken = buildToken(new HashMap<>(), userDetails, refreshExpiration);
         UserToken userToken = UserToken
-        .builder()
-        .token(refreshToken)
-        .revoked(false)
-        .user(user)
-        .expiryDate(LocalDateTime.now().plus(refreshExpiration, ChronoUnit.MILLIS))
-        .build();
+                .builder()
+                .token(refreshToken)
+                .revoked(false)
+                .user(user)
+                .expiryDate(LocalDateTime.now().plus(refreshExpiration, ChronoUnit.MILLIS))
+                .build();
         return userToken;
     }
 
     private String buildToken(
-        Map<String, Object> extraClaims,
-        UserDetails userDetails,
-        long expiration
-    ) {
+            Map<String, Object> extraClaims,
+            UserDetails userDetails,
+            long expiration) {
         return Jwts
                 .builder()
                 .claims(extraClaims)
@@ -88,7 +88,7 @@ public class JwtService {
         return extractExpiration(token).before(new Date());
     }
 
-    private Date extractExpiration(String token) {
+    public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 

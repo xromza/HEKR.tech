@@ -1,8 +1,10 @@
 package com.hekr.store.service;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.hekr.store.dto.auth.AuthRefreshRequestDto;
 import com.hekr.store.dto.auth.AuthRequestDto;
 import com.hekr.store.dto.auth.AuthResponseDto;
+import com.hekr.store.dto.auth.AuthResult;
 import com.hekr.store.dto.auth.UserRegistrationDto;
 import com.hekr.store.dto.status.StatusDto;
 import com.hekr.store.exceptions.UserAlreadyExistsException;
@@ -39,8 +42,11 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
+    @Value("${application.security.jwt.refresh-token.expiration}")
+    private long refreshExpiration;
+
     @Transactional
-    public AuthResponseDto register(UserRegistrationDto request) {
+    public AuthResult register(UserRegistrationDto request) {
         if (userRepository.existsByLogin(request.getLogin())) {
             throw new UserAlreadyExistsException("Пользователь с данным логином уже существует");
         }
@@ -48,58 +54,62 @@ public class AuthService {
             throw new UserAlreadyExistsException("Пользователь с данным email уже существует");
         }
         User user = User.builder()
-                        .login(request.getLogin())
-                        .email(request.getEmail())
-                        .phone(request.getPhone())
-                        .passwordHash(passwordEncoder.encode(request.getPassword()))
-                        .role(UserRole.CLIENT)
-                        .isApproved(ClientType.INDIVIDUAL.equals(request.getClientType()))
-                        .clientType(request.getClientType())
-                        .createdAt(LocalDateTime.now())
-                        .build();
-        
+                .login(request.getLogin())
+                .email(request.getEmail())
+                .phone(request.getPhone())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .role(UserRole.CLIENT)
+                .isApproved(ClientType.INDIVIDUAL.equals(request.getClientType()))
+                .clientType(request.getClientType())
+                .createdAt(LocalDateTime.now())
+                .build();
+
         User savedUser = userRepository.save(user);
 
         if (ClientType.INDIVIDUAL.equals(request.getClientType())) {
             IndividualDetails individualDetails = IndividualDetails.builder()
-            .birthDate(request.getBirthDate())
-            .firstName(request.getFirstName())
-            .midName(request.getMidName())
-            .lastName(request.getLastName())
-            .passportNumber(request.getPassportNumber())
-            .passportSeries(request.getPassportSeries())
-            .user(savedUser)
-            .build();
+                    .birthDate(request.getBirthDate())
+                    .firstName(request.getFirstName())
+                    .midName(request.getMidName())
+                    .lastName(request.getLastName())
+                    .passportNumber(request.getPassportNumber())
+                    .passportSeries(request.getPassportSeries())
+                    .user(savedUser)
+                    .build();
 
             individualDetailsRepository.save(individualDetails);
         } else if (ClientType.LEGAL.equals(request.getClientType())) {
             LegalDetails legalDetails = LegalDetails.builder()
-            .companyName(request.getCompanyName())
-            .inn(request.getInn())
-            .kpp(request.getKpp())
-            .legalAddress(request.getLegalAddress())
-            .ogrn(request.getOgrn())
-            .user(savedUser)
-            .build();
+                    .companyName(request.getCompanyName())
+                    .inn(request.getInn())
+                    .kpp(request.getKpp())
+                    .legalAddress(request.getLegalAddress())
+                    .ogrn(request.getOgrn())
+                    .user(savedUser)
+                    .build();
 
             legalDetailsRepository.save(legalDetails);
         }
         String jwtToken = jwtService.generateToken(user);
         UserToken refreshToken = jwtService.generateRefreshToken(user);
         userTokenRepository.save(refreshToken);
-        return AuthResponseDto.builder()
-                              .accessToken(jwtToken)
-                              .refreshToken(refreshToken.getToken())
-                              .description("Successful registered")
-                              .role(user.getRole())
-                              .build();
-                        
+        return AuthResult.builder().authResponseDto(
+                AuthResponseDto.builder()
+                        .accessToken(jwtToken)
+                        .description("Successful registered")
+                        .role(user.getRole())
+                        .build())
+                .accessToken(jwtToken)
+                .refreshToken(refreshToken)
+                .refreshTokenDuration(refreshExpiration / 1000)
+                .build();
+
     }
 
     @Transactional
-    public AuthResponseDto refreshAccessToken(AuthRefreshRequestDto request) {
-        String refreshToken = request.getRefreshToken();
-        UserToken userToken = userTokenRepository.findActiveByRefreshToken(refreshToken).orElseThrow(() -> new UsernameNotFoundException("User not found by credentials"));
+    public AuthResult refreshAccessToken(String refreshToken) {
+        UserToken userToken = userTokenRepository.findActiveByRefreshToken(refreshToken)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found by credentials"));
         User user = userToken.getUser();
 
         if (!jwtService.isTokenValid(refreshToken, user)) {
@@ -107,56 +117,70 @@ public class AuthService {
             userTokenRepository.save(userToken);
             throw new BadCredentialsException("Refresh token expired");
         }
-
+        long secondsLeft = ChronoUnit.SECONDS.between(LocalDateTime.now(), userToken.getExpiryDate());
         String jwtToken = jwtService.generateToken(user);
-        return AuthResponseDto.builder()
+        return AuthResult.builder()
+                .authResponseDto(
+                        AuthResponseDto.builder()
                                 .accessToken(jwtToken)
-                                .refreshToken(refreshToken)
                                 .role(user.getRole())
                                 .description("Token refreshed")
-                                .build();
+                                .build())
+                .accessToken(jwtToken)
+                .refreshToken(userToken)
+                .refreshTokenDuration(secondsLeft)
+                .build();
+
     }
 
     @Transactional
-    public AuthResponseDto authenticate(AuthRequestDto request) {
-        User user = userRepository.findByLogin(request.getLogin()).orElseThrow(() -> new BadCredentialsException("Неверный логин или пароль"));
-        
+    public AuthResult authenticate(AuthRequestDto request) {
+        User user = userRepository.findByLogin(request.getLogin())
+                .orElseThrow(() -> new BadCredentialsException("Неверный логин или пароль"));
+
         if (!user.getIsApproved())
             throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash()))
             throw new BadCredentialsException("Неверный логин или пароль");
-        
+
         revokeAllTokens(user);
 
         String jwtToken = jwtService.generateToken(user);
         UserToken refreshToken = jwtService.generateRefreshToken(user);
         userTokenRepository.save(refreshToken);
-        return AuthResponseDto.builder()
-                              .accessToken(jwtToken)
-                              .refreshToken(refreshToken.getToken())
-                              .description("Успешный вход")
-                              .role(user.getRole())
-                              .build();
+        return AuthResult
+                .builder()
+                .authResponseDto(
+                        AuthResponseDto.builder()
+                                .accessToken(jwtToken)
+                                .description("Успешный вход")
+                                .role(user.getRole())
+                                .build())
+                .accessToken(jwtToken)
+                .refreshToken(refreshToken)
+                .refreshTokenDuration(refreshExpiration / 1000)
+                .build();
     }
 
     private void revokeAllTokens(User user) {
         List<UserToken> validUserTokens = userTokenRepository.findAllValidTokensByUser(user.getId());
         validUserTokens.forEach((token) -> {
             token.setRevoked(true);
-        }); 
+        });
         userTokenRepository.saveAll(validUserTokens);
     }
 
     @Transactional
     public StatusDto logout(AuthRefreshRequestDto request) {
         String refreshToken = request.getRefreshToken();
-        UserToken userToken = userTokenRepository.findActiveByRefreshToken(refreshToken).orElseThrow(() -> new BadCredentialsException("Token not found"));
+        UserToken userToken = userTokenRepository.findActiveByRefreshToken(refreshToken)
+                .orElseThrow(() -> new BadCredentialsException("Token not found"));
         userToken.setRevoked(true);
         userTokenRepository.save(userToken);
         return StatusDto.builder()
-                        .status("ok")
-                        .description("Токен отозван")
-                        .build();
+                .status("ok")
+                .description("Токен отозван")
+                .build();
     }
 
 }
