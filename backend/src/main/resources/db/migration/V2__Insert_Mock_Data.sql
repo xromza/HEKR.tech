@@ -14,9 +14,9 @@ INSERT INTO public.warehouses (id, address) VALUES
 
 -- Пароль у всех пользователей: password (BCrypt hash)
 INSERT INTO public.users (id, login, password_hash, role, is_approved, client_type, phone, email) VALUES
-(1, 'admin', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HCGFgw2FIHkUGOaU.e0lK', 'ADMIN', true, 'INDIVIDUAL', '+79990001122', 'admin@hekr.tech'),
-(2, 'ivan_user', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HCGFgw2FIHkUGOaU.e0lK', 'USER', true, 'INDIVIDUAL', '+79001234567', 'ivan@gmail.com'),
-(3, 'ooo_zarya', '$2a$10$dXJ3SW6G7P50lGmMkkmwe.20cQQubK3.HCGFgw2FIHkUGOaU.e0lK', 'USER', true, 'LEGAL', '+78129998877', 'opt@zarya.ru');
+(1, 'admin', '$2a$10$5Bby24HPxgTM/peD.6nWlOMuvCqG25.D0jUIvVEOqg1T4ZIFzksk6', 'ADMIN', true, 'INDIVIDUAL', '+79990001122', 'admin@hekr.tech'),
+(2, 'ivan_user', '$2a$10$5Bby24HPxgTM/peD.6nWlOMuvCqG25.D0jUIvVEOqg1T4ZIFzksk6', 'CLIENT', true, 'INDIVIDUAL', '+79001234567', 'ivan@gmail.com'),
+(3, 'ooo_zarya', '$2a$10$5Bby24HPxgTM/peD.6nWlOMuvCqG25.D0jUIvVEOqg1T4ZIFzksk6', 'CLIENT', true, 'LEGAL', '+78129998877', 'opt@zarya.ru');
 
 -- =============================================================================
 -- 2. ПРОФИЛИ ПОЛЬЗОВАТЕЛЕЙ
