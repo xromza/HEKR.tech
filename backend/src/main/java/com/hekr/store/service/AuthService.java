@@ -171,8 +171,7 @@ public class AuthService {
     }
 
     @Transactional
-    public StatusDto logout(AuthRefreshRequestDto request) {
-        String refreshToken = request.getRefreshToken();
+    public StatusDto logout(String refreshToken) {
         UserToken userToken = userTokenRepository.findActiveByRefreshToken(refreshToken)
                 .orElseThrow(() -> new BadCredentialsException("Token not found"));
         userToken.setRevoked(true);

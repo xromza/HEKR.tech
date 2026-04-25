@@ -3,7 +3,6 @@ package com.hekr.store.controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hekr.store.dto.auth.AuthRefreshRequestDto;
 import com.hekr.store.dto.auth.AuthRequestDto;
 import com.hekr.store.dto.auth.AuthResponseDto;
 import com.hekr.store.dto.auth.AuthResult;
@@ -70,17 +69,8 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<AuthResponseDto> refresh(@NonNull HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        String refreshToken = null;
+        String refreshToken = extractValue(request, "refreshToken");
 
-        if (cookies != null) {
-            refreshToken = Arrays
-                    .stream(cookies)
-                    .filter(cookie -> "refreshToken".equals(cookie.getName()))
-                    .map(Cookie::getValue)
-                    .findFirst()
-                    .orElse(null);
-        }
         if (refreshToken == null) {
             throw new BadCredentialsException("Отсутствует токен");
         }
@@ -91,7 +81,9 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<StatusDto> logout(@RequestBody AuthRefreshRequestDto request) {
+    public ResponseEntity<StatusDto> logout(@NonNull HttpServletRequest request) {
+        String refreshToken = extractValue(request, "refreshToken");
+
         ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
                 .path("/")
@@ -100,6 +92,23 @@ public class AuthController {
         return ResponseEntity
                 .ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(authService.logout(request));
+                .body(authService.logout(refreshToken));
     }
+
+    private String extractValue(HttpServletRequest request, String key) {
+        Cookie[] cookies = request.getCookies();
+        String res = null;
+
+        if (cookies != null) {
+            res = Arrays
+                    .stream(cookies)
+                    .filter(cookie -> key.equals(cookie.getName()))
+                    .map(Cookie::getValue)
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        return res;
+    }
+
 }
