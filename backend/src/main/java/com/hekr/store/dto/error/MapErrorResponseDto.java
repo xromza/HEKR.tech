@@ -13,7 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ErrorResponseDto {
+public class MapErrorResponseDto {
     private String error;
-    private String description;
+    private Map<String, String> errors;
 }
