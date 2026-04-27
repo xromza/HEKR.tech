@@ -11,7 +11,9 @@ import com.hekr.store.interfaces.ProductDtoInterface;
 import com.hekr.store.mapper.product.ProductCatalogResponseMapper;
 import com.hekr.store.mapper.product.ProductMapper;
 import com.hekr.store.model.product.Product;
+import com.hekr.store.model.product.ProductVariant;
 import com.hekr.store.repository.ProductRepository;
+import com.hekr.store.repository.ProductVariantsRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final ProductVariantsRepository productVariantsRepository;
     private final ProductCatalogResponseMapper productCatalogResponseMapper;
 
     @Transactional(readOnly = true)
@@ -55,12 +58,17 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public ProductResponseDto getProductById(Long id) {
+    public ProductResponseDto getProductDtoById(Long id) {
         Product product =productRepository
                 .findById(id)
                 .orElseThrow(
                         () -> new NotFoundException("Товар с id " + id + " не найден"));
                         product.getVariants().forEach(v -> v.getImages().size());
         return productMapper.toResponse(product);
+    }
+
+    @Transactional(readOnly = true)
+    public ProductVariant getProductVariantById(Long id) {
+        return productVariantsRepository.findById(id).orElseThrow(() -> new NotFoundException("Вариант товара не найден"));
     }
 }
