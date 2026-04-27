@@ -12,20 +12,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.hekr.store.dto.auth.AuthRefreshRequestDto;
 import com.hekr.store.dto.auth.AuthRequestDto;
 import com.hekr.store.dto.auth.AuthResponseDto;
 import com.hekr.store.dto.auth.AuthResult;
 import com.hekr.store.dto.auth.UserRegistrationDto;
 import com.hekr.store.dto.status.StatusDto;
-import com.hekr.store.exceptions.UserAlreadyExistsException;
 import com.hekr.store.model.individual_details.IndividualDetails;
 import com.hekr.store.model.legal_details.LegalDetails;
 import com.hekr.store.model.user.User;
 import com.hekr.store.model.user.UserToken;
 import com.hekr.store.repository.IndividualDetailsRepository;
 import com.hekr.store.repository.LegalDetailsRepository;
-import com.hekr.store.repository.UserRepository;
 import com.hekr.store.repository.UserTokenRepository;
 import com.hekr.store.utils.ClientType;
 import com.hekr.store.utils.UserRole;
@@ -35,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final UserTokenRepository userTokenRepository;
     private final IndividualDetailsRepository individualDetailsRepository;
     private final LegalDetailsRepository legalDetailsRepository;
@@ -47,12 +44,6 @@ public class AuthService {
 
     @Transactional
     public AuthResult register(UserRegistrationDto request) {
-        if (userRepository.existsByLogin(request.getLogin())) {
-            throw new UserAlreadyExistsException("Пользователь с данным логином уже существует");
-        }
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new UserAlreadyExistsException("Пользователь с данным email уже существует");
-        }
         User user = User.builder()
                 .login(request.getLogin())
                 .email(request.getEmail())
@@ -64,7 +55,7 @@ public class AuthService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        User savedUser = userRepository.save(user);
+        User savedUser = userService.saveNew(user);
 
         if (ClientType.INDIVIDUAL.equals(request.getClientType())) {
             IndividualDetails individualDetails = IndividualDetails.builder()
@@ -135,8 +126,7 @@ public class AuthService {
 
     @Transactional
     public AuthResult authenticate(AuthRequestDto request) {
-        User user = userRepository.findByLogin(request.getLogin())
-                .orElseThrow(() -> new BadCredentialsException("Неверный логин или пароль"));
+        User user = userService.findByLogin(request.getLogin());
 
         if (!user.getIsApproved())
             throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
@@ -177,9 +167,15 @@ public class AuthService {
         userToken.setRevoked(true);
         userTokenRepository.save(userToken);
         return StatusDto.builder()
-                .status("ok")
+                .status("Ok")
                 .description("Токен отозван")
                 .build();
+    }
+
+    protected User changePassword(User user, String password) {
+        user.setPasswordHash(passwordEncoder.encode(password));
+        revokeAllTokens(user);
+        return userService.update(user);
     }
 
 }

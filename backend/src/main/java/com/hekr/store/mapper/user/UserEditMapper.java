@@ -5,6 +5,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.hekr.store.dto.user.UserEditDto;
 import com.hekr.store.model.individual_details.IndividualDetails;
@@ -15,46 +16,60 @@ import com.hekr.store.model.user.User;
         componentModel = "spring",
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
-
 public interface UserEditMapper {
-    @Mapping(target = "id",ignore = true)
-    @Mapping(target = "createdAt",ignore = true)
-    @Mapping(target="passwordHash",ignore = true)
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "passwordHash", ignore = true)
     @Mapping(target = "individualDetails", ignore = true)
-    @Mapping(target = "legalDetails", ignore = true)
-    void updateEntity(UserEditDto dto,@MappingTarget User user);
+    @Mapping(target = "legalDetails", ignore = true) 
+    @Mapping(target = "authorities", ignore = true)
+    @Mapping(target = "isApproved", ignore = true)
+    @Mapping(target = "login", ignore = true)
+    @Mapping(target = "role", ignore = true)
+    @Mapping(target = "clientType", ignore = true)
+    User updateEntity(UserEditDto dto, @MappingTarget User user);
+
     @AfterMapping
-    default void updateDetails(UserEditDto dto, @MappingTarget User user) {
+    default void linkDetails(UserEditDto dto, @MappingTarget User user) {
+        if (dto.getPassword() != null) {
+
+        }
         if (hasAny(dto.getFirstName(), dto.getLastName(), dto.getMidName(), dto.getBirthDate())) {
-            IndividualDetails details = user.getIndividualDetails();
-            if (details == null) {
-                details = new IndividualDetails();
-                details.setUser(user);
+            if (user.getIndividualDetails() == null) {
+                IndividualDetails details = IndividualDetails.builder()
+                        .user(user)
+                        .id(user.getId())
+                        .build();
                 user.setIndividualDetails(details);
             }
-            if (dto.getFirstName() != null) details.setFirstName(dto.getFirstName());
-            if (dto.getLastName() != null) details.setLastName(dto.getLastName());
-            if (dto.getMidName() != null) details.setMidName(dto.getMidName());
-            if (dto.getBirthDate() != null) details.setBirthDate(dto.getBirthDate());
+            updateIndividualDetails(dto, user.getIndividualDetails());
         }
+
         if (hasAny(dto.getCompanyName(), dto.getInn(), dto.getKpp(), dto.getOgrn(), dto.getLegalAddress())) {
-            LegalDetails details = user.getLegalDetails();
-            if (details == null) {
-                details = new LegalDetails();
-                details.setUser(user);
+            if (user.getLegalDetails() == null) {
+                LegalDetails details = LegalDetails.builder()
+                        .user(user)
+                        .id(user.getId())
+                        .build();
                 user.setLegalDetails(details);
             }
-            if (dto.getCompanyName() != null) details.setCompanyName(dto.getCompanyName());
-            if (dto.getInn() != null) details.setInn(dto.getInn());
-            if (dto.getKpp() != null) details.setKpp(dto.getKpp());
-            if (dto.getOgrn() != null) details.setOgrn(dto.getOgrn());
-            if (dto.getLegalAddress() != null) details.setLegalAddress(dto.getLegalAddress());
+            updateLegalDetails(dto, user.getLegalDetails());
         }
     }
-    private boolean hasAny(Object... values) {
-        for (Object v : values) {
-            if (v != null) return true;
-        }
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "passportSeries", ignore = true) 
+    @Mapping(target = "passportNumber", ignore = true)
+    void updateIndividualDetails(UserEditDto dto, @MappingTarget IndividualDetails details);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "user", ignore = true)
+    void updateLegalDetails(UserEditDto dto, @MappingTarget LegalDetails details);
+
+    default boolean hasAny(Object... values) {
+        for (Object v : values) if (v != null) return true;
         return false;
     }
 }

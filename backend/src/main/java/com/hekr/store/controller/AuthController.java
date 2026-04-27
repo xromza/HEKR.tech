@@ -12,6 +12,7 @@ import com.hekr.store.service.AuthService;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
@@ -31,7 +32,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponseDto> login(@RequestBody AuthRequestDto request) {
+    public ResponseEntity<AuthResponseDto> login(@Valid @RequestBody AuthRequestDto request) {
         AuthResult result = authService.authenticate(request);
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", result.getRefreshToken().getToken())
@@ -49,7 +50,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponseDto> register(@RequestBody UserRegistrationDto request) {
+    public ResponseEntity<AuthResponseDto> register(@Valid @RequestBody UserRegistrationDto request) {
 
         AuthResult result = authService.register(request);
 
