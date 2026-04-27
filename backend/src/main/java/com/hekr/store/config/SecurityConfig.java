@@ -39,10 +39,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/orders/single").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_MANAGER")
                         .requestMatchers("/api/v1/order_history").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_MANAGER")
                         .requestMatchers("/api/v1/order_history/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_MANAGER")
-
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/profile").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_MANAGER")
                         .requestMatchers(HttpMethod.POST, "/api/v1/admin/products").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/products/*").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
-                        .requestMatchers(HttpMethod.POST, "/api/v1/admin/categories").hasAnyAuthority("ROLE_ADMIN", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/admin/categories").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
                         .requestMatchers(HttpMethod.POST, "/api/v1/admin/warehouses").hasAuthority("ROLE_ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/admin/warehouses").hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/admin/users").hasAuthority("ROLE_ADMIN")
