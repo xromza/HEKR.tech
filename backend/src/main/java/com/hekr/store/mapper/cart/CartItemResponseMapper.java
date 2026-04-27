@@ -3,6 +3,8 @@ package com.hekr.store.mapper.cart;
 import com.hekr.store.dto.cart.CartItemResponseDto;
 import com.hekr.store.model.cart.Cart;
 import com.hekr.store.model.image.Image;
+import com.hekr.store.model.product.Product;
+import com.hekr.store.model.product.ProductVariant;
 import com.hekr.store.utils.ImageType;
 
 import java.math.BigDecimal;
@@ -22,27 +24,37 @@ public interface CartItemResponseMapper {
     @Mapping(target = "appliedPrice", ignore = true)
     @Mapping(target = "subtotal", ignore = true)
     @Mapping(target = "availableStock", ignore = true)
-    @Mapping(target = "priceType", constant = "RETAIL")
     @Mapping(target = "imageUrl", ignore = true)
     CartItemResponseDto toDto(Cart cart);
 
     List<CartItemResponseDto> toResponseList(List<Cart> carts);
 
     @AfterMapping
-    default void setAppliedPriceAndSubtotal(Cart cart, @MappingTarget CartItemResponseDto.CartItemResponseDtoBuilder dtoBuilder) {
+    default void setAppliedPriceAndSubtotalAndPriceType(Cart cart,
+            @MappingTarget CartItemResponseDto.CartItemResponseDtoBuilder dtoBuilder) {
         if (cart.getProductVariant() != null && cart.getProductVariant().getProduct() != null) {
-            BigDecimal price = cart.getProductVariant().getProduct().getPriceRetail();
+            boolean isWholesale = cart.getQuantity() >= cart.getProductVariant().getProduct().getWholesaleThreshold();
+
+            ProductVariant variant = cart.getProductVariant();
+            Product product = variant.getProduct();
+
+            BigDecimal price = isWholesale
+                    ? product.getPriceWholesale()
+                    : product.getPriceRetail();
             dtoBuilder.appliedPrice(price);
+            dtoBuilder.priceType(isWholesale ? "WHOLESALE" : "RETAIL");
             dtoBuilder.subtotal(price.multiply(BigDecimal.valueOf(cart.getQuantity())));
         }
     }
 
     @AfterMapping
-    default void setAvailableStock(Cart cart, @MappingTarget CartItemResponseDto.CartItemResponseDtoBuilder dtoBuilder) {
-        if (cart.getProductVariant() != null && cart.getProductVariant().getStocks() != null && !cart.getProductVariant().getStocks().isEmpty()) {
+    default void setAvailableStock(Cart cart,
+            @MappingTarget CartItemResponseDto.CartItemResponseDtoBuilder dtoBuilder) {
+        if (cart.getProductVariant() != null && cart.getProductVariant().getStocks() != null
+                && !cart.getProductVariant().getStocks().isEmpty()) {
             Long totalStock = cart.getProductVariant().getStocks().stream()
-                .mapToLong(stock -> stock.getQuantity())
-                .sum();
+                    .mapToLong(stock -> stock.getQuantity())
+                    .sum();
             dtoBuilder.availableStock(totalStock.intValue());
         }
     }
@@ -51,12 +63,12 @@ public interface CartItemResponseMapper {
     default void setImageUrl(Cart cart, @MappingTarget CartItemResponseDto.CartItemResponseDtoBuilder dtoBuilder) {
         if (cart.getProductVariant() != null && cart.getProductVariant().getImages() != null) {
             Optional<String> mainImageUrl = cart.getProductVariant().getImages().stream()
-                .filter(img -> img.getType() == ImageType.MAIN)
-                .map(Image::getUrl)
-                .findFirst()
-                .or(() -> cart.getProductVariant().getImages().stream()
+                    .filter(img -> img.getType() == ImageType.MAIN)
                     .map(Image::getUrl)
-                    .findFirst());
+                    .findFirst()
+                    .or(() -> cart.getProductVariant().getImages().stream()
+                            .map(Image::getUrl)
+                            .findFirst());
             mainImageUrl.ifPresent(dtoBuilder::imageUrl);
         }
     }

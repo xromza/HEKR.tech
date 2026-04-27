@@ -37,7 +37,7 @@ public class Cart {
     @JoinColumn(name="variant_id")
     private ProductVariant productVariant;
     @Column(nullable = false)
-    private Long quantity;
+    private Integer quantity;
 }
 
 

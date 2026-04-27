@@ -11,12 +11,16 @@ import com.hekr.store.model.cart.CartItemId;
 import jakarta.transaction.Transactional;
 
 public interface CartRepository extends JpaRepository<Cart, CartItemId> {
-    List<Cart> findById_UserId(Long userId);
-    Optional<Cart> findById_UserIdAndId_VariantId(Long userId, Long variantId);
+    List<Cart> findByIdUserId(Long userId);
+    Optional<Cart> findByIdUserIdAndIdVariantId(Long userId, Long variantId);
+
+    Boolean existsByIdUserIdAndIdVariantId(Long userId, Long variantId);
 
     @Transactional
-    void deleteById_UserId(Long userId);
+    void deleteByIdUserId(Long userId);
 
     @Transactional
-    void deleteById_UserIdAndId_VariantId(Long userId, Long variantId);
+    void deleteByIdUserIdAndIdVariantId(Long userId, Long variantId);
+
+    
 }

@@ -23,13 +23,13 @@ import lombok.Getter;
 @Getter
 @Setter
 
-public class CartRequestDto {
+public class CartItemRequestDto {
     @Schema(description = "Id варианта товара", example = "3")
     @NotNull
     private Long variantId;
     @Schema(description = "Количество товара", example = "3")
     @NotNull
     @Min(1)
-    private Long quantity;
+    private Integer quantity;
 
 }
