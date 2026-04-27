@@ -2,14 +2,20 @@ package com.hekr.store.config;
 
 import io.jsonwebtoken.security.SignatureException;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import com.hekr.store.dto.error.ErrorResponseDto;
+import com.hekr.store.dto.error.MapErrorResponseDto;
 import com.hekr.store.exceptions.*;
 
 @RestControllerAdvice
@@ -64,5 +70,21 @@ public class GlobalExceptionHandler {
                         .error("Unauthorized")
                         .description("Плохая подпись токена. не балуйся")
                         .build());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<MapErrorResponseDto> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        Map<String, String> fieldErrors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+                String errorName = ((FieldError) error).getField();
+                String errorMessage = error.getDefaultMessage();
+                fieldErrors.put(errorName, errorMessage);
+        });
+        MapErrorResponseDto errors = MapErrorResponseDto.builder()
+        .error("ValidationError")
+        .errors(fieldErrors)
+        .build();
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 }
