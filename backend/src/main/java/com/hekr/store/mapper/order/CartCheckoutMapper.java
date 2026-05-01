@@ -7,7 +7,7 @@ import com.hekr.store.dto.order.CartCheckoutRequestDto;
 import com.hekr.store.model.order.Order;
 
 @Mapper(componentModel = "spring")
-public interface CartCheckoutRequestMapper {
+public interface CartCheckoutMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", ignore = true)
@@ -21,4 +21,5 @@ public interface CartCheckoutRequestMapper {
     @Mapping(target = "payment", source = "payment")
     @Mapping(target = "comment", source = "comment")
     Order toOrder(CartCheckoutRequestDto dto);
+
 }

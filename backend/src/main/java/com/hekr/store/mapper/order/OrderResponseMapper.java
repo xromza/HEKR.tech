@@ -20,7 +20,6 @@ public interface OrderResponseMapper {
     @Mapping(target = "date", source = "date")
     @Mapping(target = "items", source = "items")
     @Mapping(target = "statusHistory", source = "history")
-    @Mapping(target = "priceType", ignore = true)
     OrderResponseDto toDto(Order order);
 
     List<OrderResponseDto> toDtoList(List<Order> orders);
