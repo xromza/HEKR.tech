@@ -72,4 +72,9 @@ public class Order {
     @Builder.Default
     private Set<OrderStatusHistory> history = new LinkedHashSet<>();
 
+    public void addItem(OrderItem item) {
+        items.add(item);
+        item.setOrder(this);
+    }
+
 }

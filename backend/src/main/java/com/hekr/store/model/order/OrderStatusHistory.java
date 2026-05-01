@@ -1,6 +1,7 @@
 package com.hekr.store.model.order;
 
 
+import com.hekr.store.model.user.User;
 import com.hekr.store.utils.Status;
 
 import jakarta.persistence.Column;
@@ -40,8 +41,9 @@ public class OrderStatusHistory{
     private Status newStatus;
     @Column(name="changed_at",nullable = false)
     private LocalDateTime changedAt;
-    @Column(name="changed_by",nullable = false)
-    private Long changedByUserId;
+    @ManyToOne(fetch=FetchType.LAZY)
+    @JoinColumn(name="changed_by", nullable = true)
+    private User changedBy;
     @Column(columnDefinition = "TEXT",nullable = false)
     private String comment;
 }
