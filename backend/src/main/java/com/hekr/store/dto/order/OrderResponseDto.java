@@ -75,6 +75,4 @@ public class OrderResponseDto{
     private List<OrderItemResponseDto> items;
     @Schema(description = "История изменения статуса заказа")
     private List<OrderStatusHistoryResponseDto> statusHistory;
-    @Schema(description = "Тип цены", example = "RETAIL")
-    private String priceType;
 }
