@@ -1,5 +1,6 @@
 package com.hekr.store.dto.order;
 
+import com.hekr.store.interfaces.OrderDtoInterface;
 import com.hekr.store.utils.PaymentMethod;
 import com.hekr.store.utils.Status;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -54,7 +55,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class OrderResponseDto{
+public class OrderResponseDto implements OrderDtoInterface {
     @Schema(description = "Идентификатор заказа", example = "111")
     private Long id;
     @Schema(description = "Идентификатор пользователя", example = "1")

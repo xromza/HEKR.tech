@@ -24,4 +24,8 @@ public class StockService {
         return stockRepository.findById(new StockId(variantId, warehouseId))
                 .orElseThrow(() -> new NotFoundException("Данный вариант товара не найден на складе"));
     }
+
+    public void saveStock(Stock stock) {
+        stockRepository.save(stock);
+    }
 }

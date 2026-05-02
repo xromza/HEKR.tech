@@ -31,8 +31,10 @@ import lombok.Getter;
 @AllArgsConstructor
 public class SingleCheckoutRequestDto {
     @Schema(description = "Идентификатор варианта товара", example = "1")
+    @NotNull
     private Long variantId;
     @Schema(description = "Количество товара", example = "2")
+    @NotNull
     private Integer quantity;
     @Schema(description = "Id склада", example = "1")
     @NotNull
