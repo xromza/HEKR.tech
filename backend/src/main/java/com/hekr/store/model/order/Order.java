@@ -26,6 +26,7 @@ import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -62,19 +63,24 @@ public class Order {
     @Column(columnDefinition = "TEXT")
     private String comment;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "order_id")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<OrderItem> items = new LinkedHashSet<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "order_id")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<OrderStatusHistory> history = new LinkedHashSet<>();
 
     public void addItem(OrderItem item) {
+        if (this.items == null) this.items = new LinkedHashSet<>();
         items.add(item);
         item.setOrder(this);
+    }
+
+    public void addHistory(OrderStatusHistory history) {
+        if (this.history == null) this.history = new LinkedHashSet<>();
+        this.history.add(history);
+        history.setOrder(this);
     }
 
 }
