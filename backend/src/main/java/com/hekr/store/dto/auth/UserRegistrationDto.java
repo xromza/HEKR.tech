@@ -31,7 +31,6 @@ public class UserRegistrationDto {
     @Schema(description = "Роль пользователя", example = "CLIENT")
     private String role;
 
-    @Size(max = 32)
     @Schema(description = "Тип клиента", example = "LEGAL")
     private ClientType clientType;
     @NotBlank

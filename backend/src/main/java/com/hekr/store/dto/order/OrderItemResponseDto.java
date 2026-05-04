@@ -71,7 +71,7 @@ public class OrderItemResponseDto {
     
     @Schema(description = "Итоговая стоимость товара (quantity × appliedPrice)", example = "1199.98")
     private BigDecimal subtotal;
-    
-    @Schema(description = "Количество товара в наличии", example = "15")
-    private Integer availableStock;
+
+    @Schema(description = "Тип цены", example = "RETAIL")
+    private String priceType;
 }

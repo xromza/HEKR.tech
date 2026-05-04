@@ -14,6 +14,10 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
     private final UserRepository userRepository;
 
+    public User getSystem() {
+        return userRepository.findByLogin("system").orElseThrow(() -> new UsernameNotFoundException("Системный пользователь не найден"));
+    }
+
     public User findById(Long id) {
         return userRepository
                 .findById(id)

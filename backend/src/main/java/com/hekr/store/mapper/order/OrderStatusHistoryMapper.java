@@ -16,5 +16,10 @@ public interface OrderStatusHistoryMapper {
     @Mapping(target = "comment", source = "comment")
     OrderStatusHistoryResponseDto toDto(OrderStatusHistory history);
 
+    @AfterMapping
+    default void setChangedName(OrderStatusHistory history, @MappingTarget OrderStatusHistoryResponseDto.OrderStatusHistoryResponseDtoBuilder dtoBuilder) {
+        dtoBuilder.changedByName(history.getChangedBy().getLogin());
+    }
+
     List<OrderStatusHistoryResponseDto> toDtoList(List<OrderStatusHistory> histories);
 }

@@ -4,6 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.hekr.store.model.order.OrderStatusHistory;
 
-public interface OrderStatusHIstoryRepository extends JpaRepository<OrderStatusHistory, Long> {
+public interface OrderStatusHistoryRepository extends JpaRepository<OrderStatusHistory, Long> {
     
 }

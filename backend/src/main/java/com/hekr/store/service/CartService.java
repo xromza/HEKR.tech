@@ -100,4 +100,8 @@ public class CartService {
         User user = userService.findByLogin(userDetails.getUsername());
         cartRepository.deleteByIdUserId(user.getId());
     }
+
+    public List<Cart> findByUserId(Long userId) {
+        return cartRepository.findByIdUserId(userId);
+    }
 }

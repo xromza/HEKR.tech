@@ -21,7 +21,7 @@ public interface OrderItemMapper {
     @Mapping(target = "quantity", source = "quantity")
     @Mapping(target = "appliedPrice", source = "priceAtPurchase")
     @Mapping(target = "subtotal", source = "totalPrice")
-    @Mapping(target = "availableStock", ignore = true)
+    @Mapping(target = "priceType", ignore = true)
     OrderItemResponseDto toDto(OrderItem orderItem);
 
     @AfterMapping
@@ -43,14 +43,11 @@ public interface OrderItemMapper {
     }
 
     @AfterMapping
-    default void setAvailableStock(OrderItem orderItem,
+    default void setPriceType(OrderItem orderItem,
             @MappingTarget OrderItemResponseDto.OrderItemResponseDtoBuilder dtoBuilder) {
-        if (orderItem.getProductVariant() != null && orderItem.getProductVariant().getStocks() != null
-                && !orderItem.getProductVariant().getStocks().isEmpty()) {
-            Long totalStock = orderItem.getProductVariant().getStocks().stream()
-                    .mapToLong(stock -> stock.getQuantity())
-                    .sum();
-            dtoBuilder.availableStock(totalStock.intValue());
+        if (orderItem.getProductVariant() != null && orderItem.getProductVariant().getProduct() != null) {
+            boolean isWholesale = orderItem.getProductVariant().getProduct().getWholesaleThreshold() <= orderItem.getQuantity();
+            dtoBuilder.priceType(isWholesale ? "WHOLESALE" : "RETAIL");
         }
     }
 

@@ -51,7 +51,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponseDto> register(@Valid @RequestBody UserRegistrationDto request) {
-
+        
         AuthResult result = authService.register(request);
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", result.getRefreshToken().getToken())

@@ -37,7 +37,7 @@ public class OrderItem{
     @JoinColumn(name="variant_id")
     private ProductVariant productVariant;
     @Column(name="quantity",nullable = false)
-    private Long quantity;
+    private Integer quantity;
     @Column(name="price_at_purchase",nullable = false,precision =12,scale = 2)
     private BigDecimal priceAtPurchase;
     @Column(name="total_price",nullable = false,precision = 12,scale=2)
