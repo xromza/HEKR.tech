@@ -1,6 +1,7 @@
 package com.hekr.store.service;
 
 import org.springframework.data.domain.Pageable;
+
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,5 +71,18 @@ public class ProductService {
     @Transactional(readOnly = true)
     public ProductVariant getProductVariantById(Long id) {
         return productVariantsRepository.findById(id).orElseThrow(() -> new NotFoundException("Вариант товара не найден"));
+    }
+
+    @Transactional(readOnly = true)
+    public Long countByCategoryId(Long categoryId) {
+        return productRepository.countProductsByCategoryId(categoryId);
+    }
+
+    public Long countWithSale() {
+        return productRepository.countProductWithSale();
+    }
+
+    public Long countBrands() {
+        return productRepository.countDistinctBrands();
     }
 }

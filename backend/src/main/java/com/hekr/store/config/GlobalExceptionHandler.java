@@ -111,4 +111,16 @@ public class GlobalExceptionHandler {
                                 .description(ex.getMessage())
                                 .build());
         }
+
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<ErrorResponseDto> handleAllExceptions(Exception ex) {
+                ex.printStackTrace();
+
+                return ResponseEntity
+                                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(ErrorResponseDto.builder()
+                                                .error("InternalServerError")
+                                                .description("Произошло что-то ужасное: " + ex.getMessage())
+                                                .build());
+        }
 }

@@ -31,6 +31,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/products").permitAll()
                         .requestMatchers("/api/v1/products/*").permitAll()
+                        .requestMatchers("/api/v1/header").permitAll()
                         .requestMatchers("/api/v1/profile").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_MANAGER")
                         .requestMatchers("/api/v1/profile/*").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_MANAGER")
                         .requestMatchers("/api/v1/cart").hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_MANAGER")

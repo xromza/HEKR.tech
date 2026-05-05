@@ -33,4 +33,6 @@ public class CategoryResponseDto {
 
     @Schema(description = "Скидка в данной категории", example="0.05")
     private BigDecimal discount;
+
+    private Long count;
 }

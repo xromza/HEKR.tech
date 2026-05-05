@@ -13,7 +13,10 @@ public interface CategoryResponseMapper {
     @Mapping(target = "id", source = "id")
     @Mapping(target = "name", source = "name")
     @Mapping(target = "discount", source = "discount.discount")
+    @Mapping(target = "count", ignore = true)
     CategoryResponseDto toDto(Category category);
 
+
+    
     List<CategoryResponseDto> toResponseList(List<Category> categories);
 }
