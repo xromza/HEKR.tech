@@ -1,55 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { Dispatch, SetStateAction } from "react";
 
-interface ToggleTextButtonProps {
-  targetId: string;
-  text: string;
+interface MainButtonProps {
+  isTextVisible: boolean;
+  setIsTextVisible: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function MainButton({ 
-  targetId, 
-  text, 
-}: ToggleTextButtonProps) {
-  const [isTextVisible, setIsTextVisible] = useState(false);
 
-  const handleToggle = () => {
-    const targetElement = document.getElementById(targetId);
-    
-    if (!targetElement) {
-      console.error(`Элемент с id "${targetId}" не найден`);
-      return;
-    }
+export default function MainButton({ isTextVisible, setIsTextVisible }: MainButtonProps) {
 
-    if (!isTextVisible) {
-      targetElement.textContent = text;
-      targetElement.className="uppercase w-[45%] mt-[1rem] mb-[1rem]";
-    } else {
-      targetElement.textContent = '';
-      targetElement.className="";
-    }
-    
-    setIsTextVisible(!isTextVisible);
-  };
-
-  if(!isTextVisible){
   return (
-    <button 
-      onClick={handleToggle}
-      className="rounded-full bg-[#EDEDEB] w-[35px] h-[35px]"
+    <button
+      onClick={() => setIsTextVisible(!isTextVisible)}
+      className={`${isTextVisible ? "bg-[#000000] text-[#FFFFFF] rotate-45" : "bg-[#EDEDEB]"}
+       transition duration-300 rounded-full 
+       w-[35px] h-[35px] cursor-pointer`}
     >
-     +
+      +
     </button>
   );
-}
-else{
-    return (
-    <button 
-      onClick={handleToggle}
-      className="rounded-full bg-[#000000] w-[35px] h-[35px] text-[#FFFFFF] rotate-45"
-    >
-     +
-    </button>
-  );
-}
 }

@@ -5,6 +5,9 @@
   --foreground: #171717;
 }
 
+html {
+  scroll-behavior: smooth;
+}
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -21,3 +24,6 @@ body {
   background-color: #E8E7E3;
 }
 
+.swiper-wrapper {
+  transition-timing-function: linear !important;
+}
