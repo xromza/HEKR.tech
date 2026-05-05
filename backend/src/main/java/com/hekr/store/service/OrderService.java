@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.hekr.store.dto.order.CartCheckoutRequestDto;
 import com.hekr.store.dto.order.OrderResponseDto;
 import com.hekr.store.dto.order.SingleCheckoutRequestDto;
+import com.hekr.store.exceptions.EmptyException;
 import com.hekr.store.exceptions.NotEnoughItems;
 import com.hekr.store.exceptions.NotFoundException;
 import com.hekr.store.interfaces.OrderDtoInterface;
@@ -69,6 +70,9 @@ public class OrderService {
         User user = userService.findByLogin(userDetails.getUsername());
         List<Cart> cart = cartService.findByUserId(user.getId());
         Map<String, String> errors = new HashMap<>();
+        if (cart.isEmpty()) {
+            throw new EmptyException("Корзина не должна быть пустой");
+        }
         boolean canCheckout = true;
         for (Cart c : cart) {
             Stock stock = stockService.getByVariantIdAndWarehouseId(c.getProductVariant().getId(),

@@ -102,4 +102,13 @@ public class GlobalExceptionHandler {
                 return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(
                                 MapErrorResponseDto.builder().error(ex.getMessage()).errors(ex.getErrors()).build());
         }
+
+        @ExceptionHandler(EmptyException.class)
+        public ResponseEntity<ErrorResponseDto> handleEmpty(EmptyException ex) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponseDto
+                                .builder()
+                                .error("Empty")
+                                .description(ex.getMessage())
+                                .build());
+        }
 }
