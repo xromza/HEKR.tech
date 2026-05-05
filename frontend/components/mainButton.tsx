@@ -13,7 +13,7 @@ export default function MainButton({ isTextVisible, setIsTextVisible }: MainButt
   return (
     <button
       onClick={() => setIsTextVisible(!isTextVisible)}
-      className={`${isTextVisible ? "bg-[#000000] text-[#FFFFFF] rotate-45" : "bg-[#EDEDEB]"}
+      className={`${isTextVisible ? "bg-[#000000] text-[#FFFFFF] rotate-45" : "bg-[#EDEDEB] group-hover:bg-[#000000] group-hover:text-[#FFFFFF]"}
        transition duration-300 rounded-full 
        w-[35px] h-[35px] cursor-pointer`}
     >

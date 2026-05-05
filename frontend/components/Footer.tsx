@@ -1,7 +1,7 @@
 'use client'
 export default function Footer() {
     return(
-        <footer className="flex border-t border-gray-200 pt-8 flex-row justify-between m-[5%] mt-[15%] text-base font-normal">
+        <footer className="flex border-t border-gray-200 pt-8 flex-row overflow-hidden justify-between m-[5%] mt-[15%] text-base font-normal">
             <ul>
                 <li><span className="uppercase">© 2026 HEKR STORE.</span> Все права защищены</li>
             </ul>

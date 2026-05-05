@@ -4,14 +4,14 @@ import { useState } from "react";
 import MainButton from "./mainButton";
 
 
-export default function FAQItem({ text, title, idx }: { text: string, title: string, idx: number }) {
+export default function FAQItem({ text, title }: { text: string, title: string }) {
     const [isActive, setIsActive] = useState(false);
 
     return (
-        <div className='flex flex-row justify-between w-full py-5 items-start'>
+        <div className='flex flex-row justify-between w-full py-5 items-start group cursor-pointer' onClick={() => setIsActive(!isActive)}>
             
-            <div className='w-[95%] py-1 flex flex-col border-b'>
-                <h3 className='uppercase text-2xl md:text-3xl font-normal leading-none mb-2'>
+            <div className='w-[95%] py-1 flex flex-col border-b border-black border-opacity-90'>
+                <h3 className='uppercase text-2xl md:text-3xl font-normal leading-none mb-2 select-none'>
                     {title}
                 </h3>
                 

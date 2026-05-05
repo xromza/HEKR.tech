@@ -24,7 +24,7 @@ export default function AboutImage() {
                             width={660}
                             height={687}
                             alt='Модель'
-                            className='-mt-30 select-none'
+                            className='-mt-30 select-none antialiased'
                             style={{ transform: "translateZ(25px)" }}
                         />
                     </div>

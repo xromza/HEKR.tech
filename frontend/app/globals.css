@@ -9,6 +9,10 @@ html {
   scroll-behavior: smooth;
 }
 
+::selection, ::-moz-selection {
+  color: white;
+  background: black;
+}
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
