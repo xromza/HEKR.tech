@@ -55,6 +55,8 @@ public class ProductResponseDto implements ProductDtoInterface {
     @Schema(description = "Уникальный идентификатор продукта", example = "1")
     private Long id;
     
+  private String brand;
+
     @Schema(description = "Название товара", example = "Смартфон Samsung Galaxy A51")
     private String title;
     

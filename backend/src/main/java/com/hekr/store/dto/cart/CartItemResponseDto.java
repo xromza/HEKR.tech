@@ -34,6 +34,7 @@ import java.math.BigDecimal;
 public class CartItemResponseDto {
     @Schema(description = "Id варианта товара", example = "22")
     private Long variantId;
+    private String brand;
     @Schema(description = "Название товара", example = "Gucci slim jeans")
     private String title;
     @Schema(description = "Количество товаров в корзине", example = "3")

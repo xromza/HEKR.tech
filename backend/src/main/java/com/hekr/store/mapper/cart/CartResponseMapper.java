@@ -46,6 +46,7 @@ public abstract class CartResponseMapper {
     @Mapping(target = "availableStock", ignore = true)
     @Mapping(target = "priceType", constant = "RETAIL")
     @Mapping(target = "imageUrl", ignore = true)
+    @Mapping(target = "brand", ignore = true)
 
     @Mapping(target = "subtotal", expression = "java(cart.getProductVariant().getProduct().getPriceRetail().multiply(java.math.BigDecimal.valueOf(cart.getQuantity())))")
     public abstract CartItemResponseDto toResponse(Cart cart);
@@ -70,7 +71,7 @@ public abstract class CartResponseMapper {
         dto.setTotal_price(totalPrice);
         dto.setDiscount_applied(false);
         dto.setCan_checkout(carts != null && !carts.isEmpty());
-    }
+    }  
 
     @AfterMapping
     protected void fillRemainingFields(@MappingTarget CartItemResponseDto dto, Cart cart) {

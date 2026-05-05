@@ -43,6 +43,9 @@ public class Product {
     private Category category;
 
     @Column(nullable = false, length = 256)
+    private String brand;
+
+    @Column(nullable = false, length = 256)
     private String title;
 
     @Column(columnDefinition = "TEXT")
@@ -63,6 +66,8 @@ public class Product {
     @ToString.Exclude
     private List<ProductVariant> variants = new ArrayList<>();
     
+
+
     @Column(name = "is_active", nullable = false)
     @ColumnDefault("true")
     @Builder.Default

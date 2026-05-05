@@ -47,7 +47,7 @@ public class OrderItemResponseDto {
     
     @Schema(description = "Уникальный идентификатор варианта товара")
     private Long variantId;
-    
+    private String brand;
     @Schema(description = "Название товара", example = "Футболка классическая")
     private String title;
     

@@ -22,6 +22,7 @@ public interface OrderItemMapper {
     @Mapping(target = "appliedPrice", source = "priceAtPurchase")
     @Mapping(target = "subtotal", source = "totalPrice")
     @Mapping(target = "priceType", ignore = true)
+    @Mapping(target = "brand", ignore = true)
     OrderItemResponseDto toDto(OrderItem orderItem);
 
     @AfterMapping
@@ -41,7 +42,10 @@ public interface OrderItemMapper {
             mainImageUrl.ifPresent(dtoBuilder::mainImageUrl);
         }
     }
-
+    @AfterMapping
+    default void fillBrand(@MappingTarget OrderItemResponseDto.OrderItemResponseDtoBuilder dto, OrderItem cart) {
+        dto.brand(cart.getProductVariant().getProduct().getBrand());
+    }
     @AfterMapping
     default void setPriceType(OrderItem orderItem,
             @MappingTarget OrderItemResponseDto.OrderItemResponseDtoBuilder dtoBuilder) {

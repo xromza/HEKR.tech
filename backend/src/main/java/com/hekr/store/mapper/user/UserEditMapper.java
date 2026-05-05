@@ -5,7 +5,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.hekr.store.dto.user.UserEditDto;
 import com.hekr.store.model.individual_details.IndividualDetails;

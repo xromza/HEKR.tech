@@ -25,6 +25,8 @@ public interface CartItemResponseMapper {
     @Mapping(target = "subtotal", ignore = true)
     @Mapping(target = "availableStock", ignore = true)
     @Mapping(target = "imageUrl", ignore = true)
+    @Mapping(target = "brand", ignore = true)
+    @Mapping(target = "priceType", ignore = true)
     CartItemResponseDto toDto(Cart cart);
 
     List<CartItemResponseDto> toResponseList(List<Cart> carts);
@@ -57,6 +59,11 @@ public interface CartItemResponseMapper {
                     .sum();
             dtoBuilder.availableStock(totalStock.intValue());
         }
+    }
+
+    @AfterMapping
+    default void fillBrand(@MappingTarget CartItemResponseDto.CartItemResponseDtoBuilder dto, Cart cart) {
+        dto.brand(cart.getProductVariant().getProduct().getBrand());
     }
 
     @AfterMapping
