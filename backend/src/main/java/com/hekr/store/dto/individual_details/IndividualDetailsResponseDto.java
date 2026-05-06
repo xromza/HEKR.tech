@@ -2,6 +2,8 @@ package com.hekr.store.dto.individual_details;
 
 import java.time.LocalDate;
 
+import com.hekr.store.interfaces.DetailsResponseInterface;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,7 +28,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class IndividualDetailsResponseDto {
+public class IndividualDetailsResponseDto implements DetailsResponseInterface {
     @Schema(description = "Имя физического лица", example = "Иван", accessMode = Schema.AccessMode.READ_ONLY)
     private String firstName;
 

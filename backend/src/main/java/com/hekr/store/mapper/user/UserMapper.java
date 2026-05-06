@@ -1,14 +1,22 @@
 package com.hekr.store.mapper.user;
 
 import com.hekr.store.dto.auth.UserRegistrationDto;
+import com.hekr.store.dto.individual_details.IndividualDetailsRequestDto;
+import com.hekr.store.dto.individual_details.IndividualDetailsResponseDto;
+import com.hekr.store.dto.legal_details.LegalDetailsRequestDto;
+import com.hekr.store.dto.legal_details.LegalDetailsResponseDto;
 import com.hekr.store.dto.user.UserResponseDto;
 import com.hekr.store.model.individual_details.IndividualDetails;
 import com.hekr.store.model.legal_details.LegalDetails;
 import com.hekr.store.model.user.User;
 
-import org.mapstruct.*;
 
 import java.util.List;
+
+import org.mapstruct.AfterMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
@@ -18,31 +26,27 @@ public interface UserMapper {
     @Mapping(target = "passwordHash", source = "password")
     @Mapping(target = "individualDetails", ignore = true)
     @Mapping(target = "legalDetails", ignore = true)
-    @Mapping(target = "role", source = "role")
-    @Mapping(target = "clientType", source = "clientType")
+    @Mapping(target = "role", ignore = true)
+    @Mapping(target = "clientType", ignore = true)
     @Mapping(target = "login", source = "login")
     @Mapping(target = "phone", source = "phone")
     @Mapping(target = "email", source = "email")
     User toEntity(UserRegistrationDto registrationDto);
 
     @AfterMapping
-    default void mapDetails(UserRegistrationDto dto, @MappingTarget User.UserBuilder userBuilder) {
-        if (hasData(dto.getFirstName(), dto.getLastName(), dto.getMidName(), dto.getBirthDate())) {
-            IndividualDetails ind = new IndividualDetails();
-            ind.setFirstName(dto.getFirstName());
-            ind.setLastName(dto.getLastName());
-            ind.setMidName(dto.getMidName());
-            ind.setBirthDate(dto.getBirthDate());
-            userBuilder.individualDetails(ind);
-        }
-        if (hasData(dto.getCompanyName(), dto.getInn(), dto.getKpp(), dto.getOgrn(), dto.getLegalAddress())) {
-            LegalDetails leg = new LegalDetails();
-            leg.setCompanyName(dto.getCompanyName());
-            leg.setInn(dto.getInn());
-            leg.setKpp(dto.getKpp());
-            leg.setOgrn(dto.getOgrn());
-            leg.setLegalAddress(dto.getLegalAddress());
-            userBuilder.legalDetails(leg);
+    default void mapDetails(UserRegistrationDto dto, @MappingTarget User user) {
+        if (dto.getDetails() instanceof IndividualDetailsRequestDto indDto) {
+            user.setIndividualDetails(IndividualDetails.builder()
+                    .firstName(indDto.getFirstName())
+                    .lastName(indDto.getLastName())
+                    .user(user)
+                    .build());
+        } else if (dto.getDetails() instanceof LegalDetailsRequestDto legalDto) {
+            user.setLegalDetails(LegalDetails.builder()
+                    .companyName(legalDto.getCompanyName())
+                    .inn(legalDto.getInn())
+                    .user(user)
+                    .build());
         }
     }
 
@@ -54,43 +58,30 @@ public interface UserMapper {
     @Mapping(target = "clientType", source = "clientType")
     @Mapping(target = "phone", source = "phone")
     @Mapping(target = "email", source = "email")
-    @Mapping(target = "firstName", ignore = true)
-    @Mapping(target = "lastName", ignore = true)
-    @Mapping(target = "midName", ignore = true)
-    @Mapping(target = "birthDate", ignore = true)
-    @Mapping(target = "companyName", ignore = true)
-    @Mapping(target = "inn", ignore = true)
-    @Mapping(target = "kpp", ignore = true)
-    @Mapping(target = "ogrn", ignore = true)
-    @Mapping(target = "legalAddress", ignore = true)
+    @Mapping(target = "details", ignore = true)
     UserResponseDto toResponse(User user);
 
     @AfterMapping
     default void fillDetails(User user, @MappingTarget UserResponseDto.UserResponseDtoBuilder dtoBuilder) {
         if (user.getIndividualDetails() != null) {
-            IndividualDetails details = user.getIndividualDetails();
-            dtoBuilder.firstName(details.getFirstName())
-                    .lastName(details.getLastName())
-                    .midName(details.getMidName())
-                    .birthDate(details.getBirthDate());
-        }
-
-        if (user.getLegalDetails() != null) {
-            LegalDetails details = user.getLegalDetails();
-            dtoBuilder.companyName(details.getCompanyName())
-                    .inn(details.getInn())
-                    .kpp(details.getKpp())
-                    .ogrn(details.getOgrn())
-                    .legalAddress(details.getLegalAddress());
+            var ind = user.getIndividualDetails();
+            dtoBuilder.details(IndividualDetailsResponseDto.builder()
+                    .firstName(ind.getFirstName())
+                    .lastName(ind.getLastName())
+                    .midName(ind.getMidName())
+                    .birthDate(ind.getBirthDate())
+                    .build());
+        } else if (user.getLegalDetails() != null) {
+            var legal = user.getLegalDetails();
+            dtoBuilder.details(LegalDetailsResponseDto.builder()
+                    .companyName(legal.getCompanyName())
+                    .inn(legal.getInn())
+                    .kpp(legal.getKpp())
+                    .ogrn(legal.getOgrn())
+                    .legalAddress(legal.getLegalAddress())
+                    .build());
         }
     }
 
     List<UserResponseDto> toResponseList(List<User> users);
-
-    private boolean hasData(Object... values) {
-        for (Object v : values)
-            if (v != null)
-                return true;
-        return false;
-    }
 }

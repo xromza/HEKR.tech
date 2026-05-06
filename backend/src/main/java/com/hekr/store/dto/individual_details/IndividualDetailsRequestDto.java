@@ -2,8 +2,14 @@ package com.hekr.store.dto.individual_details;
 
 import java.time.LocalDate;
 
+
+import com.hekr.store.interfaces.DetailsRequestInterface;
+import com.hekr.store.utils.ClientType;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,28 +35,34 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class IndividualDetailsRequestDto {
+public class IndividualDetailsRequestDto implements DetailsRequestInterface {
+    private ClientType type;
     @NotBlank
     @Schema(description = "Имя физического лица", example = "Иван")
+    @Size(min = 1, max = 256)
     private String firstName;
 
     @NotBlank
     @Schema(description = "Фамилия физического лица", example = "Петров")
+    @Size(min = 1, max = 256)
     private String lastName;
 
     @Schema(description = "Отчество физического лица", example = "Сергеевич")
+    @Size(min = 1, max = 256)
     private String midName;
 
-    @NotBlank
+    @NotNull
     @Schema(description = "Дата рождения физического лица", example = "1990-05-15")
     private LocalDate birthDate;
 
     @NotBlank
     @Schema(description = "Серия паспорта", example = "1234")
+    @Size(min = 4, max = 4)
     private String passportSeries;
 
     @NotBlank
     @Schema(description = "Номер паспорта", example = "567890")
+    @Size(min = 6, max = 6)
     private String passportNumber;
 
 }

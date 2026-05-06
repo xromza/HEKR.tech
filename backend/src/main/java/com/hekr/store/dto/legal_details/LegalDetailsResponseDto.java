@@ -1,6 +1,9 @@
 package com.hekr.store.dto.legal_details;
 
+import com.hekr.store.interfaces.DetailsResponseInterface;
+
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,20 +27,25 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LegalDetailsResponseDto {
+public class LegalDetailsResponseDto implements DetailsResponseInterface {
 
     @Schema(description = "Название компании", example = "ООО ХЕКР БЛОК", accessMode = Schema.AccessMode.READ_ONLY)
+    @NotBlank
     private String companyName;
 
     @Schema(description = "ИНН компании", example = "7707083892", accessMode = Schema.AccessMode.READ_ONLY)
+    @NotBlank
     private String inn;
 
     @Schema(description = "КПП компании", example = "773601001", accessMode = Schema.AccessMode.READ_ONLY)
+    @NotBlank
     private String kpp;
 
     @Schema(description = "ОГРН компании", example = "1027700132195", accessMode = Schema.AccessMode.READ_ONLY)
+    @NotBlank
     private String ogrn;
 
     @Schema(description = "Юридический адрес компании", example = "г. Санкт-Петербург ул. Хекровская д. 67", accessMode = Schema.AccessMode.READ_ONLY)
+    @NotBlank
     private String legalAddress;
 }

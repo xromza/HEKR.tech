@@ -1,12 +1,14 @@
 package com.hekr.store.config;
 
 import io.jsonwebtoken.security.SignatureException;
+import tools.jackson.databind.exc.InvalidTypeIdException;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.validation.FieldError;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.hekr.store.dto.error.ErrorResponseDto;
 import com.hekr.store.dto.error.MapErrorResponseDto;
 import com.hekr.store.exceptions.*;
@@ -112,6 +116,15 @@ public class GlobalExceptionHandler {
                                 .build());
         }
 
+        @ExceptionHandler(AuthException.class)
+        public ResponseEntity<ErrorResponseDto> handleAuth(AuthException ex) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponseDto
+                                .builder()
+                                .error("AuthError")
+                                .description(ex.getMessage())
+                                .build());
+        }
+
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ErrorResponseDto> handleAllExceptions(Exception ex) {
                 ex.printStackTrace();
@@ -122,5 +135,26 @@ public class GlobalExceptionHandler {
                                                 .error("InternalServerError")
                                                 .description("Произошло что-то ужасное: " + ex.getMessage())
                                                 .build());
+        }
+
+        @ExceptionHandler(HttpMessageNotReadableException.class)
+        public ResponseEntity<ErrorResponseDto> handleMessageNotReadable(HttpMessageNotReadableException ex) {
+                Throwable cause = ex.getCause();
+                String friendlyMessage = "";
+                if (cause instanceof InvalidTypeIdException) {
+                        friendlyMessage = "Указан неизвестный тип данных в поле details";
+                }
+                else if (cause instanceof InvalidFormatException) {
+                        friendlyMessage = "Одно из полей заполнено некорректно (неверный тип данных)";
+                }
+                else if (cause instanceof JsonParseException) {
+                        friendlyMessage = "Ошибка в синтаксисе JSON";
+                }
+
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponseDto
+                                .builder()
+                                .error("ValidationError")
+                                .description(friendlyMessage)
+                                .build());
         }
 }
