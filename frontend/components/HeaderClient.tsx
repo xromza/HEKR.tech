@@ -77,7 +77,7 @@ export default function HeaderClient({ saleCount, manCount, womenCount, brandCou
                                 height={69}
                                 className="object-contain"
                                 alt="Логотип компании HEKR, состоящий из белых букв, написанных по часовой стрелке, на черном фоне " />
-                                
+
                         </button>
                     </div>
                     <nav className='flex-1 flex items-center justify-between'>
@@ -85,7 +85,10 @@ export default function HeaderClient({ saleCount, manCount, womenCount, brandCou
                             {headerItems.map((item, idx) =>
                                 <li key={idx}>
                                     <div className="flex flex-row gap-3">
-                                        <button className='hover:underline uppercase cursor-pointer' onClick={() => router.push(item.link)}>{item.title}</button> <span className='text-[#ccc] cursor-default'> {item.count}</span>
+                                        <button
+                                            className='hover:underline uppercase cursor-pointer'
+                                            onClick={() => router.push(item.link)}>{item.title}</button> 
+                                            <span className='text-[#ccc] cursor-default'>{item.count}</span>
                                     </div>
                                 </li>
                             )}
@@ -99,7 +102,9 @@ export default function HeaderClient({ saleCount, manCount, womenCount, brandCou
                                     <div className="flex flex-row gap-3">
                                         <item.icon
                                             size={24} />
-                                        <button className='uppercase hover:underline cursor-pointer' onClick={item.event}>
+                                        <button
+                                            className='uppercase hover:underline cursor-pointer'
+                                            onClick={item.event}>
                                             {item.title}
                                         </button>
                                     </div>

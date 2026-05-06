@@ -23,26 +23,104 @@
 | **sort** | `string` | Поле и направление сортировки (`asc` — возр., `desc` — убыв.). | `?sort=price,asc` |
 | **page** | `int` | Номер страницы для пагинации (начиная с 0). | `?page=0` |
 | **size** | `int` | Количество записей на одной странице. | `?size=10` |
+| **verbose** | `boolean` | Подробный ответ | `?verbose=1` |
 
-**Успешный ответ (200 OK):**
+**Успешный ответ Verbose = 0 (200 OK):**
 ```json
 {
-  "content": [
-    {
-      "id": 42,
-      "title": "Худи 'Over-size' Базовое",
-      "priceRetail": 4500.00,
-      "priceWholesale": 3800.00,
-      "mainImageUrl": "https://res.cloudinary.com/hekr/image/upload/v1/products/hoodie_blk_main.jpg",
-      "categoryId": 5,
-      "categoryName": "Одежда",
-      "isActive": true
-    }
-  ],
-  "totalElements": 150,
-  "totalPages": 15,
-  "currentPage": 0,
-  "isLast": false
+    "content": [
+        {
+            "id": 1,
+            "brand": "Gucci",
+            "title": "Бомбер GG Marmont",
+            "categoryId": 1,
+            "categoryName": "Мужская одежда",
+            "isActive": true,
+            "priceWholesale": 140000.00,
+            "priceRetail": 185000.00,
+            "mainImageUrl": "https://lux-cdn.example.com/gucci_bomber_blk_thumb.jpg"
+        },
+        {
+            "id": 10,
+            "brand": "Moncler",
+            "title": "Ботинки Trailgrip",
+            "categoryId": 4,
+            "categoryName": "Обувь",
+            "isActive": true,
+            "priceWholesale": 75000.00,
+            "priceRetail": 105000.00,
+            "mainImageUrl": "https://lux-cdn.example.com/moncler_trailgrip_main.jpg"
+        },
+        {
+            "id": 4,
+            "brand": "Maison Margiela",
+            "title": "Деконструированное платье",
+            "categoryId": 2,
+            "categoryName": "Женская одежда",
+            "isActive": true,
+            "priceWholesale": 110000.00,
+            "priceRetail": 155000.00,
+            "mainImageUrl": "https://lux-cdn.example.com/margiela_dress_beg_thumb.jpg"
+        },
+        {
+            "id": 8,
+            "brand": "Prada",
+            "title": "Клатч Saffiano",
+            "categoryId": 3,
+            "categoryName": "Аксессуары",
+            "isActive": true,
+            "priceWholesale": 55000.00,
+            "priceRetail": 78000.00,
+            "mainImageUrl": "https://lux-cdn.example.com/prada_clutch_blk_main.jpg"
+        },
+        {
+            "id": 5,
+            "brand": "Gucci",
+            "title": "Костюм из шерсти Super 120",
+            "categoryId": 2,
+            "categoryName": "Женская одежда",
+            "isActive": true,
+            "priceWholesale": 150000.00,
+            "priceRetail": 210000.00,
+            "mainImageUrl": "https://lux-cdn.example.com/gucci_suit_blk_main.jpg"
+        },
+        {
+            "id": 9,
+            "brand": "Maison Margiela",
+            "title": "Кроссовки Replica",
+            "categoryId": 4,
+            "categoryName": "Обувь",
+            "isActive": true,
+            "priceWholesale": 48000.00,
+            "priceRetail": 68000.00,
+            "mainImageUrl": "https://lux-cdn.example.com/margiela_replica_main.jpg"
+        }
+    ],
+    "empty": false,
+    "first": true,
+    "last": false,
+    "number": 0,
+    "numberOfElements": 6,
+    "pageable": {
+        "offset": 0,
+        "pageNumber": 0,
+        "pageSize": 6,
+        "paged": true,
+        "sort": {
+            "empty": false,
+            "sorted": true,
+            "unsorted": false
+        },
+        "unpaged": false
+    },
+    "size": 6,
+    "sort": {
+        "empty": false,
+        "sorted": true,
+        "unsorted": false
+    },
+    "totalElements": 10,
+    "totalPages": 2
 }
 ```
 
@@ -59,26 +137,71 @@
 | **sort** | `string` | Поле и направление сортировки. | `?sort=priceRetail,asc` |
 | **page** | `int` | Номер страницы для пагинации (начиная с 0). | `?page=0` |
 | **size** | `int` | Количество записей на одной странице. | `?size=10` |
+| **verbose** | `boolean` | Подробный ответ | `?verbose=1` |
 
-**Успешный ответ (200 OK):**
+**Успешный ответ *Query = G* *Verbose = 0* (200 OK):**
 ```json
 {
-  "content": [
-    {
-      "id": 42,
-      "title": "Худи 'Over-size' Базовое",
-      "priceRetail": 4500.00,
-      "priceWholesale": 3800.00,
-      "mainImageUrl": "https://res.cloudinary.com/xromza/image/upload/v1/products/hoodie_black.jpg",
-      "categoryId": 5,
-      "categoryName": "Одежда",
-      "isActive": true
-    }
-  ],
-  "totalElements": 1,
-  "totalPages": 1,
-  "currentPage": 0,
-  "isLast": true
+    "content": [
+        {
+            "id": 1,
+            "brand": "Gucci",
+            "title": "Бомбер GG Marmont",
+            "categoryId": 1,
+            "categoryName": "Мужская одежда",
+            "isActive": true,
+            "priceWholesale": 140000.00,
+            "priceRetail": 185000.00,
+            "mainImageUrl": "https://lux-cdn.example.com/gucci_bomber_blk_thumb.jpg"
+        },
+        {
+            "id": 7,
+            "brand": "Gucci",
+            "title": "Ремень GG Marmont 4 см",
+            "categoryId": 3,
+            "categoryName": "Аксессуары",
+            "isActive": true,
+            "priceWholesale": 35000.00,
+            "priceRetail": 48000.00,
+            "mainImageUrl": "https://lux-cdn.example.com/gucci_belt_blk_main.jpg"
+        },
+        {
+            "id": 10,
+            "brand": "Moncler",
+            "title": "Ботинки Trailgrip",
+            "categoryId": 4,
+            "categoryName": "Обувь",
+            "isActive": true,
+            "priceWholesale": 75000.00,
+            "priceRetail": 105000.00,
+            "mainImageUrl": "https://lux-cdn.example.com/moncler_trailgrip_main.jpg"
+        }
+    ],
+    "empty": false,
+    "first": true,
+    "last": true,
+    "number": 0,
+    "numberOfElements": 3,
+    "pageable": {
+        "offset": 0,
+        "pageNumber": 0,
+        "pageSize": 6,
+        "paged": true,
+        "sort": {
+            "empty": false,
+            "sorted": true,
+            "unsorted": false
+        },
+        "unpaged": false
+    },
+    "size": 6,
+    "sort": {
+        "empty": false,
+        "sorted": true,
+        "unsorted": false
+    },
+    "totalElements": 3,
+    "totalPages": 1
 }
 ```
 
@@ -97,43 +220,119 @@
 **Успешный ответ (200 OK):**
 ```json
 {
-  "id": 42,
-  "title": "Худи 'Over-size' Базовое",
-  "description": "Плотный хлопок, свободный крой.",
-  "categoryId": 5,
-  "categoryName": "Одежда",
-  "isActive": true,
-  "priceWholesale": 3800.00,
-  "priceRetail": 4500.00,
-  "wholesaleThreshold": 10,
-  "mainImageUrl": "https://res.cloudinary.com/hekr/image/upload/v1/products/hoodie_blk_main.jpg",
-  "variants": [
-    {
-      "id": 101,
-      "productId": 42,
-      "sku": "HD-BLK-XL",
-      "size": "XL",
-      "color": "Черный",
-      "isActive": true,
-      "images": [
+    "id": 1,
+    "brand": "Gucci",
+    "title": "Бомбер GG Marmont",
+    "description": "Классический бомбер из технической ткани с вышивкой и нашивкой.",
+    "categoryId": 1,
+    "categoryName": "Мужская одежда",
+    "isActive": true,
+    "priceWholesale": 140000.00,
+    "priceRetail": 185000.00,
+    "wholesaleThreshold": 3,
+    "variants": [
         {
-          "id": 501,
-          "url": "https://res.cloudinary.com/hekr/image/upload/v1/products/hoodie_blk_front.jpg",
-          "type": "MAIN",
-          "sortOrder": 1,
-          "createdAt": "2026-04-13T14:00:00"
-        }
-      ],
-      "stock": [
+            "id": 1,
+            "productId": 1,
+            "sku": "GUC-BMB-BLK-M",
+            "size": "M",
+            "color": "Черный",
+            "weight": 0.90,
+            "stock": [
+                {
+                    "variantId": 1,
+                    "warehouseId": 2,
+                    "address": "г. Санкт-Петербург, Невский пр., д. 15 (Северный хаб)",
+                    "quantity": 2
+                },
+                {
+                    "variantId": 1,
+                    "warehouseId": 5,
+                    "address": "г. Сочи, ул. Навагинская, д. 8 (Южный регион)",
+                    "quantity": 1
+                },
+                {
+                    "variantId": 1,
+                    "warehouseId": 1,
+                    "address": "г. Москва, ул. Петровка, д. 2 (Центральный хаб)",
+                    "quantity": 3
+                }
+            ],
+            "isActive": true,
+            "images": [
+                {
+                    "id": 3,
+                    "url": "https://lux-cdn.example.com/gucci_bomber_blk_back.jpg",
+                    "type": "GALLERY",
+                    "sortOrder": 1,
+                    "createdAt": "2026-05-05T19:16:16.827122"
+                },
+                {
+                    "id": 1,
+                    "url": "https://lux-cdn.example.com/gucci_bomber_blk_main.jpg",
+                    "type": "MAIN",
+                    "sortOrder": 0,
+                    "createdAt": "2026-05-05T19:16:16.827122"
+                },
+                {
+                    "id": 2,
+                    "url": "https://lux-cdn.example.com/gucci_bomber_blk_thumb.jpg",
+                    "type": "THUMBNAIL",
+                    "sortOrder": 0,
+                    "createdAt": "2026-05-05T19:16:16.827122"
+                }
+            ]
+        },
         {
-          "variantId": 101,
-          "warehouseId": 1,
-          "address": "г. Москва ул. Складская д. 3",
-          "quantity": 15
+            "id": 2,
+            "productId": 1,
+            "sku": "GUC-BMB-BLK-L",
+            "size": "L",
+            "color": "Черный",
+            "weight": 0.95,
+            "stock": [
+                {
+                    "variantId": 2,
+                    "warehouseId": 1,
+                    "address": "г. Москва, ул. Петровка, д. 2 (Центральный хаб)",
+                    "quantity": 2
+                },
+                {
+                    "variantId": 2,
+                    "warehouseId": 3,
+                    "address": "г. Казань, ул. Баумана, д. 44 (Поволжье)",
+                    "quantity": 1
+                }
+            ],
+            "isActive": true,
+            "images": []
+        },
+        {
+            "id": 3,
+            "productId": 1,
+            "sku": "GUC-BMB-NVY-XL",
+            "size": "XL",
+            "color": "Темно-синий",
+            "weight": 1.00,
+            "stock": [
+                {
+                    "variantId": 3,
+                    "warehouseId": 6,
+                    "address": "г. Екатеринбург, ул. Вайнера, д. 12 (Урал)",
+                    "quantity": 1
+                },
+                {
+                    "variantId": 3,
+                    "warehouseId": 2,
+                    "address": "г. Санкт-Петербург, Невский пр., д. 15 (Северный хаб)",
+                    "quantity": 1
+                }
+            ],
+            "isActive": true,
+            "images": []
         }
-      ]
-    }
-  ]
+    ],
+    "mainImageUrl": "https://lux-cdn.example.com/gucci_bomber_blk_thumb.jpg"
 }
 ```
 
@@ -167,29 +366,49 @@
 **Метод:** `POST`  
 **Путь:** `/auth/registration`  
 **Доступ:** Всем  
-
+**Устанавливает Cookie:** refreshToken  
 **Тело запроса:**
 ```json
 {
-  "login": "kirill_petrov",
-  "password": "securepass123",
-  "role": "CLIENT",
-  "clientType": "INDIVIDUAL",
-  "phone": "+79991234567",
-  "email": "petrov.k@example.com",
-  "firstName": "Кирилл",
-  "lastName": "Петров"
+    "login": "test_user",
+    "password": "password",
+    "role": "СLIENT",
+    "clientType": "INDIVIDUAL",
+    "phone": "+79991234567",
+    "email": "test_user@example.com",
+    "firstName": "Кирилл",
+    "lastName": "Петров",
+    "passportNumber": "935234",
+    "passportSeries": "1245",
+    "birthDate": "2006-07-09"
 }
 ```
 
 **Успешный ответ (201 Created):**
 ```json
 {
-  "login": "kirill_petrov",
-  "description": "Успешная регистрация"
+    "accessToken": "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0dF91c2VyIiwiaWF0IjoxNzc4MDk4NTk5LCJleHAiOjE3NzgxODQ5OTl9.zNv1UjPbKiW6insSVA1Z1eGAMRjLNJIKhGmPFBgum_1Ty24cMBrnKxb_rjKoRC4Xrqll1DrompCe6xcnMruTBw",
+    "type": "Bearer",
+    "role": "CLIENT",
+    "description": "Successful registered"
 }
 ```
 
+**Ошибка (409 Conflict)**
+```json
+{
+    "error": "UserAlreadyExists",
+    "description": "Аккаунт с данным email уже зарегистрирован"
+}
+```
+
+**Ошибка (409 Conflict)**
+```json
+{
+    "error": "UserAlreadyExists",
+    "description": "Аккаунт с данным логином уже зарегистрирован"
+}
+```
 ### 2.3. Регистрация юридического лица (LEGAL)
 **Метод:** `POST`  
 **Путь:** `/auth/registration`  

@@ -39,7 +39,6 @@ let items: faqitem[] = [
                     key={idx}
                     text={item.text}
                     title={item.title}
-                    idx={idx}
                 />)}
             </div>
         </article>
