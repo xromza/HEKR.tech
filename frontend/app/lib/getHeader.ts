@@ -4,7 +4,7 @@ export async function getHeader(): Promise<HeaderInterface> {
 
   const API_URL = isDev 
     ? 'http://localhost:8080/api' 
-    : process.env.BACKEND_URL;
+    : 'https://dev.hekr.tech/api';
     const res = await fetch(`${API_URL}/v1/header`, { 
     next: { revalidate: 600 }
   });
