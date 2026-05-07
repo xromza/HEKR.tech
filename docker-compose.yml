@@ -51,7 +51,7 @@ services:
       - backend-dev
     environment:
       - NEXT_PUBLIC_API_URL=/api 
-      - BACKEND_URL=http://backend-dev:8081
+      - BACKEND_URL=http://backend-dev:8081/api
     deploy:
       resources:
         limits:
