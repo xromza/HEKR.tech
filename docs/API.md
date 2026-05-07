@@ -370,17 +370,18 @@
 **Тело запроса:**
 ```json
 {
-    "login": "test_user",
-    "password": "password",
-    "role": "СLIENT",
-    "clientType": "INDIVIDUAL",
-    "phone": "+79991234567",
-    "email": "test_user@example.com",
-    "firstName": "Кирилл",
-    "lastName": "Петров",
-    "passportNumber": "935234",
-    "passportSeries": "1245",
-    "birthDate": "2006-07-09"
+    "login": "{{login}}",
+    "password": "{{password}}",
+    "phone": "{{phone}}",
+    "email": "{{$randomEmail}}",
+    "details": {
+        "type": "INDIVIDUAL",
+        "firstName": "{{firstName}}",
+        "lastName": "{{lastName}}",
+        "passportSeries": "{{passportSeries}}",
+        "birthDate": "{{birthDate}}",
+        "passportNumber": "{{passportNumber}}"
+    }
 }
 ```
 
@@ -417,41 +418,65 @@
 **Тело запроса:**
 ```json
 {
-  "login": "xromzas_software_llc",
-  "password": "securepass",
-  "role": "CLIENT",
-  "clientType": "LEGAL",
-  "phone": "+74951234567",
-  "email": "corp@xromza.tech"
+    "login": "{{login}}",
+    "password": "{{password}}",
+    "phone": "{{phone}}",
+    "email": "{{email}}",
+    "details": {
+        "type": "LEGAL",
+        "inn": "{{inn}}",
+        "kpp": "{{kpp}}",
+        "legalAddress": "{{legalAddress}}",
+        "companyName": "{{companyName}}",
+        "ogrn": "{{ogrn}}"
+    }
 }
 ```
 
 **Успешный ответ (201 Created):**
 ```json
 {
-  "login": "xromzas_software_llc",
-  "description": "Успешная регистрация"
+    "accessToken": <access_token>,
+    "type": "Bearer",
+    "role": "CLIENT",
+    "description": "Successful registered"
 }
 ```
 
 ### 2.4. Обновление токена (Refresh)
 **Метод:** `POST`  
 **Путь:** `/auth/refresh`  
+**Доступ:** Авторизованный пользователь  
+**Cookie:** refreshToken
+
+**Успешный ответ (201 Created):**
+```json
+{
+    "accessToken": <new_access_token>,
+    "type": "Bearer",
+    "role": "CLIENT",
+    "description": "Token refreshed"
+}
+```
+
+### 2.5. Выход из аккаунта (logout)
+**Метод:** `POST`  
+**Путь:** `/auth/logout`  
 **Доступ:** Всем  
 **Cookie:** refreshToken
 
 **Успешный ответ (201 Created):**
 ```json
 {
-  "token": "new_access_token",
-  "refreshToken": "new_refresh_token",
-  "type": "Bearer"
+    "status": "Ok",
+    "description": "Токен отозван"
 }
 ```
+**Удаляет cookie refreshToken**
 
 ## 3. Профиль (Profile)
 
-### 3.1. Получить данные профиля
+### 3.1. Получить данные профиля (Юридическое лицо)
 **Метод:** `GET`  
 **Путь:** `/profile`  
 **Доступ:** Авторизованный пользователь  
@@ -460,47 +485,81 @@
 **Успешный ответ (200 OK):**
 ```json
 {
-  "id": 1,
-  "login": "kirill_petrov",
-  "role": "CLIENT",
-  "clientType": "INDIVIDUAL",
-  "createdAt": "2026-03-15T12:00:00",
-  "isApproved": true,
-  "firstName": "Кирилл",
-  "lastName": "Петров"
+    "id": 41,
+    "login": "xromzas_software",
+    "role": "CLIENT",
+    "createdAt": "2026-05-07T19:05:27.586649",
+    "isApproved": true,
+    "clientType": "LEGAL",
+    "email": "Sandrine60@gmail.com",
+    "phone": "+71231231212",
+    "details": {
+        "companyName": "Lehner - Pollich",
+        "inn": "123456789123",
+        "kpp": "123456789",
+        "ogrn": "1234567891234",
+        "legalAddress": "г. Москва ул. Арбат 1"
+    }
 }
 ```
 
-### 3.2. Данные физического лица
+### 3.2. Получить данные профиля (Физическое лицо)
 **Метод:** `GET`  
-**Путь:** `/profile/individual-details`  
+**Путь:** `/profile`  
 **Доступ:** Авторизованный пользователь  
 **Заголовки:** `Authorization: Bearer <your_token_here>`
 
 **Успешный ответ (200 OK):**
 ```json
 {
-  "firstName": "Кирилл",
-  "lastName": "Петров",
-  "midName": "Дмитриевич",
-  "birthDate": "2000-01-01"
+    "id": 42,
+    "login": "kostenko",
+    "role": "CLIENT",
+    "createdAt": "2026-05-07T19:24:32.923808",
+    "isApproved": true,
+    "clientType": "INDIVIDUAL",
+    "email": "Graciela_Strosin15@hotmail.com",
+    "phone": "+71337133712",
+    "details": {
+        "firstName": "Костенко",
+        "lastName": "Константин",
+        "midName": null,
+        "birthDate": "1967-12-06"
+    }
 }
 ```
 
-### 3.3. Данные юридического лица
-**Метод:** `GET`  
-**Путь:** `/profile/legal-details`  
+### 3.3. Измнение данных пользователя
+**Метод:** `PATCH`  
+**Путь:** `/profile`  
 **Доступ:** Авторизованный пользователь  
 **Заголовки:** `Authorization: Bearer <your_token_here>`
 
+**Тело запроса:**
+```json
+{
+    "firstName": "Кирилл",
+    "midName": "Дмитриевич",
+    "email": "xxxromza@gmail.com"
+}
+```
 **Успешный ответ (200 OK):**
 ```json
 {
-  "companyName": "ООО Программное Обеспечение",
-  "inn": "1337069420",
-  "kpp": "177301001",
-  "ogrn": "1027710132195",
-  "legalAddress": "г. Москва, ул. Заводская, 10"
+    "id": 10,
+    "login": "test_user",
+    "role": "CLIENT",
+    "createdAt": "2026-05-06T22:51:34.10047",
+    "isApproved": true,
+    "clientType": "INDIVIDUAL",
+    "email": "xxxromza@gmail.com",
+    "phone": "+79991234567",
+    "details": {
+        "firstName": "Кирилл",
+        "lastName": "Петров",
+        "midName": "Дмитриевич",
+        "birthDate": "2006-07-09"
+    }
 }
 ```
 
@@ -515,21 +574,44 @@
 **Успешный ответ (200 OK):**
 ```json
 {
-  "items": [
-    {
-      "variantId": 101,
-      "title": "Худи 'Over-size' Базовое",
-      "quantity": 12,
-      "appliedPrice": 3800.00,
-      "subtotal": 45600.00,
-      "availableStock": 50,
-      "priceType": "WHOLESALE",
-      "imageUrl": "https://res.cloudinary.com/xromza/image/upload/v1/products/hoodie_blk_thumb.jpg"
-    }
-  ],
-  "total_price": 45600.00,
-  "discount_applied": false,
-  "can_checkout": true
+    "items": [
+        {
+            "variantId": 25,
+            "brand": "Maison Margiela",
+            "title": "Кроссовки Replica",
+            "quantity": 1,
+            "appliedPrice": 68000.00,
+            "subtotal": 68000.00,
+            "availableStock": 5,
+            "priceType": "RETAIL",
+            "imageUrl": null
+        },
+        {
+            "variantId": 2,
+            "brand": "Gucci",
+            "title": "Бомбер GG Marmont",
+            "quantity": 4,
+            "appliedPrice": 140000.00,
+            "subtotal": 560000.00,
+            "availableStock": 3,
+            "priceType": "WHOLESALE",
+            "imageUrl": null
+        },
+        {
+            "variantId": 1,
+            "brand": "Gucci",
+            "title": "Бомбер GG Marmont",
+            "quantity": 4,
+            "appliedPrice": 140000.00,
+            "subtotal": 560000.00,
+            "availableStock": 6,
+            "priceType": "WHOLESALE",
+            "imageUrl": "https://lux-cdn.example.com/gucci_bomber_blk_main.jpg"
+        }
+    ],
+    "total_price": 1188000.00,
+    "discount_applied": true,
+    "can_checkout": false
 }
 ```
 
@@ -542,17 +624,23 @@
 **Тело запроса:**
 ```json
 {
-  "variantId": 101,
-  "quantity": 5
+    "variantId": {{variantId}},
+    "quantity": {{quantity}}
 }
 ```
 
 **Успешный ответ (200 OK):**
 ```json
 {
-  "variantId": 101,
-  "currentQuantity": 5,
-  "message": "Корзина обновлена"
+    "variantId": 2,
+    "brand": "Gucci",
+    "title": "Бомбер GG Marmont",
+    "quantity": 4,
+    "appliedPrice": 140000.00,
+    "subtotal": 560000.00,
+    "availableStock": 3,
+    "priceType": "WHOLESALE",
+    "imageUrl": null
 }
 ```
 
@@ -562,14 +650,8 @@
 **Доступ:** Авторизованный пользователь  
 **Заголовки:** `Authorization: Bearer <your_token_here>`
 
-**Успешный ответ (200 OK):**
-```json
-{
-  "variantId": 101,
-  "title": "Худи 'Over-size' Базовое",
-  "message": "Позиция успешно удалена из корзины"
-}
-```
+**Успешный ответ (204 No Content)**
+**Тело ответа**: Отсутствует
 
 ### 4.4. Очистить корзину
 **Метод:** `DELETE`  
@@ -577,15 +659,10 @@
 **Доступ:** Авторизованный пользователь  
 **Заголовки:** `Authorization: Bearer <your_token_here>`
 
-**Успешный ответ (200 OK):**
-```json
-{
-  "count": 2,
-  "message": "Товары успешно удалены из корзины"
-}
-```
+**Успешный ответ (204 No Content)**
+**Тело ответа**: Отсутствует
 
-## 5. Оформление заказа (Checkout)
+## 5. Заказы (Orders)
 
 ### 5.1. Создать заказ из корзины
 **Метод:** `POST`  
@@ -606,17 +683,66 @@
 **Успешный ответ (201 Created):**
 ```json
 {
-  "id": 1025,
-  "userId": 1,
-  "warehouseId": 1,
-  "total_price": 41800.00,
-  "address": "г. Москва, ул. Арбат, д. 1, кв. 12",
-  "payment_method": "CARD",
-  "status": "NEW",
-  "date": "2026-04-14T12:30:00"
+    "id": 9,
+    "userId": 8,
+    "warehouseId": 2,
+    "totalPrice": 395000.00,
+    "address": "г. Краснодар Витаминокомбинат 101 п. 2",
+    "paymentMethod": "SBP",
+    "status": "NEW",
+    "date": "2026-05-07T20:07:09.946603482",
+    "items": [
+        {
+            "productId": 1,
+            "variantId": 1,
+            "brand": "Gucci",
+            "title": "Бомбер GG Marmont",
+            "sku": "GUC-BMB-BLK-M",
+            "size": "M",
+            "color": "Черный",
+            "mainImageUrl": "https://lux-cdn.example.com/gucci_bomber_blk_thumb.jpg",
+            "quantity": 1,
+            "appliedPrice": 185000.00,
+            "subtotal": 185000.00,
+            "priceType": "RETAIL"
+        },
+        {
+            "productId": 5,
+            "variantId": 15,
+            "brand": "Gucci",
+            "title": "Костюм из шерсти Super 120",
+            "sku": "GUC-SUT-NVY-50",
+            "size": "50",
+            "color": "Темно-синий",
+            "mainImageUrl": null,
+            "quantity": 1,
+            "appliedPrice": 210000.00,
+            "subtotal": 210000.00,
+            "priceType": "RETAIL"
+        }
+    ],
+    "statusHistory": [
+        {
+            "orderId": 9,
+            "status": "NEW",
+            "changedAt": "2026-05-07T20:07:09.949302167",
+            "changedByName": "system",
+            "comment": "Заказ создан"
+        }
+    ]
 }
 ```
 
+**Недостаточно товаров (422 Unprocessable Entity)**
+```json
+{
+    "error": "NotEnoughItems",
+    "errors": {
+        "1": "Бомбер GG Marmont (Черный M): Недостаточно товара. Доступно: 2",
+        "15": "Костюм из шерсти Super 120 (Темно-синий 50): Недостаточно товара. Доступно: 1"
+    }
+}
+```
 ### 5.2. Создать заказ одного товара
 **Метод:** `POST`  
 **Путь:** `/orders/single`  
@@ -626,34 +752,75 @@
 **Тело запроса:**
 ```json
 {
-  "variantId": 101,
-  "quantity": 5,
-  "warehouseId": 1,
-  "address": "г. Москва, ул. Арбат, д. 1, кв. 12",
-  "payment": "CARD",
-  "comment": "Срочно"
+    "quantity": 3,
+    "variantId": 4,
+    "warehouseId": 2,
+    "address": "г. Краснодар Витаминокомбинат 101 п. 2",
+    "payment": "SBP",
+    "comment": "ПОБЫСТРЕЕ"
 }
 ```
 
 **Успешный ответ (201 Created):**
 ```json
 {
-  "id": 1026,
-  "userId": 1,
-  "warehouseId": 1,
-  "total_price": 19000.00,
-  "address": "г. Москва, ул. Арбат, д. 1, кв. 12",
-  "payment_method": "CARD",
-  "status": "NEW",
-  "date": "2026-04-14T12:40:00"
+    "id": 10,
+    "userId": 8,
+    "warehouseId": 2,
+    "totalPrice": 216000.00,
+    "address": "г. Краснодар Витаминокомбинат 101 п. 2",
+    "paymentMethod": "SBP",
+    "status": "NEW",
+    "date": "2026-05-07T20:07:51.01555857",
+    "items": [
+        {
+            "productId": 2,
+            "variantId": 4,
+            "brand": "Prada",
+            "title": "Рубашка из поплина",
+            "sku": "PRA-SHT-WHT-39",
+            "size": "39",
+            "color": "Белый",
+            "mainImageUrl": "https://lux-cdn.example.com/prada_shirt_wht_thumb.jpg",
+            "quantity": 3,
+            "appliedPrice": 72000.00,
+            "subtotal": 216000.00,
+            "priceType": "RETAIL"
+        }
+    ],
+    "statusHistory": [
+        {
+            "orderId": 10,
+            "status": "NEW",
+            "changedAt": "2026-05-07T20:07:51.017698609",
+            "changedByName": "system",
+            "comment": "Заказ создан"
+        }
+    ]
 }
 ```
 
-## 6. История заказов (Order History)
+**Недостаточно товаров (422 Unprocessable Entity)**
+```json
+{
+    "error": "NotEnoughItems",
+    "errors": {
+        "1": "Бомбер GG Marmont (Черный M): Недостаточно товара. Доступно: 2",
+        "15": "Костюм из шерсти Super 120 (Темно-синий 50): Недостаточно товара. Доступно: 1"
+    }
+}
+```
+**Склад не существует (404 Not Found)**
+```json
+{
+    "error": "NotFound",
+    "description": "Склад не найден"
+}
+```
 
-### 6.1. Список заказов пользователя
+### 5.3. Список заказов пользователя
 **Метод:** `GET`  
-**Путь:** `/order_history`  
+**Путь:** `/orders`  
 **Доступ:** Авторизованный пользователь  
 **Заголовки:** `Authorization: Bearer <your_token_here>`
 
@@ -663,66 +830,182 @@
 | **sort** | `string` | Сортировка | `?sort=date,asc` |
 | **page** | `int` | Страница | `?page=0` |
 | **size** | `int` | Размер | `?size=10` |
+| **verbose** | `boolean` | Размер | `?verbose=0` |
 
-**Успешный ответ (200 OK):**
+**Успешный ответ (200 OK) Verbose = 0:**
 ```json
 [
-  {
-    "id": 1024,
-    "userId": 1,
-    "warehouseId": 1,
-    "total_price": 2450.00,
-    "address": "г. Москва, ул. Арбат, д. 1, кв. 12",
-    "payment_method": "CASH",
-    "status": "COMPLETED",
-    "date": "2026-03-20T15:30:00"
-  }
+    {
+        "id": 4,
+        "userId": 8,
+        "warehouseId": 1,
+        "totalPrice": 96000.00,
+        "address": "г. Казань, ул. Баумана, д. 10",
+        "paymentMethod": "CASH",
+        "status": "PROCESSING",
+        "date": "2026-05-04T19:16:16.827122",
+        "items": [
+            {
+                "productId": 7,
+                "variantId": 19,
+                "brand": "Gucci",
+                "title": "Ремень GG Marmont 4 см",
+                "sku": "GUC-BLT-BLK-85",
+                "size": "85",
+                "color": "Черный",
+                "mainImageUrl": "https://lux-cdn.example.com/gucci_belt_blk_main.jpg",
+                "quantity": 2,
+                "appliedPrice": 48000.00,
+                "subtotal": 96000.00,
+                "priceType": "RETAIL"
+            }
+        ]
+    },
+    {
+        "id": 9,
+        "userId": 8,
+        "warehouseId": 2,
+        "totalPrice": 395000.00,
+        "address": "г. Краснодар Витаминокомбинат 101 п. 2",
+        "paymentMethod": "SBP",
+        "status": "NEW",
+        "date": "2026-05-07T20:07:09.946603",
+        "items": [
+            {
+                "productId": 1,
+                "variantId": 1,
+                "brand": "Gucci",
+                "title": "Бомбер GG Marmont",
+                "sku": "GUC-BMB-BLK-M",
+                "size": "M",
+                "color": "Черный",
+                "mainImageUrl": "https://lux-cdn.example.com/gucci_bomber_blk_thumb.jpg",
+                "quantity": 1,
+                "appliedPrice": 185000.00,
+                "subtotal": 185000.00,
+                "priceType": "RETAIL"
+            },
+            {
+                "productId": 5,
+                "variantId": 15,
+                "brand": "Gucci",
+                "title": "Костюм из шерсти Super 120",
+                "sku": "GUC-SUT-NVY-50",
+                "size": "50",
+                "color": "Темно-синий",
+                "mainImageUrl": null,
+                "quantity": 1,
+                "appliedPrice": 210000.00,
+                "subtotal": 210000.00,
+                "priceType": "RETAIL"
+            }
+        ]
+    },
+    {
+        "id": 10,
+        "userId": 8,
+        "warehouseId": 2,
+        "totalPrice": 216000.00,
+        "address": "г. Краснодар Витаминокомбинат 101 п. 2",
+        "paymentMethod": "SBP",
+        "status": "NEW",
+        "date": "2026-05-07T20:07:51.015559",
+        "items": [
+            {
+                "productId": 2,
+                "variantId": 4,
+                "brand": "Prada",
+                "title": "Рубашка из поплина",
+                "sku": "PRA-SHT-WHT-39",
+                "size": "39",
+                "color": "Белый",
+                "mainImageUrl": "https://lux-cdn.example.com/prada_shirt_wht_thumb.jpg",
+                "quantity": 3,
+                "appliedPrice": 72000.00,
+                "subtotal": 216000.00,
+                "priceType": "RETAIL"
+            }
+        ]
+    }
 ]
 ```
 
-### 6.2. Получить информацию о заказе
+### 5.4 Получить информацию о заказе
 **Метод:** `GET`  
-**Путь:** `/order_history/{id}`  
+**Путь:** `/orders/{id}`  
 **Доступ:** Авторизованный пользователь  
 **Заголовки:** `Authorization: Bearer <your_token_here>`
 
 **Успешный ответ (200 OK):**
 ```json
 {
-  "id": 1024,
-  "userId": 1,
-  "warehouseId": 1,
-  "total_price": 41800.00,
-  "address": "г. Москва, ул. Арбат, д. 1, кв. 12",
-  "payment_method": "INVOICE",
-  "status": "COMPLETED",
-  "date": "2026-03-20T15:30:00",
-  "items": [
-    {
-      "variantId": 101,
-      "title": "Худи 'Over-size' Базовое",
-      "quantity": 12,
-      "appliedPrice": 3800.00,
-      "subtotal": 45600.00,
-      "availableStock": 50,
-      "priceType": "WHOLESALE",
-      "imageUrl": "https://res.cloudinary.com/xromza/image/upload/v1/products/hoodie_blk_thumb.jpg"
-    }
-  ],
-  "status_history": [
-    {
-      "orderId": 1025,
-      "status": "ASSEMBLING",
-      "changedAt": "2026-03-21T18:45:00",
-      "changedByName": "madin_manager",
-      "comment": "Начата сборка"
-    }
-  ],
-  "price_type": "WHOLESALE"
+    "id": 10,
+    "userId": 8,
+    "warehouseId": 2,
+    "totalPrice": 216000.00,
+    "address": "г. Краснодар Витаминокомбинат 101 п. 2",
+    "paymentMethod": "SBP",
+    "status": "NEW",
+    "date": "2026-05-07T20:07:51.015559",
+    "items": [
+        {
+            "productId": 2,
+            "variantId": 4,
+            "brand": "Prada",
+            "title": "Рубашка из поплина",
+            "sku": "PRA-SHT-WHT-39",
+            "size": "39",
+            "color": "Белый",
+            "mainImageUrl": "https://lux-cdn.example.com/prada_shirt_wht_thumb.jpg",
+            "quantity": 3,
+            "appliedPrice": 72000.00,
+            "subtotal": 216000.00,
+            "priceType": "RETAIL"
+        }
+    ],
+    "statusHistory": [
+        {
+            "orderId": 10,
+            "status": "NEW",
+            "changedAt": "2026-05-07T20:07:51.017699",
+            "changedByName": "system",
+            "comment": "Заказ создан"
+        }
+    ]
 }
 ```
 
+**Нет прав на просмотр (403 Forbidden)**
+Заказ принадлежит другому пользователю
+
+```json
+{
+    "error": "Forbidden",
+    "description": "Нет прав на просмотр этого заказа"
+}
+```
+
+## 6. Утилитарные эндпоинты
+Эндпоинты для Frontend
+
+### 6.1 Получение счётчиков категорий для хедера
+**Метод:** `GET`  
+**Путь:** `/header`  
+**Доступ:** Всем 
+
+**Тело запроса**
+
+**Успешный ответ (200 ОК):**: 
+```json
+{
+    "saleCount": 4,
+    "manCount": 3,
+    "womenCount": 3,
+    "brandCount": 4
+}
+```
 ## 7. Администрирование (Admin/Manager)
+**ОТЛОЖЕНО**
 
 ### 7.1. Обновить статус заказа
 **Метод:** `PATCH`  
