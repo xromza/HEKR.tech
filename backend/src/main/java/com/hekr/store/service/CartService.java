@@ -3,6 +3,7 @@ package com.hekr.store.service;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +32,8 @@ public class CartService {
 
     public CartResponseDto getCart(UserDetails userDetails) {
         User user = userService.findByLogin(userDetails.getUsername());
+        if (!user.getIsApproved())
+            throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
         List<Cart> cart = cartRepository.findByIdUserId(user.getId());
         List<CartItemResponseDto> cartItems = cartItemResponseMapper.toResponseList(cart);
 
@@ -72,6 +75,8 @@ public class CartService {
     @Transactional
     public CartItemResponseDto addOrUpdateItem(UserDetails userDetails, CartItemRequestDto cartItemRequestDto) {
         User user = userService.findByLogin(userDetails.getUsername());
+        if (!user.getIsApproved())
+            throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
         ProductVariant variant = productService.getProductVariantById(cartItemRequestDto.getVariantId());
         CartItemId id = CartItemId
                 .builder()
@@ -92,12 +97,16 @@ public class CartService {
     @Transactional
     public void deleteItem(UserDetails userDetails, Long variantId) {
         User user = userService.findByLogin(userDetails.getUsername());
+        if (!user.getIsApproved())
+            throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
         cartRepository.deleteByIdUserIdAndIdVariantId(user.getId(), variantId);
     }
 
     @Transactional 
     public void deleteAll(UserDetails userDetails) {
         User user = userService.findByLogin(userDetails.getUsername());
+        if (!user.getIsApproved())
+            throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
         cartRepository.deleteByIdUserId(user.getId());
     }
 

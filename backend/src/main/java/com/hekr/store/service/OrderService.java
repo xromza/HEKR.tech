@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,12 +52,13 @@ public class OrderService {
 
     public List<? extends OrderDtoInterface> getOrders(UserDetails userDetails, boolean verbose) {
         User user = userService.findByLogin(userDetails.getUsername());
-
+        if (!user.getIsApproved())
+            throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
         if (verbose)
             return orderResponseMapper.toDtoList(orderRepository.findByUserIdVerbose(user.getId()));
-        else return simpleOrderResponseMapper.toDtoList(orderRepository.findByUserIdSimple(user.getId()));
+        else
+            return simpleOrderResponseMapper.toDtoList(orderRepository.findByUserIdSimple(user.getId()));
     }
-
 
     public OrderResponseDto getOrder(Long id) {
         Order order = orderRepository.findByIdWithItemsAndHistory(id)
@@ -68,6 +70,8 @@ public class OrderService {
     public OrderResponseDto createCartOrder(UserDetails userDetails, CartCheckoutRequestDto dto) {
         Warehouse warehouse = warehouseService.findById(dto.getWarehouseId());
         User user = userService.findByLogin(userDetails.getUsername());
+        if (!user.getIsApproved())
+            throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
         List<Cart> cart = cartService.findByUserId(user.getId());
         Map<String, String> errors = new HashMap<>();
         if (cart.isEmpty()) {
@@ -129,6 +133,8 @@ public class OrderService {
     public OrderResponseDto createSingleOrder(UserDetails userDetails, SingleCheckoutRequestDto dto) {
         Warehouse warehouse = warehouseService.findById(dto.getWarehouseId());
         User user = userService.findByLogin(userDetails.getUsername());
+        if (!user.getIsApproved())
+            throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
         ProductVariant variant = productService.getProductVariantById(dto.getVariantId());
         Stock stock = stockService.getByVariantIdAndWarehouseId(dto.getVariantId(), dto.getWarehouseId());
         if (stock.getQuantity() < dto.getQuantity()) {
@@ -166,7 +172,6 @@ public class OrderService {
                 .build();
         order.addHistory(orderStatusHistory);
         Order saved = orderRepository.saveAndFlush(order);
-        System.out.println("Items count before return: " + saved.getItems().size());
         return orderResponseMapper.toDto(saved);
     }
 

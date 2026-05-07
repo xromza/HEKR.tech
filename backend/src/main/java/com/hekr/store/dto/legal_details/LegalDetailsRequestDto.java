@@ -5,6 +5,7 @@ import com.hekr.store.utils.ClientType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,11 +32,13 @@ public class LegalDetailsRequestDto implements DetailsRequestInterface {
     @NotBlank
     @Schema(description = "Название компании", example = "ООО ХЕКР БЛОК")
     @Size(max = 256)
+    @Pattern(regexp = "^[a-zA-Zа-яА-Я ]{1,256}$")
     private String companyName;
 
     @NotBlank
     @Size(min = 12, max = 12)
     @Schema(description = "ИНН компании", example = "7707083892")
+    @Pattern(regexp = "^[1-9]{1,1}\\d{11}$")
     private String inn;
 
     @NotBlank

@@ -72,7 +72,7 @@ public class GlobalExceptionHandler {
                                 .body(ErrorResponseDto
                                                 .builder()
                                                 .error("Unauthorized")
-                                                .description("Плохая подпись токена. не балуйся")
+                                                .description("Плохая подпись токена")
                                                 .build());
         }
 

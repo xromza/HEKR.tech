@@ -9,6 +9,8 @@ import com.hekr.store.utils.ClientType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,29 +42,35 @@ public class IndividualDetailsRequestDto implements DetailsRequestInterface {
     @NotBlank
     @Schema(description = "Имя физического лица", example = "Иван")
     @Size(min = 1, max = 256)
+    @Pattern(regexp = "^[a-zA-Zа-яА-Я ]{1,256}$")
     private String firstName;
 
     @NotBlank
     @Schema(description = "Фамилия физического лица", example = "Петров")
     @Size(min = 1, max = 256)
+    @Pattern(regexp = "^[a-zA-Zа-яА-Я ]{1,256}$")
     private String lastName;
 
     @Schema(description = "Отчество физического лица", example = "Сергеевич")
     @Size(min = 1, max = 256)
+    @Pattern(regexp = "^[a-zA-Zа-яА-Я]{0,256}$")
     private String midName;
 
     @NotNull
     @Schema(description = "Дата рождения физического лица", example = "1990-05-15")
+    @Past(message = "Дата рождения не может быть в будущем")
     private LocalDate birthDate;
 
     @NotBlank
     @Schema(description = "Серия паспорта", example = "1234")
     @Size(min = 4, max = 4)
+    @Pattern(regexp = "^\\d{4}$")
     private String passportSeries;
 
     @NotBlank
     @Schema(description = "Номер паспорта", example = "567890")
     @Size(min = 6, max = 6)
+    @Pattern(regexp = "^\\d{6}$")
     private String passportNumber;
 
 }

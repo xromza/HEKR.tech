@@ -1,5 +1,6 @@
 package com.hekr.store.service;
 
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,8 @@ public class ProfileService {
         User user = userRepository
                 .findByLogin(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
-
+        if (!user.getIsApproved())
+            throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
         return userMapper.toResponse(user);
     }
 
@@ -36,10 +38,13 @@ public class ProfileService {
         User user = userRepository
                 .findByLogin(userDetails.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
+        if (!user.getIsApproved())
+            throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
         User mapped = userEditMapper.updateEntity(userEditDto, user);
         if (userEditDto.getPassword() != null) {
             mapped = authService.changePassword(user, userEditDto.getPassword());
         }
+
         userRepository.save(mapped);
         return userMapper.toResponse(user);
 

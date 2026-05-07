@@ -79,7 +79,7 @@ public class AuthService {
         } else {
             throw new AuthException("Неизвестный тип клиента");
         }
-        User saved = userService.saveNew(user);
+        userService.saveNew(user);
         String jwtToken = jwtService.generateToken(user);
         UserToken refreshToken = jwtService.generateRefreshToken(user);
         userTokenRepository.save(refreshToken);
