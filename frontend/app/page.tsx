@@ -24,8 +24,9 @@ export default function Home() {
         />
       </div>
       <SliderDiscount />
-      <FAQ />
-      <article className='uppercase grid grid-cols-1 gap-2 md:gap-[8rem] px-6 md:px-[6rem] lg:grid-cols-2'>
+      <div className="max-w-[1920px] mx-auto"><FAQ />
+      </div>
+      <article className='uppercase grid mx-auto max-w-[1920px] grid-cols-1 gap-2 md:gap-[8rem] px-6 md:px-[6rem] lg:grid-cols-2'>
         <div className='flex flex-col gap-6'>
           <h2 className='font-normal text-4xl md:text-5xl mb-4 font-semibold'>О нас <span className='text-[#b3b3b3]'>HEKR</span></h2>
           <p className='font-normal text-2xl text-left'>Hekr Store - это интернет-магазин для тех, кто ценит стиль и любит модно одеваться. Мы представляем лучшие мировые бренды, такие как: Gucci, Prada, Moncler, Maison Margiela и другие.</p>
@@ -41,7 +42,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <AboutImage/>
+        <AboutImage />
       </article>
     </main>
   );

@@ -5,7 +5,8 @@ import Parallax from "./Parallax";
 import useMobile from "@/hooks/useMobile";
 
 export default function AboutImage() {
-    const isMobile = useMobile();
+    const isMobile = useMobile(768);
+    console.log(isMobile);
     return (
         <div>
             {isMobile ?
