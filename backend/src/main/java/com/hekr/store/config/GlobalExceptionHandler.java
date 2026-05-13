@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -85,7 +86,7 @@ public class GlobalExceptionHandler {
                         fieldErrors.put(errorName, errorMessage);
                 });
                 MapErrorResponseDto errors = MapErrorResponseDto.builder()
-                                .error("ValidationError")
+                                .error("ValidationError1")
                                 .errors(fieldErrors)
                                 .build();
 
@@ -125,6 +126,15 @@ public class GlobalExceptionHandler {
                                 .build());
         }
 
+        @ExceptionHandler(UsernameNotFoundException.class)
+                public ResponseEntity<ErrorResponseDto> handleUsernameNotFound(UsernameNotFoundException ex) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorResponseDto
+                                .builder()
+                                .error("UsernameNotFound")
+                                .description(ex.getMessage())
+                                .build());
+        }
+
         @ExceptionHandler(Exception.class)
         public ResponseEntity<ErrorResponseDto> handleAllExceptions(Exception ex) {
                 ex.printStackTrace();
@@ -150,10 +160,11 @@ public class GlobalExceptionHandler {
                 else if (cause instanceof JsonParseException) {
                         friendlyMessage = "Ошибка в синтаксисе JSON";
                 }
+                else friendlyMessage = ex.getMessage();
 
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponseDto
                                 .builder()
-                                .error("ValidationError")
+                                .error("ValidationError2")
                                 .description(friendlyMessage)
                                 .build());
         }
