@@ -36,8 +36,8 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
         },
     ]
     return (
-        <header className='px-6 absolute bg-white w-full h-[200px] z-50 text-lg'>
-            <div className="container mx-auto h-full px-4 flex items-center">
+        <header className='absolute bg-white w-full h-[200px] z-50 text-lg'>
+            <div className="container mx-auto h-full flex items-center">
                 <div className='flex flex-row w-full h-full items-center justify-start uppercase'>
                     <div className="flex-shrink-0 pr-8 lg:pr-16">
                         <button
