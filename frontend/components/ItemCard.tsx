@@ -33,7 +33,7 @@ export default function ItemCard({ card }: { card: ItemCardInterface }) {
                     </div>
 
                     <div className="flex items-end gap-1 whitespace-nowrap leading-none">
-                        <span className="font-bold text-lg md:text-2xl leading-none">
+                        <span className="font-semibold text-lg md:text-2xl leading-none">
                             {formatPrice(card.priceWholesale)}
                         </span>
                         <span className="text-[11px] md:text-base leading-none mb-[1px] md:mb-[2px]">
