@@ -5,6 +5,7 @@ import { useState } from "react";
 import { CatalogPageable } from "@/types/CatalogPageable";
 import { getCatalog } from "@/app/lib/getCatalog";
 import { useInteractionObserver } from "@/hooks/useInteractionObserver";
+import { LoaderCircle } from "lucide-react";
 
 export default function Catalog({ initialData }: { initialData: CatalogPageable }) {
 
@@ -42,15 +43,15 @@ export default function Catalog({ initialData }: { initialData: CatalogPageable 
     const observerTarget = useInteractionObserver(loadMore, [page, hasMore, isLoading]);
 
     return (
-        <div className="w-full max-w-[1920px] px-16">
-            <div className="h-full grid grid-cols-2 gap-4 md:gap-36 md:grid-cols-3">
+        <div className="w-full max-w-[1920px] md:px-16">
+            <div className="h-full grid grid-cols-2 gap-12 lg:gap-36 lg:grid-cols-3">
                 {items.map((item, idx) =>
                     <div key={idx}>
                         <ItemCard card={item} />
                     </div>)}
             </div>
-            <div ref={observerTarget} className="h-10 w-full flex justify-center items-center">
-                {isLoading && <span>Загрузка...</span>}
+            <div ref={observerTarget} className="p-10 w-full flex justify-center items-center">
+                {isLoading && <LoaderCircle className="animate-spin"/>}
                 {!hasMore && items.length > 0 && <span>Вы просмотрели все товары</span>}
             </div>
         </div>
