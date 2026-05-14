@@ -45,7 +45,7 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
                             className="cursor-pointer"
 
                         >
-                            <Image src="https://res.cloudinary.com/dcc2qkmq7/image/upload/v1777939108/logo_ryssvy.svg"
+                            <Image src="/logo.svg"
                                 width={100}
                                 height={100}
                                 className="object-contain"

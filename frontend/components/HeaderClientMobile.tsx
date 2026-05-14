@@ -56,7 +56,7 @@ export default function HeaderClientMobile({ items, isLoginVisible, setIsLoginVi
                                     className="cursor-pointer"
 
                                 >
-                                    <Image src="https://res.cloudinary.com/dcc2qkmq7/image/upload/v1777939108/logo_ryssvy.svg"
+                                    <Image src="/logo.svg"
                                         width={77}
                                         height={55}
                                         className="object-contain"
