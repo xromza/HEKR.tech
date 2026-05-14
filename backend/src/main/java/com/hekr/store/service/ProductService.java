@@ -43,6 +43,20 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
+    public Page<ProductDtoInterface> getProductCatalogByCategoryId(Pageable pageable, Long categoryId) {
+        return productRepository
+                .findAllActiveByIdCategoryId(categoryId, pageable)
+                .map(productCatalogResponseMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductDtoInterface> getVerboseProductCatalogByCategoryId(Pageable pageable, Long categoryId) {
+        Page<Product> productPage = productRepository.findAllActiveByIdCategoryId(categoryId, pageable);
+
+        return productPage.map(productMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
     public Page<ProductDtoInterface> findProductsByTitle(String query, Pageable pageable) {
 
         return productRepository
@@ -60,17 +74,18 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public ProductResponseDto getProductDtoById(Long id) {
-        Product product =productRepository
+        Product product = productRepository
                 .findById(id)
                 .orElseThrow(
                         () -> new NotFoundException("Товар с id " + id + " не найден"));
-                        product.getVariants().forEach(v -> v.getImages().size());
+        product.getVariants().forEach(v -> v.getImages().size());
         return productMapper.toResponse(product);
     }
 
     @Transactional(readOnly = true)
     public ProductVariant getProductVariantById(Long id) {
-        return productVariantsRepository.findById(id).orElseThrow(() -> new NotFoundException("Вариант товара не найден"));
+        return productVariantsRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Вариант товара не найден"));
     }
 
     @Transactional(readOnly = true)

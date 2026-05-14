@@ -27,6 +27,8 @@ public interface CartItemResponseMapper {
     @Mapping(target = "imageUrl", ignore = true)
     @Mapping(target = "brand", ignore = true)
     @Mapping(target = "priceType", ignore = true)
+    @Mapping(target = "color", source = "productVariant.color")
+    @Mapping(target = "size", source = "productVariant.size")
     CartItemResponseDto toDto(Cart cart);
 
     List<CartItemResponseDto> toResponseList(List<Cart> carts);
