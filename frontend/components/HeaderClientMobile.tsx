@@ -118,7 +118,7 @@ export default function HeaderClientMobile({ items, isLoginVisible, setIsLoginVi
                     }
                 </AnimatePresence>
                 <Login isVisible={isLoginVisible} setIsVisible={setIsLoginVisible} />
-                <BurgerScreen items={items} isActive={isBurgerActive} />
+                <BurgerScreen setIsActive={setIsBurgerActive} items={items} isActive={isBurgerActive} />
             </div>
         </header >
     )

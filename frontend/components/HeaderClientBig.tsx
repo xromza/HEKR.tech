@@ -1,5 +1,5 @@
 "use client"
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import Image from "next/image";
 import Login from "./Login";
@@ -17,6 +17,7 @@ interface ControlItems {
 export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisible }: { items: HeaderItem[], isLoginVisible: boolean, setIsLoginVisible: Dispatch<SetStateAction<boolean>> }) {
 
     const router = useRouter();
+    const pathname = usePathname();
     const [isSearchActive, setIsSearchActive] = useState(false);
     const controlItems: ControlItems[] = [
         {
@@ -64,8 +65,8 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
                                         <li key={idx} className="whitespace-nowrap">
                                             <div className="flex flex-row gap-1 lg:gap-2">
                                                 <button
-                                                    className='hover:underline uppercase cursor-pointer text-sm lg:text-base'
-                                                    onClick={() => router.push(item.link)}>{item.title}</button>
+                                                    className={`${pathname === item.link ? "underline font-semibold scale-102 cursor-default" : "hover:underline cursor-pointer "} transition duration-300 uppercase text-sm lg:text-base`}
+                                                    onClick={ pathname === item.link ? undefined : () => router.push(item.link)}>{item.title}</button>
                                                 <span className='text-[#ccc] cursor-default hidden lg:inline'>{item.count}</span>
                                             </div>
                                         </li>
