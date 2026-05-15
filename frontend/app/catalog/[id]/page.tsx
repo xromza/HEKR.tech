@@ -1,12 +1,30 @@
+import { getProduct } from "@/app/lib/Product";
 import { ProductInterface } from "@/types/ProductInterface";
+import { div } from "framer-motion/client";
 
 export default async function CardPage({
     params,
 }: { params: Promise<{ id: string }>; }) {
     const { id } = await params;
+    const product = await getProduct(id);
 
+    if (!product) {
+        return <div className="w-full flex justify-center items-center">Товар не найден</div>
+    }
 
-    const product: ProductInterface = {
+    return (
+        <div className="w-full items-center">
+            <div>
+                <h1>{product.title}</h1>
+                <p>Бренд: {product.brand}</p>
+                <p>Розничная цена: {product.priceWholesale}</p>
+                <p>Оптовая цена: {product.priceRetail}</p>
+                <img src={product.mainImageUrl} alt={product.title} className="w-full h-auto rounded-lg" />
+            </div>
+        </div>
+    )
+
+    /*const product: ProductInterface = {
         id: Number(id),
         brand: "SAINTS KELLY",
         title: "КУРТКА ДУТАЯ",
@@ -49,10 +67,13 @@ export default async function CardPage({
             }
         ]
     };
+    */
 
+    /*
     return (
         <div className="w-full flex justify-center items-center">
             <div>Страница карточки (скоро тут будет красота, в разработке) {id}</div>
         </div>
     )
+    */
 }
