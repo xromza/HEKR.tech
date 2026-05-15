@@ -1,10 +1,13 @@
 import { CatalogPageable } from "@/types/CatalogPageable";
+import { OrderTypes } from "@/types/OrderTypes";
 
-export async function getCatalog({ path, page = 0, size = 6, verbose = false, sort = "" }: { path: string, page: number, size: number, verbose: boolean, sort: string }): Promise<CatalogPageable> {
+export async function getCatalog({ path, page = 0, size = 6, verbose = false, sort = "", order = OrderTypes.ASC}: { path: string, page: number, size: number, verbose: boolean, sort: string, order: OrderTypes }): Promise<CatalogPageable> {
 
     const API_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080/api';
+    const order_str = order !== null && order === OrderTypes.ASC ? "asc" : "desc"
+    const sort_query = sort !== null && order !== null ? `${sort},${order_str}` : "";
     try {
-        const params = `?page=${page}&size=${size}&verbose=${verbose}&sort=${sort}`
+        const params = `?page=${page}&size=${size}&verbose=${verbose}&sort=${sort_query}`
         const query = `${API_URL}/v1${path}${params}`;
         console.log(query)
         const res = await fetch(query);

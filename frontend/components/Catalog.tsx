@@ -5,8 +5,9 @@ import { useState } from "react";
 import { CatalogPageable } from "@/types/CatalogPageable";
 import { getCatalog } from "@/app/lib/getCatalog";
 import { useInteractionObserver } from "@/hooks/useInteractionObserver";
-import { ArrowDown01, ArrowDown10, ArrowUp10, LoaderCircle } from "lucide-react";
+import { ArrowDown01, ArrowDown10, ArrowUp10, LoaderCircle, MoveDown, MoveUp } from "lucide-react";
 import { OrderTypes } from "@/types/OrderTypes";
+import { useRouter } from "next/navigation";
 
 export default function Catalog({ initialData, path, title }: { initialData: CatalogPageable, path: string, title: string }) {
 
@@ -15,20 +16,49 @@ export default function Catalog({ initialData, path, title }: { initialData: Cat
     const [hasMore, setHasMore] = useState(!initialData.last);
     const [isLoading, setIsLoading] = useState(false);
 
+    const router = useRouter();
+
     const [sortBy, setSortBy] = useState("id");
     const [order, setOrder] = useState(OrderTypes.ASC);
 
-    const toggleOrder = () => {
-        if (sortBy !== "priceRetail") {
-            setSortBy("priceRetail");
-            setOrder(OrderTypes.ASC);
+    const toggleOrder = (newSort: string) => {
+        let newOrder = order;
+        if (sortBy !== newSort) {
+            newOrder = OrderTypes.ASC;
         } else {
-            order === OrderTypes.DESC
-                ? setOrder(OrderTypes.ASC)
-                : setOrder(OrderTypes.DESC)
+            newOrder = order === OrderTypes.DESC
+                ? OrderTypes.ASC
+                : OrderTypes.DESC
         }
+        setSortBy(newSort);
+        setOrder(newOrder);
+        updateSort(newSort, newOrder);
+
     };
 
+    const updateSort = async (currentSort: string, currentOrder: OrderTypes) => {
+        setIsLoading(true)
+        try {
+            const nextPage = 0;
+            const data = await getCatalog(
+                {
+                    path: path,
+                    page: nextPage,
+                    size: 6,
+                    verbose: false,
+                    sort: currentSort,
+                    order: currentOrder
+                })
+
+            setItems(data.content);
+            setPage(nextPage);
+            setHasMore(!data.last);
+        } catch (e) {
+            console.error("Ошибка сортировки", e);
+        } finally {
+            setIsLoading(false);
+        }
+    }
 
     const loadMore = async () => {
         if (isLoading || !hasMore) return;
@@ -44,7 +74,8 @@ export default function Catalog({ initialData, path, title }: { initialData: Cat
                     page: nextPage,
                     size: 6,
                     verbose: false,
-                    sort: sortBy + "," + order
+                    sort: sortBy,
+                    order: order
                 })
 
             setItems((prev) => [...prev, ...data.content]);
@@ -61,22 +92,33 @@ export default function Catalog({ initialData, path, title }: { initialData: Cat
 
     return (
         <div className="w-full max-w-[1920px] md:px-16 flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-                <div className="uppercase text-3xl font-semibold mb-6">
+            <div className="flex flex-col gap-0">
+                <div className="uppercase text-4xl font-semibold">
                     {title}
                 </div>
-                <div className="uppercase text-sm text-gray-500">Сортировка</div>
                 <div className="flex flex-row gap-6 md:gap-8 items-center text-md md:text-xl h-[70px]">
                     <button
-                        onClick={toggleOrder}
+                        onClick={() => toggleOrder("priceRetail")}
                         className='flex flex-row gap-2 uppercase items-center justify-center'
                     >
                         <span className={`${sortBy === "priceRetail" ? "border-b-2 border-black" : "border-b-2 border-transparent"}`}>
-                            По цене
+                            По цене розницы
                         </span>
 
-                        <div className={`transition-opacity`}>
-                            {order === OrderTypes.ASC ? <ArrowUp10 size={20} /> : <ArrowDown10 size={20} />}
+                        <div className={`transition-opacity ${sortBy === "priceRetail" ? "opacity-100" : "opacity-0"}`}>
+                            {order === OrderTypes.ASC ? <MoveUp size={16} /> : <MoveDown size={16} />}
+                        </div>
+                    </button>
+                    <button
+                        onClick={() => toggleOrder("priceWholesale")}
+                        className='flex flex-row gap-2 uppercase items-center justify-center'
+                    >
+                        <span className={`${sortBy === "priceWholesale" ? "border-b-2 border-black" : "border-b-2 border-transparent"}`}>
+                            По цене опта
+                        </span>
+
+                        <div className={`transition-opacity ${sortBy === "priceWholesale" ? "opacity-100" : "opacity-0"}`}>
+                            {order === OrderTypes.ASC ? <MoveUp size={16} /> : <MoveDown size={16} />}
                         </div>
                     </button>
                     <button
@@ -104,7 +146,11 @@ export default function Catalog({ initialData, path, title }: { initialData: Cat
 
             <div className="h-full grid grid-cols-2 gap-12 lg:gap-36 lg:grid-cols-3">
                 {items.map((item, idx) =>
-                    <div key={idx}>
+                    <div
+                        key={idx}
+                        onClick={() => router.push(`/catalog/${item.id}`)}
+                        className="cursor-pointer"
+                    >
                         <ItemCard card={item} />
                     </div>)}
             </div>
