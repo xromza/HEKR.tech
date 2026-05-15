@@ -19,39 +19,53 @@ export default function Catalog({ initialData, path, title }: { initialData: Cat
     const router = useRouter();
 
     const [sortBy, setSortBy] = useState("id");
+    const [sortPriceType, setSortPriceType] = useState("Retail");
     const [order, setOrder] = useState(OrderTypes.ASC);
+
+
 
     const toggleOrder = (newSort: string) => {
         let newOrder = order;
-        if (sortBy !== newSort) {
-            newOrder = OrderTypes.ASC;
+
+        if (sortBy === newSort) {
+            newOrder = order === OrderTypes.DESC ? OrderTypes.ASC : OrderTypes.DESC;
         } else {
-            newOrder = order === OrderTypes.DESC
-                ? OrderTypes.ASC
-                : OrderTypes.DESC
+            newOrder = OrderTypes.ASC;
         }
+
         setSortBy(newSort);
         setOrder(newOrder);
+
         updateSort(newSort, newOrder);
-
     };
+    const togglePriceSortType = () => {
+        const newPriceType = sortPriceType === "Retail" ? "Wholesale" : "Retail";
+        const newSortFieldName = "price" + newPriceType;
 
+        setSortPriceType(newPriceType);
+
+        if (sortBy.startsWith("price")) {
+            setSortBy(newSortFieldName);
+            updateSort(newSortFieldName, order);
+        } else {
+            toggleOrder(newSortFieldName);
+        }
+    };
     const updateSort = async (currentSort: string, currentOrder: OrderTypes) => {
-        setIsLoading(true)
+        setIsLoading(true);
+        setPage(0);
+
         try {
-            const nextPage = 0;
-            const data = await getCatalog(
-                {
-                    path: path,
-                    page: nextPage,
-                    size: 6,
-                    verbose: false,
-                    sort: currentSort,
-                    order: currentOrder
-                })
+            const data = await getCatalog({
+                path: path,
+                page: 0,
+                size: 6,
+                verbose: false,
+                sort: currentSort,
+                order: currentOrder
+            });
 
             setItems(data.content);
-            setPage(nextPage);
             setHasMore(!data.last);
         } catch (e) {
             console.error("Ошибка сортировки", e);
@@ -98,26 +112,34 @@ export default function Catalog({ initialData, path, title }: { initialData: Cat
                 </div>
                 <div className="flex flex-row gap-6 md:gap-8 items-center text-md md:text-xl h-[70px]">
                     <button
-                        onClick={() => toggleOrder("priceRetail")}
+                        onClick={() => toggleOrder("price" + sortPriceType)}
                         className='flex flex-row gap-2 uppercase items-center justify-center'
                     >
-                        <span className={`${sortBy === "priceRetail" ? "border-b-2 border-black" : "border-b-2 border-transparent"}`}>
-                            По цене розницы
-                        </span>
+                        <div className="flex flex-row gap-2 items-baseline">
+                            <div
+                                className={`transition-all ${sortBy.startsWith("price")
+                                        ? "border-b-2 border-black"
+                                        : "border-b-2 border-transparent"
+                                    }`}
+                            >
+                                По цене
+                            </div>
 
-                        <div className={`transition-opacity ${sortBy === "priceRetail" ? "opacity-100" : "opacity-0"}`}>
-                            {order === OrderTypes.ASC ? <MoveUp size={16} /> : <MoveDown size={16} />}
+                            <div className="self-center">·</div>
+
+                            <div
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    togglePriceSortType();
+                                }}
+                                className="px-2 py-1 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                            >
+                                {sortPriceType === "Retail" ? "розница" : "опт"}
+                            </div>
                         </div>
-                    </button>
-                    <button
-                        onClick={() => toggleOrder("priceWholesale")}
-                        className='flex flex-row gap-2 uppercase items-center justify-center'
-                    >
-                        <span className={`${sortBy === "priceWholesale" ? "border-b-2 border-black" : "border-b-2 border-transparent"}`}>
-                            По цене опта
-                        </span>
 
-                        <div className={`transition-opacity ${sortBy === "priceWholesale" ? "opacity-100" : "opacity-0"}`}>
+                        {/* Иконка */}
+                        <div className={`transition-opacity ${sortBy.startsWith("price") ? "opacity-100" : "opacity-0"}`}>
                             {order === OrderTypes.ASC ? <MoveUp size={16} /> : <MoveDown size={16} />}
                         </div>
                     </button>
