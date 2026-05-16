@@ -102,7 +102,7 @@ public class CartService {
         cartRepository.deleteByIdUserIdAndIdVariantId(user.getId(), variantId);
     }
 
-    @Transactional 
+    @Transactional
     public void deleteAll(UserDetails userDetails) {
         User user = userService.findByLogin(userDetails.getUsername());
         if (!user.getIsApproved())
@@ -113,4 +113,30 @@ public class CartService {
     public List<Cart> findByUserId(Long userId) {
         return cartRepository.findByIdUserId(userId);
     }
+
+    @Transactional
+    public CartResponseDto migrateCart(UserDetails userDetails, List<CartItemRequestDto> dto) {
+        User user = userService.findByLogin(userDetails.getUsername());
+        if (!user.getIsApproved())
+            throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
+        dto.stream().forEach((item) -> {
+            ProductVariant variant = productService.getProductVariantById(item.getVariantId());
+            CartItemId id = CartItemId
+                    .builder()
+                    .userId(user.getId())
+                    .variantId(item.getVariantId())
+                    .build();
+            Cart cartItem = Cart.builder()
+                    .productVariant(variant)
+                    .quantity(item.getQuantity())
+                    .user(user)
+                    .id(id)
+                    .build();
+            cartRepository.save(cartItem);
+        });
+
+        return getCart(userDetails);
+
+    }
+
 }

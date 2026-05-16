@@ -18,6 +18,7 @@ public interface ProductCatalogResponseMapper {
     @Mapping(target = "priceWholesale", source = "priceWholesale")
     @Mapping(target = "priceRetail", source = "priceRetail")
     @Mapping(target = "mainImageUrl", ignore = true)
+    @Mapping(target = "wholesaleThreshold", source = "wholesaleThreshold")
     ProductCatalogResponseDto toResponse(Product product);
 
     @AfterMapping

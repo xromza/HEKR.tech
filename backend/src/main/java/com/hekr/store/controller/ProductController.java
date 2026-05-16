@@ -27,25 +27,30 @@ public class ProductController {
 
     @GetMapping
     public Page<ProductDtoInterface> getProducts(
-            @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "10") int size,
-            @RequestParam(required = false, defaultValue = "id") String sort,
+            Pageable pageable,
             @RequestParam(required = false, defaultValue = "false") boolean verbose) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
         if (verbose) {
             return productService.getVerboseProductCatalog(pageable);
         }
         return productService.getProductCatalog(pageable);
     }
 
+    @GetMapping("/category/{id}")
+    public Page<ProductDtoInterface> getProductsOfCategory(
+            Pageable pageable,
+            @PathVariable Long id,
+            @RequestParam(required = false, defaultValue = "false") boolean verbose) {
+        if (verbose) {
+            return productService.getVerboseProductCatalogByCategoryId(pageable, id);
+        }
+        return productService.getProductCatalogByCategoryId(pageable, id);
+    }
+
     @GetMapping("/search")
     public Page<ProductDtoInterface> searchProductsByTitle(
             @RequestParam(required = true, defaultValue = "") String query,
-            @RequestParam(required = false, defaultValue = "0") Integer page,
-            @RequestParam(required = false, defaultValue = "10") Integer size,
-            @RequestParam(required = false, defaultValue = "id") String sort,
+            Pageable pageable,
             @RequestParam(required = false, defaultValue = "false") Boolean verbose) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
         if (verbose) {
             return productService.findVerboseProductsByTitle(query, pageable);
         }

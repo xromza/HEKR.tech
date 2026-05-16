@@ -19,7 +19,7 @@ export default function SliderDiscount() {
     const duplicates = Array(20).fill(text);
 
     return (
-        <div className="w-full p-3 bg-[#E8E7E3]">
+        <div className="w-[100vw] p-3 bg-[#E8E7E3] overflow-hidden">
             <style dangerouslySetInnerHTML={{
                 __html: `
                 .ticker-swiper .swiper-wrapper {
@@ -35,7 +35,7 @@ export default function SliderDiscount() {
                 speed={8000}
                 loopAdditionalSlides={5}
                 allowTouchMove={false}
-                className="pointer-events-none ticker-swiper"
+                className="pointer-events-none ticker-swiper w-[110vw] -translate-x-[10vw]"
                 loop={true}
             >
                 {duplicates.map((item, idx) => (

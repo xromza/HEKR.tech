@@ -31,7 +31,7 @@ export default function Footer() {
     const router = useRouter();
     return (
         <footer className="w-full sticky border-t border-gray-200 px-[0.6rem] md:px-0 py-8 text-base font-normal">
-            <div className="max-w-[1350px] mx-auto px-4 grid grid-cols-1 md:grid-cols-4 md:gap-6 lg:gap-8">
+            <div className="max-w-[1440px] mx-auto px-4 grid grid-cols-1 md:grid-cols-4 md:gap-6 lg:gap-8">
 
                 <ul className="order-first">
                     <li>

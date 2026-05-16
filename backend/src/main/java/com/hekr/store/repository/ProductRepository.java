@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,6 +19,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT DISTINCT p FROM Product p LEFT JOIN p.variants WHERE p.isActive = true")
     Page<Product> findAllActiveWithVariants(Pageable pageable);
+
+    @Query("SELECT p FROM Product p WHERE p.isActive = true AND p.category.id = :categoryId")
+    Page<Product> findAllActiveByIdCategoryId(@Param("categoryId") Long categoryId, Pageable pageable);
+
+    @EntityGraph(attributePaths = { "variants" })
+    @Query("SELECT p FROM Product p WHERE p.isActive = true AND p.category.id = :categoryId")
+    Page<Product> findAllActiveByIdCategoryIdVerbose(@Param("categoryId") Long categoryId, Pageable pageable );
 
     Page<Product> findByTitleContainingIgnoreCaseAndIsActiveTrue(String title, Pageable pageable);
 
