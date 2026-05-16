@@ -6,6 +6,8 @@ import SliderDiscount from "@/components/SliderDiscount"
 import Image from "next/image"
 import { OrderTypes } from "@/types/OrderTypes"
 
+export const dynamic = 'force-dynamic';
+
 export default async function ManCollectionPage() {
     const path = "/products/category/"
     const collection = Collections.MAN
