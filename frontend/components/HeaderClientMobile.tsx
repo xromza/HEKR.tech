@@ -1,12 +1,14 @@
 "use client"
 import { useRouter } from "next/navigation";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Image from "next/image";
 import Login from "./Login";
 import { Handbag, Search, LucideIcon, UserRound, Menu, X } from "lucide-react";
 import BurgerScreen from "./BurgerScreen";
 import { AnimatePresence, motion } from "framer-motion";
 import SearchBar from "./SearchBar";
+import { logout } from "@/app/lib/auth.service";
+import { useToken } from "@/store/useToken";
 interface HeaderItems {
     title: string,
     count: number,
@@ -22,11 +24,34 @@ export default function HeaderClientMobile({ items, isLoginVisible, setIsLoginVi
     const router = useRouter();
     const [isBurgerActive, setIsBurgerActive] = useState(false);
     const [isSearchActive, setIsSearchActive] = useState(false);
+
+    const loginValue = useToken((state) => state.user?.login)
+    const [isMounted, setIsMounted] = useState(false);
+
+    const deleteSession = useToken((state) => state.deleteSession);
+    const [isLogoutLoading, setIsLogoutLoading] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    const userButtonTitle = isMounted && loginValue ? loginValue : "войти";
+
+    const handleLogout = () => {
+        confirm("Выйти?") && logout({
+            setLoading: setIsLogoutLoading,
+            deleteSession: deleteSession
+        })
+    }
+    const userFunc = isMounted && loginValue
+        ? handleLogout
+        : () => setIsLoginVisible(true)
+
     const controlItems: ControlItems[] = [
         {
             icon: UserRound,
-            title: "войти",
-            event: () => setIsLoginVisible(true)
+            title: userButtonTitle,
+            event: userFunc
         },
         {
             icon: Search,

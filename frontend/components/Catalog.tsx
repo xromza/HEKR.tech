@@ -112,14 +112,23 @@ export default function Catalog({ initialData, path, title }: { initialData: Cat
                 </div>
                 <div className="flex flex-row gap-6 md:gap-8 items-center text-md md:text-xl h-[70px]">
                     <button
+                        onClick={() => {
+                            setSortBy("id");
+                        }}
+                        className='uppercase '
+                    >
+                        <span className={`${sortBy === "id" ? "border-b-2" : ""}`}>По умолчанию</span>
+
+                    </button>
+                    <button
                         onClick={() => toggleOrder("price" + sortPriceType)}
                         className='flex flex-row gap-2 uppercase items-center justify-center'
                     >
                         <div className="flex flex-row gap-2 items-baseline">
                             <div
                                 className={`transition-all ${sortBy.startsWith("price")
-                                        ? "border-b-2 border-black"
-                                        : "border-b-2 border-transparent"
+                                    ? "border-b-2 border-black"
+                                    : "border-b-2 border-transparent"
                                     }`}
                             >
                                 По цене
@@ -138,30 +147,9 @@ export default function Catalog({ initialData, path, title }: { initialData: Cat
                             </div>
                         </div>
 
-                        {/* Иконка */}
                         <div className={`transition-opacity ${sortBy.startsWith("price") ? "opacity-100" : "opacity-0"}`}>
                             {order === OrderTypes.ASC ? <MoveUp size={16} /> : <MoveDown size={16} />}
                         </div>
-                    </button>
-                    <button
-                        onClick={() => {
-                            setSortBy("category");
-                            alert("TODO CATEGORY");
-                        }}
-                        className='uppercase '
-                    >
-                        <span className={`${sortBy === "category" ? "border-b-2" : ""}`}>Категория</span>
-
-                    </button>
-                    <button
-                        onClick={() => {
-                            setSortBy("color");
-                            alert("TODO COLOR");
-                        }}
-                        className='uppercase '
-                    >
-                        <span className={`${sortBy === "color" ? "border-b-2" : ""}`}>Цвет</span>
-
                     </button>
                 </div>
             </div>
