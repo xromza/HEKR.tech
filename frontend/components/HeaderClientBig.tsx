@@ -2,7 +2,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import Login from "./Login";
+import Login from "./AuthPortal";
 import { Handbag, Search, LucideIcon, UserRound, X } from "lucide-react";
 import { HeaderItem } from "@/types/HeaderItem";
 import { motion, AnimatePresence } from "framer-motion"

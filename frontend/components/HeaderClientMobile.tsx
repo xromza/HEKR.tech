@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Image from "next/image";
-import Login from "./Login";
+import Login from "./AuthPortal";
 import { Handbag, Search, LucideIcon, UserRound, Menu, X } from "lucide-react";
 import BurgerScreen from "./BurgerScreen";
 import { AnimatePresence, motion } from "framer-motion";

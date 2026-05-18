@@ -87,7 +87,7 @@ public class GlobalExceptionHandler {
                         fieldErrors.put(errorName, errorMessage);
                 });
                 MapErrorResponseDto errors = MapErrorResponseDto.builder()
-                                .error("ValidationError1")
+                                .error("ValidationMapError")
                                 .errors(fieldErrors)
                                 .build();
 
@@ -163,7 +163,7 @@ public class GlobalExceptionHandler {
 
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponseDto
                                 .builder()
-                                .error("ValidationError2")
+                                .error("ValidationError")
                                 .description(friendlyMessage)
                                 .build());
         }

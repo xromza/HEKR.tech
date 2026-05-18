@@ -2,6 +2,16 @@ import { AuthAction } from "@/types/AuthAction";
 import { Dispatch, SetStateAction, useState } from "react";
 import api from "./api";
 import { UserMinimal } from "@/types/UserMinimal";
+import { RegisterInterface } from "@/types/Registerinterface";
+
+interface apiArgs {
+    setData: Dispatch<SetStateAction<any>>;
+    setErrorMap: Dispatch<SetStateAction<Map<string, string> | null>>;
+    setError: Dispatch<SetStateAction<string | null>>;
+    setLoading: Dispatch<SetStateAction<boolean>>;
+    updateSession: (token: string, user: UserMinimal) => void;
+    updateToken: (token: string) => void;
+}
 
 interface LoginArgs {
     loginValue: string;
@@ -118,4 +128,46 @@ export async function logout(
         setLoading(false);
         deleteSession();
     }
+}
+
+export async function register({
+    userData,
+    apiData
+}: { userData: RegisterInterface, apiData: apiArgs }) {
+    try {
+        apiData.setLoading(true);
+        apiData.setErrorMap(null);
+        apiData.setError(null);
+        const registerRes = await api.post<AuthAction>("/v1/auth/register", userData);
+        console.log("REGISTER SUCCESSFUL: ", registerRes.data)
+
+        apiData.setData(registerRes.data);
+        apiData.updateToken(registerRes.data.accessToken);
+
+        const profileRes = await api.get<ProfileData>("/v1/profile", {
+            withCredentials: true
+        })
+        apiData.updateSession(registerRes.data.accessToken, {
+            login: profileRes.data.login,
+            role: profileRes.data.role
+        });
+        return true;
+    } catch (err: any) {
+        const serverErrors = err.errors || err.response?.data?.errors;
+        const mainMessage = err.message || err.response?.data?.message || "Произошла ошибка при регистрации";
+        if (serverErrors) {
+            if (apiData.setErrorMap) {
+                apiData.setErrorMap(serverErrors);
+            } else {
+                apiData.setError(mainMessage);
+            }
+        } else {
+            apiData.setError(mainMessage);
+        }
+
+        return false;
+    } finally {
+        apiData.setLoading(false)
+    }
+
 }
