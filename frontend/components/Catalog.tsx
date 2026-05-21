@@ -1,15 +1,29 @@
 "use client";
 import { ItemCardInterface } from "@/types/ItemCardInterface";
 import ItemCard from "./ItemCard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CatalogPageable } from "@/types/CatalogPageable";
 import { getCatalog } from "@/app/lib/getCatalog";
 import { useInteractionObserver } from "@/hooks/useInteractionObserver";
-import { ArrowDown01, ArrowDown10, ArrowUp10, LoaderCircle, MoveDown, MoveUp } from "lucide-react";
+import { Loader, MoveDown, MoveUp } from "lucide-react";
 import { OrderTypes } from "@/types/OrderTypes";
 import { useRouter } from "next/navigation";
 
-export default function Catalog({ initialData, path, title }: { initialData: CatalogPageable, path: string, title: string }) {
+export default function Catalog(
+    {
+        initialData,
+        path,
+        title,
+        isParentLoading = false,
+        searchQuery = null
+    }:
+        {
+            initialData: CatalogPageable,
+            path: string,
+            title: string,
+            isParentLoading: boolean,
+            searchQuery: string | null
+        }) {
 
     const [items, setItems] = useState<ItemCardInterface[]>(initialData.content);
     const [page, setPage] = useState(0);
@@ -22,7 +36,14 @@ export default function Catalog({ initialData, path, title }: { initialData: Cat
     const [sortPriceType, setSortPriceType] = useState("Retail");
     const [order, setOrder] = useState(OrderTypes.ASC);
 
-
+    useEffect(() => {
+        setItems(initialData.content);
+        setPage(0);
+        setHasMore(!initialData.last);
+        setSortBy("id");
+        setOrder(OrderTypes.ASC);
+        setSortPriceType("Retail");
+    }, [initialData])
 
     const toggleOrder = (newSort: string) => {
         let newOrder = order;
@@ -62,7 +83,8 @@ export default function Catalog({ initialData, path, title }: { initialData: Cat
                 size: 6,
                 verbose: false,
                 sort: currentSort,
-                order: currentOrder
+                order: currentOrder,
+                searchQuery: searchQuery
             });
 
             setItems(data.content);
@@ -89,7 +111,8 @@ export default function Catalog({ initialData, path, title }: { initialData: Cat
                     size: 6,
                     verbose: false,
                     sort: sortBy,
-                    order: order
+                    order: order,
+                    searchQuery: searchQuery
                 })
 
             setItems((prev) => [...prev, ...data.content]);
@@ -153,21 +176,38 @@ export default function Catalog({ initialData, path, title }: { initialData: Cat
                     </button>
                 </div>
             </div>
+            {isParentLoading ?
+                <div className="w-full flex justify-center text-2xl uppercase">
+                    <div className="flex flex-row gap-2 items-center">
+                        <Loader size={30} className="animate-spin mx-auto" />
+                        <div>Загружаем товары</div>
+                    </div>
+                </div> :
 
-            <div className="h-full grid grid-cols-2 gap-12 lg:gap-36 lg:grid-cols-3">
-                {items.map((item, idx) =>
-                    <div
-                        key={idx}
-                        onClick={() => router.push(`/catalog/${item.id}`)}
-                        className="cursor-pointer"
-                    >
-                        <ItemCard card={item} />
-                    </div>)}
-            </div>
-            <div ref={observerTarget} className="p-10 w-full flex justify-center items-center">
-                {isLoading && <LoaderCircle className="animate-spin" />}
-                {!hasMore && items.length > 0 && <span>Вы просмотрели все товары</span>}
-            </div>
+                items.length > 0 ?
+                    <div>
+                        <div className="h-full grid grid-cols-2 gap-12 lg:gap-36 lg:grid-cols-3">
+                            {items.map((item, idx) =>
+                                <div
+                                    key={idx}
+                                    onClick={() => router.push(`/catalog/${item.id}`)}
+                                    className="cursor-pointer"
+                                >
+                                    <ItemCard card={item} />
+                                </div>)}
+                        </div>
+                        <div ref={observerTarget} className="p-10 w-full flex justify-center items-center">
+                            {isLoading && <Loader className="animate-spin" />}
+                            {!hasMore && items.length > 0 && <span>Вы просмотрели все товары</span>}
+                        </div>
+                    </div>
+                    :
+                    <div className="w-full text-2xl flex justify-center">
+                        <div className="flex flex-row gap-2 uppercase">
+                            <div>Нет товаров</div>
+                        </div>
+                    </div>
+            }
         </div>
     )
 }

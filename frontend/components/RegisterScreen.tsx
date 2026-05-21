@@ -82,15 +82,17 @@ export default function RegisterScreen({ isVisible, setIsVisible, setSelectedScr
         };
 
         const isSuccess = await apiRegister({
-            userData,
-            apiData: {
-                setData,
-                setErrorMap,
-                setError,
-                setLoading,
-                updateSession,
-                updateToken
-            }
+            login,
+            password,
+            phone,
+            email,
+            details,
+            setData,
+            setErrorMap,
+            setError,
+            setLoading,
+            updateSession,
+            updateToken
         });
 
         if (isSuccess) {
