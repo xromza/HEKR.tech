@@ -3,24 +3,15 @@ import { Dispatch, SetStateAction, useState } from "react";
 import api from "./api";
 import { UserMinimal } from "@/types/UserMinimal";
 import { RegisterInterface } from "@/types/Registerinterface";
-
-interface apiArgs {
-    setData: Dispatch<SetStateAction<any>>;
-    setErrorMap: Dispatch<SetStateAction<Map<string, string> | null>>;
-    setError: Dispatch<SetStateAction<string | null>>;
-    setLoading: Dispatch<SetStateAction<boolean>>;
-    updateSession: (token: string, user: UserMinimal) => void;
-    updateToken: (token: string) => void;
-}
+import { useToken } from "@/store/useToken";
+import { CartInterface } from "@/types/CartInterface";
+import { CartItemRequest } from "@/types/CartItemRequest";
+import { ApiArgs } from "@/types/ApiArgs";
+import { getProfile } from "./profile.service";
 
 interface LoginArgs {
     loginValue: string;
     passwordValue: string;
-    setData: Dispatch<SetStateAction<any>>;
-    setError: Dispatch<SetStateAction<string | null>>;
-    setLoading: Dispatch<SetStateAction<boolean>>;
-    updateSession: (token: string, user: UserMinimal) => void;
-    updateToken: (token: string) => void;
 }
 
 export async function refreshToken({
@@ -52,11 +43,6 @@ export async function refreshToken({
     }
 }
 
-interface ProfileData {
-    login: string,
-    role: string
-}
-
 export async function login({
     loginValue,
     passwordValue,
@@ -64,8 +50,8 @@ export async function login({
     setError,
     setLoading,
     updateSession,
-    updateToken
-}: LoginArgs) {
+    updateToken,
+}: LoginArgs & Pick<ApiArgs, 'setData' | 'setError' | 'setLoading' | 'updateSession' | 'updateToken'>) {
     try {
         setLoading(true);
         setError(null);
@@ -79,14 +65,18 @@ export async function login({
         console.log("LOGIN SUCCESSFUL: ", loginRes.data);
 
         updateToken(loginRes.data.accessToken);
-
-        const profileRes = await api.get<ProfileData>("/v1/profile", {
-            withCredentials: true
-        })
-        updateSession(loginRes.data.accessToken, {
-            login: profileRes.data.login,
-            role: profileRes.data.role
+api.defaults.headers.common['Authorization'] = `Bearer ${loginRes.data.accessToken}`;
+        const profile = await getProfile({
+            setData: () => { },
+            setError: setError,
+            setLoading: () => { }
         });
+        if (profile) {
+            updateSession(loginRes.data.accessToken, {
+                login: profile.login,
+                role: profile.role
+            });
+        }
         return true;
     } catch (err: any) {
         const msg =
@@ -131,43 +121,67 @@ export async function logout(
 }
 
 export async function register({
-    userData,
-    apiData
-}: { userData: RegisterInterface, apiData: apiArgs }) {
+    login,
+    password,
+    phone,
+    email,
+    details,
+    setData,
+    setError,
+    setErrorMap,
+    setLoading,
+    updateSession,
+    updateToken
+}: RegisterInterface & ApiArgs) {
     try {
-        apiData.setLoading(true);
-        apiData.setErrorMap(null);
-        apiData.setError(null);
-        const registerRes = await api.post<AuthAction>("/v1/auth/register", userData);
+        setLoading(true);
+        if (setErrorMap)
+            setErrorMap(null);
+        setError(null);
+        const registerRes = await api.post<AuthAction>("/v1/auth/register", {
+            login: login,
+            password: password,
+            phone: phone,
+            email: email,
+            details: details
+        });
         console.log("REGISTER SUCCESSFUL: ", registerRes.data)
 
-        apiData.setData(registerRes.data);
-        apiData.updateToken(registerRes.data.accessToken);
-
-        const profileRes = await api.get<ProfileData>("/v1/profile", {
-            withCredentials: true
-        })
-        apiData.updateSession(registerRes.data.accessToken, {
-            login: profileRes.data.login,
-            role: profileRes.data.role
+        setData(registerRes.data);
+        updateToken(registerRes.data.accessToken);
+        api.defaults.headers.common['Authorization'] = `Bearer ${registerRes.data.accessToken}`;
+        const profile = await getProfile({
+            setData: () => { },
+            setError: setError,
+            setLoading: () => { }
         });
+        if (profile) {
+            updateSession(registerRes.data.accessToken, {
+                login: profile.login,
+                role: profile.role
+            });
+        }
         return true;
     } catch (err: any) {
         const serverErrors = err.errors || err.response?.data?.errors;
         const mainMessage = err.message || err.response?.data?.message || "Произошла ошибка при регистрации";
         if (serverErrors) {
-            if (apiData.setErrorMap) {
-                apiData.setErrorMap(serverErrors);
+            if (setErrorMap) {
+                setErrorMap(serverErrors);
             } else {
-                apiData.setError(mainMessage);
+                setError(mainMessage);
             }
         } else {
-            apiData.setError(mainMessage);
+            setError(mainMessage);
         }
 
         return false;
     } finally {
-        apiData.setLoading(false)
+        setLoading(false)
     }
 
+}
+
+export function getAccessToken() {
+    return useToken((state) => state.accessToken);
 }

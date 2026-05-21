@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { LoaderIcon } from "lucide-react";
-import { refreshToken } from "@/app/lib/auth.service";
+import { getAccessToken, refreshToken } from "@/app/lib/auth.service";
 import { useToken } from "@/store/useToken";
 
 export default function AuthPage() {
@@ -10,7 +10,6 @@ export default function AuthPage() {
     const [loading, setLoading] = useState<boolean>(true);
 
     const updateToken = useToken((state) => state.updateToken);
-
     useEffect(() => {
         const runFetch = refreshToken({
             setData,
@@ -19,7 +18,6 @@ export default function AuthPage() {
             updateToken
         });
     }, [])
-
     if (loading) return <div className="p-10 text-xl">Стучимся на бэкенд... <LoaderIcon className="animate-spin" /></div>;
     if (error) return <div className="p-10 text-xl text-red-500">Ошибка: {error}</div>;
 
