@@ -11,11 +11,11 @@ interface RegisterScreenProps {
     setIsVisible: Dispatch<SetStateAction<boolean>>;
     setSelectedScreen: Dispatch<SetStateAction<string>>;
 }
+
 function AnimatedRadioIcon({ checked }: { checked: boolean }) {
     return (
         <svg width="42" height="42" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
             <circle cx="21" cy="21" r="20" stroke="black" strokeOpacity="0.89" strokeWidth="2" />
-
             <motion.circle
                 cx="21"
                 cy="21"
@@ -30,66 +30,103 @@ function AnimatedRadioIcon({ checked }: { checked: boolean }) {
         </svg>
     );
 }
-export default function RegisterScreen({ isVisible, setIsVisible, setSelectedScreen }: RegisterScreenProps) {
 
+export default function RegisterScreen({ isVisible, setIsVisible, setSelectedScreen }: RegisterScreenProps) {
     const [showPassword, setShowPassword] = useState(false);
     const [data, setData] = useState<any>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [errorMap, setErrorMap] = useState<Map<string, string> | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
-
-    const [login, setLogin] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
-    const [phone, setPhone] = useState<string>("");
-    const [email, setEmail] = useState<string>("");
-
+    const [globalError, setGlobalError] = useState<string | null>(null);
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
     const [isLegal, setIsLegal] = useState<boolean>(false);
 
-    const [firstName, setFirstName] = useState<string>("");
-    const [lastName, setLastName] = useState<string>("");
-    const [midName, setMidName] = useState<string | null>(null);
-    const [birthDate, setBirthDate] = useState<string>("");
-    const [passportSeries, setPassportSeries] = useState<string>("");
-    const [passportNumber, setPassportNumber] = useState<string>("");
-
-    const [companyName, setCompanyName] = useState<string>("");
-    const [inn, setInn] = useState<string>("");
-    const [kpp, setKpp] = useState<string>("");
-    const [ogrn, setOgrn] = useState<string>("");
-    const [legalAddress, setLegalAddress] = useState<string>("");
+    // Объединенный плоский стейт формы
+    const [form, setForm] = useState({
+        login: '',
+        password: '',
+        phone: '',
+        email: '',
+        firstName: '',
+        lastName: '',
+        midName: '',
+        birthDate: '',
+        passportSeries: '',
+        passportNumber: '',
+        companyName: '',
+        inn: '',
+        kpp: '',
+        ogrn: '',
+        legalAddress: ''
+    });
 
     const updateToken = useToken((state) => state.updateToken);
-    const updateSession = useToken((state) => state.updateSession)
+    const updateSession = useToken((state) => state.updateSession);
+
+    const handleSetError = (err: any) => {
+        console.error("IN REGISTER ERR: ", err);
+        if (err === null) {
+            setGlobalError(null);
+            setFieldErrors({});
+        } else if (typeof err === 'string') {
+            setGlobalError(err);
+            setFieldErrors({});
+        } else if (err?.error === "ValidationMapError" && err?.errors) {
+            setFieldErrors(err.errors);
+            setGlobalError("Ошибка валидации. Проверьте правильность заполнения полей.");
+        } else {
+            setFieldErrors({});
+            setGlobalError(err?.description || err?.message || "Произошла ошибка при регистрации");
+        }
+    };
+
+    const renderFieldError = (fieldName: string) => {
+        if (fieldErrors[fieldName]) {
+            return (
+                <span className="text-xs uppercase text-red-600 block mt-1 font-medium">
+                    {fieldErrors[fieldName]}
+                </span>
+            );
+        }
+        return null;
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        handleSetError(null);
 
-        if (!login || !password || !phone || !email) {
-            setError("Заполните основные поля");
+        if (!form.login || !form.password || !form.phone || !form.email) {
+            setGlobalError("Заполните основные поля");
             return;
         }
 
-        const type = isLegal ? "LEGAL" : "INDIVIDUAL"
+        const type = isLegal ? "LEGAL" : "INDIVIDUAL";
+        
         const details = isLegal
-            ? { type, companyName, inn, kpp, ogrn, legalAddress } // LegalDetails
-            : { type, firstName, lastName, midName, birthDate, passportSeries, passportNumber }; // IndividualDetails
-
-        const userData: RegisterInterface = {
-            login,
-            password,
-            phone,
-            email,
-            details
-        };
+            ? { 
+                type, 
+                companyName: form.companyName, 
+                inn: form.inn, 
+                kpp: form.kpp, 
+                ogrn: form.ogrn, 
+                legalAddress: form.legalAddress 
+              }
+            : { 
+                type, 
+                firstName: form.firstName, 
+                lastName: form.lastName, 
+                midName: form.midName, 
+                birthDate: form.birthDate, 
+                passportSeries: form.passportSeries, 
+                passportNumber: form.passportNumber 
+              };
 
         const isSuccess = await apiRegister({
-            login,
-            password,
-            phone,
-            email,
+            login: form.login,
+            password: form.password,
+            phone: form.phone,
+            email: form.email,
             details,
             setData,
-            setErrorMap,
-            setError,
+            setError: handleSetError,
             setLoading,
             updateSession,
             updateToken
@@ -100,10 +137,8 @@ export default function RegisterScreen({ isVisible, setIsVisible, setSelectedScr
         }
     };
 
-
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-5 relative w-full px-10 pb-10 pt-0 md:px-22 md:pb-22 md:pt-0">
-
             <legend className='text-3xl font-semibold flex flex-row justify-between uppercase mb-4 sticky top-0 bg-white z-10 
                 -mx-10 px-10 pt-10 pb-4
                 md:-mx-22 md:px-22 md:pt-22 md:pb-6
@@ -116,66 +151,79 @@ export default function RegisterScreen({ isVisible, setIsVisible, setSelectedScr
                 />
             </legend>
 
-            <label htmlFor="login" className='uppercase font-semibold text-base'>
-                Логин
-            </label>
-            <input
-                id="login"
-                name='login'
-                type="text"
-                onChange={(e) => setLogin(e.target.value)}
-                className={`h-[3.5rem] ring ring-gray-300 rounded-lg 
-                                    px-4 text-base focus:ring-black outline-none transition-all flex-shrink-0
-                                    ${error ? "ring ring-red-500" : ""}
-                                    `}
-                placeholder='ПРИДУМАЙТЕ ЛОГИН' />
-            <label htmlFor="phone" className='uppercase font-semibold text-base'>
-                Телефон
-            </label>
-            <input
-                id="phone"
-                name='phone'
-                type="tel"
-                onChange={(e) => setPhone(e.target.value)}
-                className={`h-[3.5rem] ring ring-gray-300 rounded-lg 
-                                    px-4 text-base focus:ring-black outline-none transition-all flex-shrink-0
-                                    ${error ? "ring ring-red-500" : ""}
-                                    `}
-                placeholder='УКАЖИТЕ ВАШ ТЕЛЕФОН' />
-            <label htmlFor="login" className='uppercase font-semibold text-base'>
-                EMAIL
-            </label>
-            <input
-                id="email"
-                name='email'
-                type="email"
-                onChange={(e) => setEmail(e.target.value)}
-                className={`h-[3.5rem] ring ring-gray-300 rounded-lg 
-                                    px-4 text-base focus:ring-black outline-none transition-all flex-shrink-0
-                                    ${error ? "ring ring-red-500" : ""}
-                                    `}
-                placeholder='УКАЖИТЕ ВАШ EMAIL' />
-            <label htmlFor="password" className='uppercase font-semibold text-base'>Пароль</label>
-            <div className="w-full relative">
+            <div>
+                <label htmlFor="login" className='uppercase font-semibold text-base block mb-1'>Логин</label>
                 <input
-                    id="password"
-                    name='password'
-                    onChange={(e) => setPassword(e.target.value)}
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder='ПРИДУМАЙТЕ ПАРОЛЬ'
-                    className={`h-[3.5rem] ring ring-gray-300 focus:ring-black 
-                                        rounded-lg w-full px-4 text-base focus:border-black flex-shrink-0
-                                        outline-none transition-all ${error ? "ring ring-red-500" : ""}
-                                    `} />
-
-                <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c8c8c8] hover:text-black transition-colors"
-                >
-                    {showPassword ? <Eye size={24} /> : <EyeOff size={24} />}
-                </button>
+                    id="login"
+                    name='login'
+                    type="text"
+                    value={form.login}
+                    onChange={(e) => setForm({ ...form, login: e.target.value })}
+                    className={`h-[3.5rem] ring ring-gray-300 rounded-lg w-full
+                                px-4 text-base focus:ring-black outline-none transition-all flex-shrink-0
+                                ${fieldErrors.login ? "ring-2 ring-red-500" : ""}
+                                `}
+                    placeholder='ПРИДУМАЙТЕ ЛОГИН' />
+                {renderFieldError('login')}
             </div>
+
+            <div>
+                <label htmlFor="phone" className='uppercase font-semibold text-base block mb-1'>Телефон</label>
+                <input
+                    id="phone"
+                    name='phone'
+                    type="tel"
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    className={`h-[3.5rem] ring ring-gray-300 rounded-lg w-full
+                                px-4 text-base focus:ring-black outline-none transition-all flex-shrink-0
+                                ${fieldErrors.phone ? "ring-2 ring-red-500" : ""}
+                                `}
+                    placeholder='УКАЖИТЕ ВАШ ТЕЛЕФОН' />
+                {renderFieldError('phone')}
+            </div>
+
+            <div>
+                <label htmlFor="email" className='uppercase font-semibold text-base block mb-1'>EMAIL</label>
+                <input
+                    id="email"
+                    name='email'
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    className={`h-[3.5rem] ring ring-gray-300 rounded-lg w-full
+                                px-4 text-base focus:ring-black outline-none transition-all flex-shrink-0
+                                ${fieldErrors.email ? "ring-2 ring-red-500" : ""}
+                                `}
+                    placeholder='УКАЖИТЕ ВАШ EMAIL' />
+                {renderFieldError('email')}
+            </div>
+
+            <div>
+                <label htmlFor="password" className='uppercase font-semibold text-base block mb-1'>Пароль</label>
+                <div className="w-full relative">
+                    <input
+                        id="password"
+                        name='password'
+                        value={form.password}
+                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder='ПРИДУМАЙТЕ ПАРОЛЬ'
+                        className={`h-[3.5rem] ring ring-gray-300 focus:ring-black 
+                                    rounded-lg w-full px-4 text-base focus:border-black flex-shrink-0
+                                    outline-none transition-all ${fieldErrors.password ? "ring-2 ring-red-500" : ""}
+                                `} />
+                    <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c8c8c8] hover:text-black transition-colors"
+                    >
+                        {showPassword ? <Eye size={24} /> : <EyeOff size={24} />}
+                    </button>
+                </div>
+                {renderFieldError('password')}
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <label className="cursor-pointer select-none">
                     <input
@@ -205,8 +253,8 @@ export default function RegisterScreen({ isVisible, setIsVisible, setSelectedScr
                     </div>
                 </label>
             </div>
-            <div>
 
+            <div>
                 <AnimatePresence mode="popLayout" initial={false}>
                     <div className="relative">
                         {!isLegal && (
@@ -218,85 +266,94 @@ export default function RegisterScreen({ isVisible, setIsVisible, setSelectedScr
                                 transition={{ duration: 0.25 }}
                                 className="flex flex-col gap-2"
                             >
-                                <label htmlFor="firstName" className='uppercase font-semibold text-base flex items-start'>
+                                <label className='uppercase font-semibold text-base flex items-start'>
                                     ФИО<span className="text-red-500 text-xs">*</span>
                                 </label>
                                 <div className="grid grid-cols-1 shrink-0 md:grid-cols-3 gap-2">
-                                    <input
-                                        id="details.lastName"
-                                        name='lastName'
-                                        type="text"
-                                        onChange={(e) => setLastName(e.target.value)}
-                                        className={`h-[2.5rem] ring ring-gray-300 rounded-lg 
-                                    px-4 text-base focus:ring-black outline-none transition-all
-                                    ${error ? "ring ring-red-500" : ""}
-                                    `}
-                                        placeholder='ФАМИЛИЯ*' />
-                                    <input
-                                        id="details.firstName"
-                                        name='firstName'
-                                        type="text"
-                                        onChange={(e) => setFirstName(e.target.value)}
-                                        className={`h-[2.5rem] ring ring-gray-300 rounded-lg 
-                                    px-4 text-base focus:ring-black outline-none transition-all 
-                                    ${error ? "ring ring-red-500" : ""}
-                                    `}
-                                        placeholder='ИМЯ*' />
-                                    <input
-                                        id="details.midName"
-                                        name='midName'
-                                        type="text"
-                                        onChange={(e) => setMidName(e.target.value)}
-                                        className={`h-[2.5rem] ring ring-gray-300 rounded-lg 
-                                    px-4 text-base focus:ring-black outline-none transition-all 
-                                    ${error ? "ring ring-red-500" : ""}
-                                    `}
-                                        placeholder='ОТЧЕСТВО' />
+                                    <div>
+                                        <input
+                                            id="details.lastName"
+                                            name='lastName'
+                                            type="text"
+                                            value={form.lastName}
+                                            onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                                            className={`h-[2.5rem] w-full ring ring-gray-300 rounded-lg px-4 text-base focus:ring-black outline-none transition-all ${fieldErrors['details.lastName'] ? "ring-2 ring-red-500" : ""}`}
+                                            placeholder='ФАМИЛИЯ*' />
+                                        {renderFieldError('details.lastName')}
+                                    </div>
+                                    <div>
+                                        <input
+                                            id="details.firstName"
+                                            name='firstName'
+                                            type="text"
+                                            value={form.firstName}
+                                            onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                                            className={`h-[2.5rem] w-full ring ring-gray-300 rounded-lg px-4 text-base focus:ring-black outline-none transition-all ${fieldErrors['details.firstName'] ? "ring-2 ring-red-500" : ""}`}
+                                            placeholder='ИМЯ*' />
+                                        {renderFieldError('details.firstName')}
+                                    </div>
+                                    <div>
+                                        <input
+                                            id="details.midName"
+                                            name='midName'
+                                            type="text"
+                                            value={form.midName}
+                                            onChange={(e) => setForm({ ...form, midName: e.target.value })}
+                                            className={`h-[2.5rem] w-full ring ring-gray-300 rounded-lg px-4 text-base focus:ring-black outline-none transition-all ${fieldErrors['details.midName'] ? "ring-2 ring-red-500" : ""}`}
+                                            placeholder='ОТЧЕСТВО' />
+                                        {renderFieldError('details.midName')}
+                                    </div>
                                 </div>
-                                <label htmlFor="firstName" className='uppercase font-semibold text-base flex items-start'>
-                                    Дата рождения<span className="text-red-500 text-xs">*</span>
-                                </label>
-                                <input
-                                    id="details.birthDate"
-                                    name='birthDate'
-                                    type="date"
-                                    onChange={(e) => setBirthDate(e.target.value)}
-                                    className={`h-[2.5rem] ring ring-gray-300 rounded-lg 
-                                    px-4 text-base focus:ring-black outline-none appearance-none flex items-center leading-normal transition-all flex-shrink-0
-                                    ${error ? "ring ring-red-500" : ""}
-                                    `}
-                                    placeholder='ДАТА РОЖДЕНИЯ' />
-                                <label htmlFor="firstName" className='uppercase font-semibold text-base flex items-start'>
-                                    Паспортные данные<span className="text-red-500 text-xs">*</span>
-                                </label>
-                                <div className="grid grid-cols-[100px_1fr] gap-2 shrink-0 w-full">
+
+                                <div className="mt-2">
+                                    <label htmlFor="details.birthDate" className='uppercase font-semibold text-base flex items-start mb-1'>
+                                        Дата рождения<span className="text-red-500 text-xs">*</span>
+                                    </label>
                                     <input
-                                        id="details.passportSeries"
-                                        name='passportSeries'
-                                        type="text"
-                                        onChange={(e) => setPassportSeries(e.target.value)}
-                                        className={`h-[2.5rem] ring ring-gray-300 rounded-lg 
-                                px-4 text-base focus:ring-black outline-none transition-all 
-                                w-full min-w-0
-                                ${error ? "ring ring-red-500" : ""}
-                                `}
-                                        placeholder='СЕРИЯ*'
+                                        id="details.birthDate"
+                                        name='birthDate'
+                                        type="date"
+                                        value={form.birthDate}
+                                        onChange={(e) => setForm({ ...form, birthDate: e.target.value })}
+                                        className={`h-[2.5rem] w-full ring ring-gray-300 rounded-lg px-4 text-base focus:ring-black outline-none appearance-none flex items-center leading-normal transition-all flex-shrink-0 ${fieldErrors['details.birthDate'] ? "ring-2 ring-red-500" : ""}`}
                                     />
-                                    <input
-                                        id="details.passportNumber"
-                                        name='passportNumber'
-                                        type="text"
-                                        onChange={(e) => setPassportNumber(e.target.value)}
-                                        className={`h-[2.5rem] ring ring-gray-300 rounded-lg 
-                                px-4 text-base focus:ring-black outline-none transition-all 
-                                w-full min-w-0
-                                ${error ? "ring ring-red-500" : ""}
-                                `}
-                                        placeholder='НОМЕР*'
-                                    />
+                                    {renderFieldError('details.birthDate')}
+                                </div>
+
+                                <div className="mt-2">
+                                    <label className='uppercase font-semibold text-base flex items-start mb-1'>
+                                        Паспортные данные<span className="text-red-500 text-xs">*</span>
+                                    </label>
+                                    <div className="grid grid-cols-[100px_1fr] gap-2 shrink-0 w-full">
+                                        <div>
+                                            <input
+                                                id="details.passportSeries"
+                                                name='passportSeries'
+                                                type="text"
+                                                value={form.passportSeries}
+                                                onChange={(e) => setForm({ ...form, passportSeries: e.target.value })}
+                                                className={`h-[2.5rem] ring ring-gray-300 rounded-lg px-4 text-base focus:ring-black outline-none transition-all w-full min-w-0 ${fieldErrors['details.passportSeries'] ? "ring-2 ring-red-500" : ""}`}
+                                                placeholder='СЕРИЯ*'
+                                            />
+                                            {renderFieldError('details.passportSeries')}
+                                        </div>
+                                        <div>
+                                            <input
+                                                id="details.passportNumber"
+                                                name='passportNumber'
+                                                type="text"
+                                                value={form.passportNumber}
+                                                onChange={(e) => setForm({ ...form, passportNumber: e.target.value })}
+                                                className={`h-[2.5rem] ring ring-gray-300 rounded-lg px-4 text-base focus:ring-black outline-none transition-all w-full min-w-0 ${fieldErrors['details.passportNumber'] ? "ring-2 ring-red-500" : ""}`}
+                                                placeholder='НОМЕР*'
+                                            />
+                                            {renderFieldError('details.passportNumber')}
+                                        </div>
+                                    </div>
                                 </div>
                             </motion.div>
                         )}
+
                         {isLegal && (
                             <motion.div
                                 key="legal"
@@ -307,35 +364,37 @@ export default function RegisterScreen({ isVisible, setIsVisible, setSelectedScr
                                 transition={{ duration: 0.25 }}
                                 className="flex flex-col gap-2"
                             >
-                                <label htmlFor="companyName" className='uppercase font-semibold text-base flex items-start'>
-                                    Название компании<span className="text-red-500 text-xs">*</span>
-                                </label>
-                                <input
-                                    id="details.companyName"
-                                    name='companyName'
-                                    type="text"
-                                    onChange={(e) => setCompanyName(e.target.value)}
-                                    className={`h-[2.5rem] ring ring-gray-300 rounded-lg 
-                                    px-4 text-base focus:ring-black outline-none transition-all
-                                    ${error ? "ring ring-red-500" : ""}
-                                    `}
-                                    placeholder='НАЗВАНИЕ КОМПАНИИ*' />
-                                <label htmlFor="kpp" className='uppercase font-semibold text-base flex items-start'>
-                                    Юридический адрес<span className="text-red-500 text-xs">*</span>
-                                </label>
-                                <input
-                                    id="details.legalAddress"
-                                    name='legalAddress'
-                                    type="text"
-                                    onChange={(e) => setLegalAddress(e.target.value)}
-                                    className={`h-[2.5rem] ring ring-gray-300 rounded-lg 
-                                    px-4 text-base focus:ring-black outline-none transition-all flex-shrink-0
-                                    ${error ? "ring ring-red-500" : ""}
-                                    `}
-                                    placeholder='ЮРИДИЧЕСКИЙ АДРЕС' />
+                                <div>
+                                    <label htmlFor="details.companyName" className='uppercase font-semibold text-base flex items-start mb-1'>
+                                        Название компании<span className="text-red-500 text-xs">*</span>
+                                    </label>
+                                    <input
+                                        id="details.companyName"
+                                        name='companyName'
+                                        type="text"
+                                        value={form.companyName}
+                                        onChange={(e) => setForm({ ...form, companyName: e.target.value })}
+                                        className={`h-[2.5rem] w-full ring ring-gray-300 rounded-lg px-4 text-base focus:ring-black outline-none transition-all ${fieldErrors['details.companyName'] ? "ring-2 ring-red-500" : ""}`}
+                                        placeholder='НАЗВАНИЕ КОМПАНИИ*' />
+                                    {renderFieldError('details.companyName')}
+                                </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0 w-full">
+                                <div>
+                                    <label htmlFor="details.legalAddress" className='uppercase font-semibold text-base flex items-start mb-1'>
+                                        Юридический адрес<span className="text-red-500 text-xs">*</span>
+                                    </label>
+                                    <input
+                                        id="details.legalAddress"
+                                        name='legalAddress'
+                                        type="text"
+                                        value={form.legalAddress}
+                                        onChange={(e) => setForm({ ...form, legalAddress: e.target.value })}
+                                        className={`h-[2.5rem] w-full ring ring-gray-300 rounded-lg px-4 text-base focus:ring-black outline-none transition-all flex-shrink-0 ${fieldErrors['details.legalAddress'] ? "ring-2 ring-red-500" : ""}`}
+                                        placeholder='ЮРИДИЧЕСКИЙ АДРЕС' />
+                                    {renderFieldError('details.legalAddress')}
+                                </div>
 
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0 w-full mt-2">
                                     <div className="flex flex-col gap-1 w-full">
                                         <label htmlFor="details.inn" className='uppercase font-semibold text-sm'>
                                             ИНН<span className="text-red-500 text-xs">*</span>
@@ -344,12 +403,12 @@ export default function RegisterScreen({ isVisible, setIsVisible, setSelectedScr
                                             id="details.inn"
                                             name='inn'
                                             type="text"
-                                            onChange={(e) => setInn(e.target.value)}
-                                            className={`h-[2.5rem] w-full ring ring-gray-300 rounded-lg px-4 text-base focus:ring-black outline-none transition-all min-w-0
-                ${error ? "ring-red-500" : ""}
-            `}
+                                            value={form.inn}
+                                            onChange={(e) => setForm({ ...form, inn: e.target.value })}
+                                            className={`h-[2.5rem] w-full ring ring-gray-300 rounded-lg px-4 text-base focus:ring-black outline-none transition-all min-w-0 ${fieldErrors['details.inn'] ? "ring-2 ring-red-500" : ""}`}
                                             placeholder='ИНН*'
                                         />
+                                        {renderFieldError('details.inn')}
                                     </div>
 
                                     <div className="flex flex-col gap-1 w-full">
@@ -360,15 +419,14 @@ export default function RegisterScreen({ isVisible, setIsVisible, setSelectedScr
                                             id="details.ogrn"
                                             name='ogrn'
                                             type="text"
-                                            onChange={(e) => setOgrn(e.target.value)}
-                                            className={`h-[2.5rem] w-full ring ring-gray-300 rounded-lg px-4 text-base focus:ring-black outline-none transition-all min-w-0
-                ${error ? "ring-red-500" : ""}
-            `}
+                                            value={form.ogrn}
+                                            onChange={(e) => setForm({ ...form, ogrn: e.target.value })}
+                                            className={`h-[2.5rem] w-full ring ring-gray-300 rounded-lg px-4 text-base focus:ring-black outline-none transition-all min-w-0 ${fieldErrors['details.ogrn'] ? "ring-2 ring-red-500" : ""}`}
                                             placeholder='ВВЕДИТЕ ОГРН*'
                                         />
+                                        {renderFieldError('details.ogrn')}
                                     </div>
 
-                                    {/* Блок КПП */}
                                     <div className="flex flex-col gap-1 w-full">
                                         <label htmlFor="details.kpp" className='uppercase font-semibold text-sm'>
                                             КПП<span className="text-red-500 text-xs">*</span>
@@ -377,24 +435,23 @@ export default function RegisterScreen({ isVisible, setIsVisible, setSelectedScr
                                             id="details.kpp"
                                             name='kpp'
                                             type="text"
-                                            onChange={(e) => setKpp(e.target.value)}
-                                            className={`h-[2.5rem] w-full ring ring-gray-300 rounded-lg px-4 text-base focus:ring-black outline-none transition-all min-w-0
-                ${error ? "ring-red-500" : ""}
-            `}
+                                            value={form.kpp}
+                                            onChange={(e) => setForm({ ...form, kpp: e.target.value })}
+                                            className={`h-[2.5rem] w-full ring ring-gray-300 rounded-lg px-4 text-base focus:ring-black outline-none transition-all min-w-0 ${fieldErrors['details.kpp'] ? "ring-2 ring-red-500" : ""}`}
                                             placeholder='ВВЕДИТЕ КПП'
                                         />
+                                        {renderFieldError('details.kpp')}
                                     </div>
-
                                 </div>
                             </motion.div>
                         )}
                     </div>
                 </AnimatePresence>
             </div>
+
             <div className="flex-shrink-0">
                 <AnimatePresence mode="popLayout">
-                    {error && (
-
+                    {globalError && (
                         <motion.div
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
@@ -403,23 +460,26 @@ export default function RegisterScreen({ isVisible, setIsVisible, setSelectedScr
                             className="ring ring-red-200 w-full bg-red-50 rounded-lg overflow-hidden"
                         >
                             <div className="px-3 py-2 text-center text-sm text-red-600">
-                                {error}
+                                {globalError}
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
             </div>
+
             <div className="w-full flex justify-center">
                 <button
                     type="submit"
-                    className='bg-black text-white uppercase py-2 text-lg rounded mt-2 px-5'
+                    disabled={loading}
+                    className='bg-black text-white uppercase py-2 text-lg rounded mt-2 px-5 min-w-[150px] flex justify-center items-center disabled:opacity-50'
                 >
-                    {loading ? <Loader className="mx-auto animate-spin" /> : "Регистрация"}
+                    {loading ? <Loader className="animate-spin" /> : "Регистрация"}
                 </button>
             </div>
+
             <div className="flex flex-col items-center">
                 <div className="uppercase text-sm">Уже есть учётная запись?</div>
-                <div className="uppercase text-sm hover:underline font-semibold" onClick={() => setSelectedScreen("login")}>войти</div>
+                <div className="uppercase text-sm hover:underline font-semibold cursor-pointer" onClick={() => setSelectedScreen("login")}>войти</div>
             </div>
         </form>
     );
