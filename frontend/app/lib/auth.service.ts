@@ -51,7 +51,9 @@ export async function login({
     setLoading,
     updateSession,
     updateToken,
-}: LoginArgs & Pick<ApiArgs, 'setData' | 'setError' | 'setLoading' | 'updateSession' | 'updateToken'>) {
+}: LoginArgs
+    & Omit<ApiArgs, 'setError'>
+    & { setError: (error: string | Record<string, string> | null) => void; }) {
     try {
         setLoading(true);
         setError(null);
@@ -65,7 +67,7 @@ export async function login({
         console.log("LOGIN SUCCESSFUL: ", loginRes.data);
 
         updateToken(loginRes.data.accessToken);
-api.defaults.headers.common['Authorization'] = `Bearer ${loginRes.data.accessToken}`;
+        api.defaults.headers.common['Authorization'] = `Bearer ${loginRes.data.accessToken}`;
         const profile = await getProfile({
             setData: () => { },
             setError: setError,
@@ -128,15 +130,14 @@ export async function register({
     details,
     setData,
     setError,
-    setErrorMap,
     setLoading,
     updateSession,
     updateToken
-}: RegisterInterface & ApiArgs) {
+}: RegisterInterface
+    & Omit<ApiArgs, 'setError' | 'setErrorMap'>
+    & { setError: (error: any) => void; }) {
     try {
         setLoading(true);
-        if (setErrorMap)
-            setErrorMap(null);
         setError(null);
         const registerRes = await api.post<AuthAction>("/v1/auth/register", {
             login: login,
@@ -163,17 +164,15 @@ export async function register({
         }
         return true;
     } catch (err: any) {
-        const serverErrors = err.errors || err.response?.data?.errors;
-        const mainMessage = err.message || err.response?.data?.message || "Произошла ошибка при регистрации";
-        if (serverErrors) {
-            if (setErrorMap) {
-                setErrorMap(serverErrors);
-            } else {
-                setError(mainMessage);
-            }
+        const responseData = err;
+        if (responseData?.error === "ValidationMapError" && responseData?.errors !== null) {
+            setError(responseData);
         } else {
+            const mainMessage = responseData?.description || "Произошла ошибка при регистрации профиля";
+
             setError(mainMessage);
         }
+        return false;
 
         return false;
     } finally {

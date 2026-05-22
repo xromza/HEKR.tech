@@ -1,0 +1,132 @@
+import { ApiArgs } from "@/types/ApiArgs";
+import api from "./api";
+import { OrderInterface } from "@/types/OrderInterface";
+import { VerboseOrderInterface } from "@/types/VerboseOrderInterface";
+import { OrderShippingInterface } from "@/types/CartCheckoutInterface";
+import { CartItemInterface } from "@/types/CartItemInterface";
+import { CartItemRequest } from "@/types/CartItemRequest";
+
+export async function getOrders({ setData,
+    setError,
+    setLoading }: Pick<ApiArgs, 'setData' | 'setError' | 'setLoading'>) {
+    try {
+        setLoading(true);
+        setError(null);
+        const res = await api.get<OrderInterface>("/v1/orders", {
+            withCredentials: true
+        });
+        console.log("GET ORDERS SUCCESSFUL: ", res.data)
+        setData(res.data);
+        return true;
+    } catch (err: any) {
+        const serverErrors = err.error || err.response?.data?.error;
+        const mainMessage = err.description || err.response?.data?.description || "Произошла ошибка при получении списка заказов";
+        if (serverErrors) {
+            setError(mainMessage);
+        }
+        return false;
+    } finally {
+        setLoading(false);
+    }
+}
+
+export async function getOrder({
+    id,
+    setData,
+    setError,
+    setLoading
+}: { id: number } & Pick<ApiArgs, 'setData' | 'setError' | 'setLoading'>) {
+    try {
+        setLoading(true);
+        setError(null);
+        const res = await api.get<VerboseOrderInterface>(`/v1/orders/${id}`, {
+            withCredentials: true
+        });
+        console.log("GET ORDER SUCCESSFUL: ", res.data)
+        setData(res.data);
+        return true;
+    } catch (err: any) {
+        const serverErrors = err.error || err.response?.data?.error;
+        const mainMessage = err.description || err.response?.data?.description || "Произошла ошибка при получении заказа";
+        if (serverErrors) {
+            setError(mainMessage);
+        }
+        return false;
+    } finally {
+        setLoading(false);
+    }
+}
+
+export async function cartCheckout({
+    warehouseId,
+    address,
+    payment,
+    comment,
+    setData,
+    setError,
+    setLoading }:
+    OrderShippingInterface & Pick<ApiArgs, 'setData' | 'setError' | 'setLoading'>) {
+    try {
+        setLoading(true);
+        setError(null);
+        const res = await api.post<VerboseOrderInterface>(`/v1/orders/all`, {
+            warehouseId: warehouseId,
+            address: address,
+            payment: payment,
+            comment: comment
+        }, {
+            withCredentials: true
+        });
+        console.log("CART CHECKOUT SUCCESSFUL: ", res.data)
+        setData(res.data);
+        return true;
+    } catch (err: any) {
+        const serverErrors = err.error || err.response?.data?.error;
+        const mainMessage = err.description || err.response?.data?.description || "Произошла ошибка при заказе всей корзины";
+        if (serverErrors) {
+            setError(mainMessage);
+        }
+        return false;
+    } finally {
+        setLoading(false);
+    }
+}
+
+export async function singleCheckout({
+    variantId,
+    quantity,
+    warehouseId,
+    address,
+    payment,
+    comment,
+    setData,
+    setError,
+    setLoading }:
+    CartItemRequest & OrderShippingInterface & Pick<ApiArgs, 'setData' | 'setError' | 'setLoading'>) {
+    try {
+        setLoading(true);
+        setError(null);
+        const res = await api.post<VerboseOrderInterface>(`/v1/orders/single`, {
+            variantId: variantId,
+            quantity: quantity,
+            warehouseId: warehouseId,
+            address: address,
+            payment: payment,
+            comment: comment
+        }, {
+            withCredentials: true
+        });
+        console.log("SINGLE CHECKOUT SUCCESSFUL: ", res.data)
+        setData(res.data);
+        return true;
+    } catch (err: any) {
+        const serverErrors = err.error || err.response?.data?.error;
+        const mainMessage = err.description || err.response?.data?.description || "Произошла ошибка при заказе всей корзины";
+        if (serverErrors) {
+            setError(mainMessage);
+        }
+        return false;
+    } finally {
+        setLoading(false);
+    }
+}
