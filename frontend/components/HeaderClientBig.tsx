@@ -1,12 +1,14 @@
 "use client"
 import { usePathname, useRouter } from "next/navigation";
-import { Dispatch, SetStateAction, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import Login from "./Login";
+import Login from "./AuthPortal";
 import { Handbag, Search, LucideIcon, UserRound, X } from "lucide-react";
 import { HeaderItem } from "@/types/HeaderItem";
 import { motion, AnimatePresence } from "framer-motion"
 import SearchBar from "./SearchBar";
+import { useToken } from "@/store/useToken";
+import { logout } from "@/app/lib/auth.service";
 
 interface ControlItems {
     icon: LucideIcon,
@@ -19,11 +21,33 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
     const router = useRouter();
     const pathname = usePathname();
     const [isSearchActive, setIsSearchActive] = useState(false);
+    const loginValue = useToken((state) => state.user?.login)
+    const [isMounted, setIsMounted] = useState(false);
+
+    const deleteSession = useToken((state) => state.deleteSession);
+    const [isLogoutLoading, setIsLogoutLoading] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    const userButtonTitle = isMounted && loginValue ? loginValue : "войти";
+
+    const handleLogout = () => {
+        confirm("Выйти?") && logout({
+            setLoading: setIsLogoutLoading,
+            deleteSession: deleteSession
+        })
+    }
+
+    const userFunc = isMounted && loginValue
+        ? handleLogout
+        : () => setIsLoginVisible(true)
     const controlItems: ControlItems[] = [
         {
             icon: UserRound,
-            title: "войти",
-            event: () => setIsLoginVisible(true)
+            title: userButtonTitle,
+            event: userFunc
         },
         {
             icon: Search,
@@ -35,7 +59,7 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
             title: "корзина",
             event: () => router.push("/cart")
         },
-    ]
+    ];
     return (
         <header className='absolute bg-white w-full h-[200px] z-50 text-lg'>
             <div className="container mx-auto h-full flex items-center">
@@ -66,7 +90,7 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
                                             <div className="flex flex-row gap-1 lg:gap-2">
                                                 <button
                                                     className={`${pathname === item.link ? "underline font-semibold scale-102 cursor-default" : "hover:underline cursor-pointer "} transition duration-300 uppercase text-sm lg:text-base`}
-                                                    onClick={ pathname === item.link ? undefined : () => router.push(item.link)}>{item.title}</button>
+                                                    onClick={pathname === item.link ? undefined : () => router.push(item.link)}>{item.title}</button>
                                                 <span className='text-[#ccc] cursor-default hidden lg:inline'>{item.count}</span>
                                             </div>
                                         </li>
@@ -95,7 +119,7 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
                                 initial={{ opacity: 0, y: 50 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -50 }} className="w-full p-15">
-                                <SearchBar isSearchActive={isSearchActive} setIsSearchActive={setIsSearchActive}/>
+                                <SearchBar isSearchActive={isSearchActive} setIsSearchActive={setIsSearchActive} />
                             </motion.div>
                         }
                     </AnimatePresence>

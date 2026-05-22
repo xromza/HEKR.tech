@@ -1,7 +1,5 @@
 package com.hekr.store.dto.error;
 
-import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

@@ -20,7 +20,8 @@ export default async function CatalogPage() {
             size: 6,
             verbose: true,
             sort: "",
-            order: OrderTypes.ASC
+            order: OrderTypes.ASC,
+            searchQuery: null
         }
     );
     const arr: CatalogPageable = res;
@@ -38,7 +39,12 @@ export default async function CatalogPage() {
             <div className="mb-15">
                 <SliderDiscount />
             </div>
-            <Catalog title="Женская коллекция" path={total_path} initialData={arr} />
+            <Catalog 
+            title="Женская коллекция" 
+            searchQuery={null}
+            path={total_path} 
+            isParentLoading={false}
+            initialData={arr} />
         </div>
     )
 }

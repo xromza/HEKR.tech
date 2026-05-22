@@ -1,5 +1,6 @@
 package com.hekr.store.config;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import tools.jackson.databind.exc.InvalidTypeIdException;
 
@@ -86,7 +87,7 @@ public class GlobalExceptionHandler {
                         fieldErrors.put(errorName, errorMessage);
                 });
                 MapErrorResponseDto errors = MapErrorResponseDto.builder()
-                                .error("ValidationError1")
+                                .error("ValidationMapError")
                                 .errors(fieldErrors)
                                 .build();
 
@@ -127,7 +128,7 @@ public class GlobalExceptionHandler {
         }
 
         @ExceptionHandler(UsernameNotFoundException.class)
-                public ResponseEntity<ErrorResponseDto> handleUsernameNotFound(UsernameNotFoundException ex) {
+        public ResponseEntity<ErrorResponseDto> handleUsernameNotFound(UsernameNotFoundException ex) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorResponseDto
                                 .builder()
                                 .error("UsernameNotFound")
@@ -153,19 +154,27 @@ public class GlobalExceptionHandler {
                 String friendlyMessage = "";
                 if (cause instanceof InvalidTypeIdException) {
                         friendlyMessage = "Указан неизвестный тип данных в поле details";
-                }
-                else if (cause instanceof InvalidFormatException) {
+                } else if (cause instanceof InvalidFormatException) {
                         friendlyMessage = "Одно из полей заполнено некорректно (неверный тип данных)";
-                }
-                else if (cause instanceof JsonParseException) {
+                } else if (cause instanceof JsonParseException) {
                         friendlyMessage = "Ошибка в синтаксисе JSON";
-                }
-                else friendlyMessage = ex.getMessage();
+                } else
+                        friendlyMessage = ex.getMessage();
 
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponseDto
                                 .builder()
-                                .error("ValidationError2")
+                                .error("ValidationError")
                                 .description(friendlyMessage)
                                 .build());
+        }
+
+        @ExceptionHandler(ExpiredJwtException.class)
+        public ResponseEntity<ErrorResponseDto> handleExpiredJwt(ExpiredJwtException ex) {
+                return ResponseEntity
+                                .status(HttpStatus.UNAUTHORIZED)
+                                .body(ErrorResponseDto.builder()
+                                                .error("ExpiredToken")
+                                                .description("Токен устарел")
+                                                .build());
         }
 }

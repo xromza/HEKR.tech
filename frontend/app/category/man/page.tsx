@@ -20,7 +20,8 @@ export default async function ManCollectionPage() {
             size: 6,
             verbose: true,
             sort: "",
-            order: OrderTypes.ASC
+            order: OrderTypes.ASC,
+            searchQuery: null
         }
     );
     const arr: CatalogPageable = res;
@@ -38,7 +39,12 @@ export default async function ManCollectionPage() {
             <div className="mb-15">
                 <SliderDiscount />
             </div>
-            <Catalog title="Мужская коллекция" path={total_path} initialData={arr} />
+            <Catalog 
+            title="Мужская коллекция" 
+            path={total_path} 
+            searchQuery={null}
+            initialData={arr} 
+            isParentLoading={false} />
         </div>
     )
 }

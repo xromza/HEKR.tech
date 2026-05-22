@@ -68,7 +68,7 @@ public class AuthController {
                 .body(result.getAuthResponseDto());
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("/refresh")    
     public ResponseEntity<AuthResponseDto> refresh(@NonNull HttpServletRequest request) {
         String refreshToken = extractValue(request, "refreshToken");
 
