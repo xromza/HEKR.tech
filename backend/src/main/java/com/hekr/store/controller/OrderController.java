@@ -33,7 +33,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping
-    public ResponseEntity<List<? extends OrderDtoInterface>> getOrders(@AuthenticationPrincipal UserDetails userDetails, @RequestParam boolean verbose) {
+    public ResponseEntity<List<? extends OrderDtoInterface>> getOrders(@AuthenticationPrincipal UserDetails userDetails, @RequestParam(required = false, defaultValue = "false") boolean verbose) {
         return ResponseEntity.ok(orderService.getOrders(userDetails, verbose));
     }
 

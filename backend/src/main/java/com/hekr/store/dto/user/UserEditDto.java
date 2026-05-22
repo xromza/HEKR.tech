@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,9 +45,11 @@ import lombok.ToString;
 @ToString
 public class UserEditDto {
     @Schema(description = "Пароль пользователя", example = "most_secure_password23@3", accessMode = Schema.AccessMode.WRITE_ONLY)
+    @Pattern(regexp="^\\S{8,32}$", message = "Пароль не должен содержать пробелы и его размер должен быть от 8 до 32 символов")
     private String password;
 
     @Size(max = 20)
+    @Pattern(regexp = "^\\+?[1-9]\\d{6,14}$", message = "Неверный формат номера телефона")
     private String phone;
 
     @Size(max = 256)
