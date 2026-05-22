@@ -6,9 +6,9 @@ import { CatalogPageable } from "@/types/CatalogPageable";
 import { OrderTypes } from "@/types/OrderTypes";
 import { Loader } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 
-export default function SearchPage() {
+export function SearchPageContent() {
     const searchParams = useSearchParams();
     const [catalogData, setCatalogData] = useState<CatalogPageable | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
@@ -58,5 +58,19 @@ export default function SearchPage() {
                 initialData={catalogData || { content: [], last: true, totalPages: 0, totalElements: 0 } as any}
             />
         </div>
+    )
+}
+
+export default function SearchPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="flex justify-center items-center min-h-[400px]">
+                    <Loader className="animate-spin" />
+                </div>
+            }
+        >
+            <SearchPageContent/>
+        </Suspense>
     )
 }
