@@ -29,9 +29,9 @@ public class SecurityConfig {
                                 .cors(cors -> cors.configurationSource(request -> {
                                         var corsConfiguration = new CorsConfiguration();
                                         corsConfiguration.setAllowedOriginPatterns(
-                                                        List.of("http://localhost:3000", "http://192.168.*.*:3000"));
+                                                        List.of("http://localhost:3000", "http://192.168.*.*:3000", "https://dev.hekr.tech", "https://hekr.tech"));
                                         corsConfiguration.setAllowedMethods(
-                                                        List.of("GET", "POST", "DELETE", "PATCH"));
+                                                        List.of("GET", "POST", "DELETE", "OPTIONS", "PUT", "PATCH"));
                                         corsConfiguration.setAllowedHeaders(List.of("*"));
                                         corsConfiguration.setAllowCredentials(true);
                                         return corsConfiguration;
