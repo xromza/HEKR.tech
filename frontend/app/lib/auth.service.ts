@@ -52,8 +52,8 @@ export async function login({
     updateSession,
     updateToken,
 }: LoginArgs
-    & Omit<ApiArgs, 'setError'>
-    & { setError: (error: string | Record<string, string> | null) => void; }) {
+    & Omit<ApiArgs, 'setError' | 'setErrorMap'>
+    & { setError: (error: any) => void; }) {
     try {
         setLoading(true);
         setError(null);

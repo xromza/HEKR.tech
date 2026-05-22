@@ -64,19 +64,17 @@ export default function AuthTestPage() {
             loginValue,
             passwordValue,
             setData: setResponseData,
-            setError,
+            setError: (err: any) => setError(typeof err === 'string' ? err : "Ошибка авторизации"),
             setLoading,
             updateSession: tokenState.updateSession,
             updateToken: tokenState.updateToken
         });
     };
 
-    // Отправка формы регистрации с динамической сборкой структуры details
     const handleRegisterSubmit = async (e: FormEvent) => {
         e.preventDefault();
         resetLogs();
 
-        // Формируем объект details в зависимости от выбранного типа
         const details = detailsType === "individual"
             ? {
                 type: "individual",
@@ -101,10 +99,9 @@ export default function AuthTestPage() {
             password: regPassword,
             phone: regPhone,
             email: regEmail,
-            details: details, // Передаем строго собранный объект
+            details: details,
             setData: setResponseData,
-            setError,
-            setErrorMap,
+            setError: (err) => typeof err === 'string' ? setError(err) : null,
             setLoading,
             updateSession: tokenState.updateSession,
             updateToken: tokenState.updateToken
