@@ -47,7 +47,8 @@ public abstract class CartResponseMapper {
     @Mapping(target = "priceType", constant = "RETAIL")
     @Mapping(target = "imageUrl", ignore = true)
     @Mapping(target = "brand", ignore = true)
-
+    @Mapping(target= "color", source="productVariant.color")
+    @Mapping(target = "size", source="productVariant.size")
     @Mapping(target = "subtotal", expression = "java(cart.getProductVariant().getProduct().getPriceRetail().multiply(java.math.BigDecimal.valueOf(cart.getQuantity())))")
     public abstract CartItemResponseDto toResponse(Cart cart);
 

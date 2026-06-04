@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  allowedDevOrigins: ['192.168.0.106'],
+  allowedDevOrigins: ["192.168.*.*"],
   images: {
     remotePatterns: [
       {
@@ -13,5 +13,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        // Когда фронт шлет запрос на /api/v1/..., Next.js перенаправит его на бэк
+        source: '/api/:path*',
+        destination: 'http://localhost:8080/api/:path*', 
+      },
+    ];
+  }
 };
 export default nextConfig;

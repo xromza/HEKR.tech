@@ -16,7 +16,7 @@ export default function Home() {
     <main>
       <div className='flex justify-center w-full' style={backgroundImageModel}>
         <Image
-          src="https://res.cloudinary.com/dcc2qkmq7/image/upload/main_e9xeff.png"
+          src="/main_asian.png"
           width={736}
           height={916}
           alt="Логотип компании HEKR, состоящий из белых букв, написанных по часовой стрелке, на черном фоне "

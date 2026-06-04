@@ -45,6 +45,9 @@ public class CartItemResponseDto {
     private BigDecimal subtotal;
     @Schema(description = "Количество доступного товара", example = "10", nullable = true)
     private Integer availableStock;
+    
+    private String size;
+    private String color;
 
     @Schema(description = "Тип применённой цены", example = "RETAIL")
     private String priceType;

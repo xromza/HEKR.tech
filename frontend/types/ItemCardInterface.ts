@@ -7,5 +7,6 @@ export interface ItemCardInterface {
     isActive: boolean,
     priceWholesale: number,
     priceRetail: number,
-    imageUrl: string
+    mainImageUrl: string,
+    wholesaleThreshold: number
 }

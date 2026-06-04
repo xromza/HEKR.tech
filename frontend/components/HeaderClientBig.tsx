@@ -1,12 +1,14 @@
 "use client"
-import { useRouter } from "next/navigation";
-import { Dispatch, SetStateAction, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import Login from "./Login";
+import Login from "./AuthPortal";
 import { Handbag, Search, LucideIcon, UserRound, X } from "lucide-react";
 import { HeaderItem } from "@/types/HeaderItem";
 import { motion, AnimatePresence } from "framer-motion"
 import SearchBar from "./SearchBar";
+import { useToken } from "@/store/useToken";
+import { logout } from "@/app/lib/auth.service";
 
 interface ControlItems {
     icon: LucideIcon,
@@ -17,12 +19,35 @@ interface ControlItems {
 export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisible }: { items: HeaderItem[], isLoginVisible: boolean, setIsLoginVisible: Dispatch<SetStateAction<boolean>> }) {
 
     const router = useRouter();
+    const pathname = usePathname();
     const [isSearchActive, setIsSearchActive] = useState(false);
+    const loginValue = useToken((state) => state.user?.login)
+    const [isMounted, setIsMounted] = useState(false);
+
+    const deleteSession = useToken((state) => state.deleteSession);
+    const [isLogoutLoading, setIsLogoutLoading] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    const userButtonTitle = isMounted && loginValue ? loginValue : "войти";
+
+    const handleLogout = () => {
+        confirm("Выйти?") && logout({
+            setLoading: setIsLogoutLoading,
+            deleteSession: deleteSession
+        })
+    }
+
+    const userFunc = isMounted && loginValue
+        ? handleLogout
+        : () => setIsLoginVisible(true)
     const controlItems: ControlItems[] = [
         {
             icon: UserRound,
-            title: "войти",
-            event: () => setIsLoginVisible(true)
+            title: userButtonTitle,
+            event: userFunc
         },
         {
             icon: Search,
@@ -34,10 +59,10 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
             title: "корзина",
             event: () => router.push("/cart")
         },
-    ]
+    ];
     return (
-        <header className='px-6 absolute bg-white w-full h-[200px] z-50 text-lg'>
-            <div className="container mx-auto h-full px-4 flex items-center">
+        <header className='absolute bg-white w-full h-[200px] z-50 text-lg'>
+            <div className="container mx-auto h-full flex items-center">
                 <div className='flex flex-row w-full h-full items-center justify-start uppercase'>
                     <div className="flex-shrink-0 pr-8 lg:pr-16">
                         <button
@@ -45,7 +70,7 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
                             className="cursor-pointer"
 
                         >
-                            <Image src="https://res.cloudinary.com/dcc2qkmq7/image/upload/v1777939108/logo_ryssvy.svg"
+                            <Image src="/logo.svg"
                                 width={100}
                                 height={100}
                                 className="object-contain"
@@ -64,8 +89,8 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
                                         <li key={idx} className="whitespace-nowrap">
                                             <div className="flex flex-row gap-1 lg:gap-2">
                                                 <button
-                                                    className='hover:underline uppercase cursor-pointer text-sm lg:text-base'
-                                                    onClick={() => router.push(item.link)}>{item.title}</button>
+                                                    className={`${pathname === item.link ? "underline font-semibold scale-102 cursor-default" : "hover:underline cursor-pointer "} transition duration-300 uppercase text-sm lg:text-base`}
+                                                    onClick={pathname === item.link ? undefined : () => router.push(item.link)}>{item.title}</button>
                                                 <span className='text-[#ccc] cursor-default hidden lg:inline'>{item.count}</span>
                                             </div>
                                         </li>
@@ -94,7 +119,7 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
                                 initial={{ opacity: 0, y: 50 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -50 }} className="w-full p-15">
-                                <SearchBar isSearchActive={isSearchActive} setIsSearchActive={setIsSearchActive}/>
+                                <SearchBar isSearchActive={isSearchActive} setIsSearchActive={setIsSearchActive} />
                             </motion.div>
                         }
                     </AnimatePresence>

@@ -1,5 +1,7 @@
 package com.hekr.store.controller;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -51,5 +53,11 @@ public class CartController {
         cartService.deleteAll(userDetails);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+    @PostMapping("/migrate")
+    public CartResponseDto migrateCart(@RequestBody @Valid List<CartItemRequestDto> dto, @AuthenticationPrincipal UserDetails userDetails) {
+        return cartService.migrateCart(userDetails, dto);
+    }
+    
 
 }
