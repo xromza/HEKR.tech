@@ -3,9 +3,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Login from "./AuthPortal";
-import { Handbag, Search, LucideIcon, UserRound, X, LogOut, User } from "lucide-react";
+import { Handbag, Search, LucideIcon, UserRound, X, LogOut, User, LogIn } from "lucide-react";
 import { HeaderItem } from "@/types/HeaderItem";
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion"
 import SearchBar from "./SearchBar";
 import { useToken } from "@/store/useToken";
 import { logout } from "@/app/lib/auth.service";
@@ -30,6 +30,25 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
     useEffect(() => {
         setIsMounted(true);
     }, []);
+
+
+    const { scrollY } = useScroll();
+    const [isHidden, setIsHidden] = useState(false);
+    const lastScrollY = useRef(0);
+
+    useMotionValueEvent(scrollY, 'change', (latest) => {
+        const previous = lastScrollY.current;
+
+        if (latest > previous && latest > 150) {
+            setIsHidden(true);
+            setDropdownVisible(false);
+        }
+        else if (latest < previous) {
+            setIsHidden(false);
+        }
+
+        lastScrollY.current = latest;
+    })
 
     const userButtonTitle = isMounted && loginValue ? loginValue : "войти";
 
@@ -58,7 +77,15 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
         },
     ];
     return (
-        <header className='fixed bg-white w-full h-[200px] z-50 text-lg'>
+        <motion.header
+            variants={{
+                visible: { y: 0 },
+                hidden: { y: "-100%" }
+            }}
+            animate={isHidden ? "hidden" : "visible"}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className='fixed bg-white w-full h-[200px] z-50 text-lg left-0 top-0'
+        >
             <div className="container mx-auto h-full flex items-center">
                 <div className='flex flex-row w-full h-full items-center justify-start uppercase'>
                     <div className="flex-shrink-0 pr-8 lg:pr-16">
@@ -95,75 +122,96 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
 
                                 </ul>
                                 <ul className='flex flex-row gap-4 lg:gap-8 items-center flex-shrink-0 ml-4'>
-                                    <li className='flex flex-row relative'>
-                                        <AnimatePresence mode="popLayout">
-                                            {dropdownVisible ?
-                                                <motion.button
-                                                    key="initial"
-                                                    initial={{
-                                                        opacity: 0,
-                                                        y: 10
-                                                    }}
-                                                    animate={{
-                                                        opacity: 1,
-                                                        y: 0
-                                                    }}
-                                                    exit={{
-                                                        opacity: 0,
-                                                        y: 10
-                                                    }}
+                                    <li className='flex flex-row relative items-center'>
+                                        <div className="relative hover:underline cursor-pointer">
 
-                                                    className="flex flex-row gap-3 uppercase z-[25] hover:underline cursor-pointer"
-                                                    onClick={() => setDropdownVisible(false)}
+                                            <div className="flex flex-row gap-3 uppercase items-center opacity-0 pointer-events-none select-none text-sm lg:text-base">
+                                                <UserRound size={24} className="lg:w-6 lg:h-6" />
+                                                <span>
+                                                    {userButtonTitle.length > "закрыть".length ? userButtonTitle : "закрыть"}
+                                                </span>
+                                            </div>
+
+                                            <div className="absolute inset-0 flex items-center">
+                                                <button
+                                                    className="flex flex-row gap-3 uppercase items-center cursor-pointer w-full h-full"
+                                                    onClick={dropdownVisible ? () => setDropdownVisible(false) : userFunc}
                                                 >
-                                                    <X
-                                                        size={24} className="lg:w-6 lg:h-6" />
-                                                    <span className="hidden xl:inline uppercase text-sm lg:text-base">
-                                                        Закрыть
-                                                    </span>
-                                                </motion.button> :
-                                                <motion.button
-                                                    key="dropdown visible"
-                                                    initial={{
-                                                        opacity: 0,
-                                                        y: -10
-                                                    }}
-                                                    animate={{
-                                                        opacity: 1,
-                                                        y: 0
-                                                    }}
-                                                    exit={{
-                                                        opacity: 0,
-                                                        y: -10
-                                                    }}
-                                                    className="flex flex-row gap-3 uppercase hover:underline cursor-pointer"
-                                                    onClick={userFunc}>
-                                                    <UserRound
-                                                        size={24} className="lg:w-6 lg:h-6" />
-                                                    <span className="hidden xl:inline uppercase text-sm lg:text-base">
-                                                        {userButtonTitle}
-                                                    </span>
-                                                </motion.button>
+                                                    <AnimatePresence mode="wait">
+                                                        {dropdownVisible ? (
+                                                            <motion.div
+                                                                key="close"
+                                                                initial={{ opacity: 0, y: 5 }}
+                                                                animate={{ opacity: 1, y: 0 }}
+                                                                exit={{ opacity: 0, y: -5 }}
+                                                                transition={{ duration: 0.2 }}
+                                                                className="flex flex-row gap-3 items-center w-full"
+                                                            >
+                                                                <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                                                                    <X size={24} className="lg:w-6 lg:h-6" />
+                                                                </div>
+                                                                <span className="hidden xl:inline uppercase text-sm lg:text-base whitespace-nowrap">
+                                                                    Закрыть
+                                                                </span>
+                                                            </motion.div>
+                                                        ) : (
+                                                            <motion.div
+                                                                key="user"
+                                                                initial={{ opacity: 0, y: 5 }}
+                                                                animate={{ opacity: 1, y: 0 }}
+                                                                exit={{ opacity: 0, y: -5 }}
+                                                                transition={{ duration: 0.2 }}
+                                                                className="flex flex-row gap-3 items-center w-full"
+                                                            >
+                                                                <AnimatePresence mode="wait">
+                                                                    {isMounted && loginValue ? (
+                                                                        <motion.div
+                                                                            key="logged"
+                                                                            initial={{ opacity: 0, y: -5 }}
+                                                                            animate={{ opacity: 1, y: 0 }}
+                                                                            exit={{ opacity: 0, y: -5 }}
+                                                                            transition={{ duration: 0.15 }}
+                                                                            className="flex flex-row gap-3 items-center"
+                                                                        >
+                                                                            <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                                                                                <UserRound size={24} className="lg:w-6 lg:h-6" />
+                                                                            </div>
+                                                                            <span className="hidden xl:inline uppercase text-sm lg:text-base whitespace-nowrap">
+                                                                                {userButtonTitle}
+                                                                            </span>
+                                                                        </motion.div>
+                                                                    ) : (
+                                                                        <motion.div
+                                                                            key="unlogged"
+                                                                            initial={{ opacity: 0, y: -5 }}
+                                                                            animate={{ opacity: 1, y: 0 }}
+                                                                            exit={{ opacity: 0, y: -5 }}
+                                                                            transition={{ duration: 0.15 }}
+                                                                            className="flex flex-row gap-3 items-center"
+                                                                        >
+                                                                            <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                                                                                <LogIn size={24} className="lg:w-6 lg:h-6" />
+                                                                            </div>
+                                                                            <span className="hidden xl:inline uppercase text-sm lg:text-base whitespace-nowrap">
+                                                                                войти
+                                                                            </span>
+                                                                        </motion.div>
+                                                                    )}
+                                                                </AnimatePresence>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </button>
+                                            </div>
+                                        </div>
 
-                                            }
-                                        </AnimatePresence>
-                                        <AnimatePresence mode="popLayout">
-                                            {dropdownVisible &&
+                                        <AnimatePresence>
+                                            {dropdownVisible && (
                                                 <motion.div
-
-                                                    initial={{
-                                                        opacity: 0,
-                                                        y: -10
-                                                    }}
-                                                    animate={{
-                                                        opacity: 1,
-                                                        y: 0
-                                                    }}
-                                                    exit={{
-                                                        opacity: 0,
-                                                        y: -10
-                                                    }}
-                                                    className="absolute shadow-lg z-50 p-4 flex flex-col border-2 gap-2 rounded bg-white top-7"
+                                                    initial={{ opacity: 0, y: -10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    className="absolute shadow-lg z-50 p-4 flex flex-col border-2 gap-2 rounded bg-white top-8 right-0"
                                                 >
                                                     <button onClick={() => router.push("/profile")} className="uppercase cursor-pointer flex flex-row gap-1 items-center border-b-2">
                                                         <UserRound size={15} /> Профиль
@@ -171,7 +219,8 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
                                                     <button onClick={handleLogout} className="flex flex-row cursor-pointer gap-1 select-none uppercase items-center border-b-2 mb-2">
                                                         <LogOut size={15} /> Выйти
                                                     </button>
-                                                </motion.div>}
+                                                </motion.div>
+                                            )}
                                         </AnimatePresence>
                                     </li>
                                     {controlItems.map((item, idx) =>
@@ -202,6 +251,6 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
                 </div>
                 <Login isVisible={isLoginVisible} setIsVisible={setIsLoginVisible} />
             </div>
-        </header>
+        </motion.header>
     );
 }
