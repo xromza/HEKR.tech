@@ -13,7 +13,7 @@ interface LoginProps {
     setIsVisible: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function Login({ isVisible, setIsVisible }: LoginProps) {
+export default function Login({ isVisible, setIsVisible, referrer = null, windowTitle = null }: LoginProps & {referrer: string | null, windowTitle: string | null}) {
     const [mounted, setMounted] = useState(false)
     const [selectedScreen, setSelectedScreen] = useState("login")
 
@@ -82,6 +82,8 @@ export default function Login({ isVisible, setIsVisible }: LoginProps) {
                                                     isVisible={isVisible}
                                                     setIsVisible={setIsVisible}
                                                     setSelectedScreen={setSelectedScreen}
+                                                    windowTitle={windowTitle}
+                                                    referrer={referrer}
                                                 />
                                             </motion.div>
                                         )}

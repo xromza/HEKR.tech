@@ -26,7 +26,8 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
     const [dropdownVisible, setDropdownVisible] = useState(false);
     const deleteSession = useToken((state) => state.deleteSession);
     const [isLogoutLoading, setIsLogoutLoading] = useState(false);
-
+    const [windowTitle, setWindowTitle] = useState<string | null>("войти");
+    const [referrer, setReferrer] = useState<string | null>(null);
     useEffect(() => {
         setIsMounted(true);
     }, []);
@@ -59,11 +60,25 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
         })
         setDropdownVisible(false);
     }
-
+    const handleLogin = () => {
+        setWindowTitle("войти")
+        setReferrer(null);
+        setIsLoginVisible(true);
+    }
 
     const userFunc = isMounted && loginValue
         ? () => setDropdownVisible(true)
-        : () => setIsLoginVisible(true)
+        : () => handleLogin();
+
+    const handleCart = () => {
+        if (loginValue)
+            router.push("/cart")
+        else {
+            setWindowTitle("Для просмотра корзины нужно войти")
+            setReferrer("/cart");
+            setIsLoginVisible(true);
+        }
+    }
     const controlItems: ControlItems[] = [
         {
             icon: Search,
@@ -73,7 +88,7 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
         {
             icon: Handbag,
             title: "корзина",
-            event: () => router.push("/cart")
+            event: handleCart
         },
     ];
     return (
@@ -127,7 +142,7 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
 
                                             <div className="flex flex-row gap-3 uppercase items-center opacity-0 pointer-events-none select-none text-sm lg:text-base">
                                                 <UserRound size={24} className="lg:w-6 lg:h-6" />
-                                                <span>
+                                                <span className="hidden xl:inline">
                                                     {userButtonTitle.length > "закрыть".length ? userButtonTitle : "закрыть"}
                                                 </span>
                                             </div>
@@ -249,7 +264,7 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
                         }
                     </AnimatePresence>
                 </div>
-                <Login isVisible={isLoginVisible} setIsVisible={setIsLoginVisible} />
+                <Login isVisible={isLoginVisible} setIsVisible={setIsLoginVisible} referrer={referrer} windowTitle={windowTitle} />
             </div>
         </motion.header>
     );

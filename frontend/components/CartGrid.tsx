@@ -22,10 +22,11 @@ export default function CartGrid(
             await getCart({ setData: setCartData, setError, setLoading });
         }
     };
+
     return (
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-24">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 md:gap-24">
             {cart.items.map((item, idx) => (
-                <div key={idx} className="w-full md:max-w-[450px] mx-auto md:mx-0 py-8 px-6 flex flex-row border-2 border-gray-600 rounded-2xl h-full">
+                <div key={idx} className="w-full overflow-hidden md:max-w-[700px] mx-auto md:mx-0 py-8 px-6 flex flex-row border-2 border-gray-600 rounded-2xl h-full">
                     <div className="w-[170px] h-[200px] relative shrink-0 flex items-center justify-center bg-transparent">
                         <Image
                             alt={`Изображение товара ${item.brand} ${item.title}`}

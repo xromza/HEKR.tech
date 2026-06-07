@@ -27,7 +27,8 @@ export default function HeaderClientMobile({ items, isLoginVisible, setIsLoginVi
     const [dropdownVisible, setDropdownVisible] = useState(false);
     const loginValue = useToken((state) => state.user?.login)
     const [isMounted, setIsMounted] = useState(false);
-
+    const [windowTitle, setWindowTitle] = useState<string | null>("войти");
+    const [referrer, setReferrer] = useState<string | null>(null);
     const deleteSession = useToken((state) => state.deleteSession);
     const [isLogoutLoading, setIsLogoutLoading] = useState(false);
     const { scrollY } = useScroll();
@@ -52,7 +53,15 @@ export default function HeaderClientMobile({ items, isLoginVisible, setIsLoginVi
     }, []);
 
     const userButtonTitle = isMounted && loginValue ? loginValue : "войти";
-
+    const handleCart = () => {
+        if (loginValue)
+            router.push("/cart")
+        else {
+            setWindowTitle("Для просмотра корзины нужно войти")
+            setReferrer("/cart");
+            setIsLoginVisible(true);
+        }
+    }
     const handleLogout = () => {
         logout({
             setLoading: setIsLogoutLoading,
@@ -60,9 +69,15 @@ export default function HeaderClientMobile({ items, isLoginVisible, setIsLoginVi
         })
         setDropdownVisible(false);
     }
+        const handleLogin = () => {
+        setWindowTitle("войти")
+        setReferrer(null);
+        setIsLoginVisible(true);
+    }
+
     const userFunc = isMounted && loginValue
         ? () => setDropdownVisible(true)
-        : () => setIsLoginVisible(true)
+        : () => handleLogin();
 
     const controlItems: ControlItems[] = [
         {
@@ -73,7 +88,7 @@ export default function HeaderClientMobile({ items, isLoginVisible, setIsLoginVi
         {
             icon: Handbag,
             title: "корзина",
-            event: () => router.push("/cart")
+            event: handleCart
         }
     ]
     return (
@@ -120,7 +135,7 @@ export default function HeaderClientMobile({ items, isLoginVisible, setIsLoginVi
                                                     animate={{ opacity: 1, scale: 1 }}
                                                     exit={{ opacity: 0, scale: 0.8 }}
                                                     transition={{ duration: 0.15 }}
-                                                    className="w-6 h-6 flex items-center justify-center shrink-0"
+                                                    className="w-6 h-6 flex z-50 items-center justify-center shrink-0"
                                                 >
                                                     <X size={22} className="lg:w-6 lg:h-6" />
                                                 </motion.div>
@@ -239,7 +254,7 @@ export default function HeaderClientMobile({ items, isLoginVisible, setIsLoginVi
 
                     }
                 </AnimatePresence>
-                <Login isVisible={isLoginVisible} setIsVisible={setIsLoginVisible} />
+                <Login isVisible={isLoginVisible} setIsVisible={setIsLoginVisible} referrer={referrer} windowTitle={windowTitle} />
                 <BurgerScreen setIsActive={setIsBurgerActive} items={items} isActive={isBurgerActive} />
             </div>
         </motion.header >

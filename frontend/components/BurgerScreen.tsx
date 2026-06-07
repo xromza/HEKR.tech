@@ -22,7 +22,7 @@ export default function BurgerScreen({ isActive, setIsActive, items }: { isActiv
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed mt-[150px] flex flex-col gap-7 inset-0 z-50 bg-white w-full h-full">
+                    className="fixed mt-[150px] flex flex-col gap-7 inset-0 z-40 bg-white w-full h-full">
                     {items.map((item, idx) =>
                         <button
                             key={idx}
