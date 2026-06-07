@@ -10,8 +10,10 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -35,6 +37,21 @@ public class GlobalExceptionHandler {
                                                 .error("Unauthorized")
                                                 .description(ex.getMessage())
                                                 .build());
+        }
+
+        @ExceptionHandler(InsufficientAuthenticationException.class)
+        public ResponseEntity<ErrorResponseDto> handleInsufficientAuthentication(
+                        InsufficientAuthenticationException ex) {
+                ErrorResponseDto error = new ErrorResponseDto("Unauthorized",
+                                "Сначала необходимо авторизоваться в системе");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        }
+
+        @ExceptionHandler(AccessDeniedException.class)
+        public ResponseEntity<ErrorResponseDto> handleAccessDenied(AccessDeniedException ex) {
+                ErrorResponseDto error = new ErrorResponseDto("Forbidden",
+                                "У вас недостаточно прав для выполнения этого действия");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
         }
 
         @ExceptionHandler(DisabledException.class)

@@ -2,6 +2,7 @@ package com.hekr.store.config;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,15 +14,23 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-
-import lombok.RequiredArgsConstructor;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Configuration
 @EnableWebSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
         private final AuthenticationProvider authenticationProvider;
+        private final HandlerExceptionResolver resolver;
+
+        public SecurityConfig(
+                        JwtAuthenticationFilter jwtAuthenticationFilter,
+                        AuthenticationProvider authenticationProvider,
+                        @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver) {
+                this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+                this.authenticationProvider = authenticationProvider;
+                this.resolver = resolver;
+        }
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -29,7 +38,8 @@ public class SecurityConfig {
                                 .cors(cors -> cors.configurationSource(request -> {
                                         var corsConfiguration = new CorsConfiguration();
                                         corsConfiguration.setAllowedOriginPatterns(
-                                                        List.of("http://localhost:3000", "http://192.168.*.*:3000", "https://dev.hekr.tech", "https://hekr.tech"));
+                                                        List.of("http://localhost:3000", "http://192.168.*.*:3000",
+                                                                        "https://dev.hekr.tech", "https://hekr.tech"));
                                         corsConfiguration.setAllowedMethods(
                                                         List.of("GET", "POST", "DELETE", "OPTIONS", "PUT", "PATCH"));
                                         corsConfiguration.setAllowedHeaders(List.of("*"));
@@ -37,6 +47,14 @@ public class SecurityConfig {
                                         return corsConfiguration;
                                 }))
                                 .csrf(AbstractHttpConfigurer::disable)
+                                .exceptionHandling(exceptions -> exceptions
+                                                .authenticationEntryPoint((request, response, authException) -> resolver
+                                                                .resolveException(request, response, null,
+                                                                                authException))
+                                                .accessDeniedHandler((request, response,
+                                                                accessDeniedException) -> resolver.resolveException(
+                                                                                request, response, null,
+                                                                                accessDeniedException)))
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/swagger-ui/**").permitAll()
                                                 .requestMatchers("/v3/api-docs/**").permitAll()
