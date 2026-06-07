@@ -1,14 +1,14 @@
 import { IndividualDetailsResponse } from "./IndividualDetailsResponse";
 import { LegalDetailsResponse } from "./LegalDetailsResponse";
-
-export interface ProfileInterface {
-    id: number,
-    login: string,
-    role: string,
-    createdAt: string,
-    isApproved: boolean,
-    clientType: string,
-    email: string,
-    phone: string,
-    details: LegalDetailsResponse | IndividualDetailsResponse
-}
+export type ProfileInterface = {
+    id: number;
+    login: string;
+    role: string;
+    createdAt: string;
+    isApproved: boolean;
+    email: string;
+    phone: string;
+} & (
+    | { clientType: "INDIVIDUAL"; details: IndividualDetailsResponse }
+    | { clientType: "LEGAL"; details: LegalDetailsResponse }
+);
