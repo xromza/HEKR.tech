@@ -33,24 +33,24 @@ export default function CartPage() {
   return (
 
     <main className="h-full w-full mx-auto flex max-w-[1680px]">
-      <div className="grid grid-cols-1 w-full px-4 md:grid-cols-4">
-        <div className="col-span-1 flex mb-4 items-center flex-col px-6">
-          <div className="flex flex-row gap-2 items-center mb-5">
-            <div className="uppercase font-extrabold text-2xl">Корзина</div>
-            <button disabled={loading} className="cursor-pointer disabled:cursor-default" onClick={() => getCart({ setData: setCartData, setError, setLoading })}>
+      <div className="flex flex-col md:flex-row w-full px-4">
+        <div className="flex-shrink-0 flex mb-4 items-center md:items-start flex-col px-6 w-full md:w-fit">
+          <div className="flex flex-row gap-2 items-center justify-center md:justify-start mb-5 w-full">
+            <div className="uppercase font-bold text-[3rem] leading-none">Корзина</div>
+            <button disabled={loading} className="w-fit md:w-full uppercase disabled:text-gray-400 text-xl enabled:cursor-pointer pb-1" onClick={() => getCart({ setData: setCartData, setError, setLoading })}>
               <RotateCw className={`${loading && "animate-spin"}`} />
             </button>
           </div>
           <button disabled={loading || cartData?.items.length === 0} onClick={() => {
             confirm("Вы уверены, что хотите удалить всё содержимое корзины?") &&
               handleAction(() => deleteAllItems({ setError: setError, setLoading: setLoading }));
-          }} className="w-[80%] uppercase disabled:text-gray-400 text-xl enabled:cursor-pointer border-b-2">
-            <div className="text-center justify-center flex flex-row items-center items-center">
+          }} className="w-full uppercase disabled:text-gray-400 text-xl enabled:cursor-pointer border-b-2">
+            <div className="flex flex-row items-center">
               <X className="inline" /> 
               <span>Очистить</span>
             </div></button>
         </div>
-        <div className="col-span-3">
+        <div className="flex-1">
           {loading ? <Loader className="animate-spin mx-auto my-auto" /> :
             (error || !loginValue || !isMounted) ? <div className="flex flex-col items-center justify-center w-full px-4 gap-4 text-md md:text-xl h-[60vh]">
               <TriangleAlert className="w-[7rem] h-[7rem] text-red-700" />
