@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.hekr.store.dto.order.CartCheckoutRequestDto;
 import com.hekr.store.dto.order.OrderResponseDto;
+import com.hekr.store.dto.order.OrderStatusHistoryResponseDto;
 import com.hekr.store.dto.order.SingleCheckoutRequestDto;
 import com.hekr.store.exceptions.EmptyException;
 import com.hekr.store.exceptions.NotEnoughItems;
@@ -20,6 +21,7 @@ import com.hekr.store.exceptions.NotFoundException;
 import com.hekr.store.interfaces.OrderDtoInterface;
 import com.hekr.store.mapper.order.CartCheckoutMapper;
 import com.hekr.store.mapper.order.OrderResponseMapper;
+import com.hekr.store.mapper.order.OrderStatusHistoryMapper;
 import com.hekr.store.mapper.order.SimpleOrderResponseMapper;
 import com.hekr.store.mapper.order.SingleCheckoutRequestMapper;
 import com.hekr.store.model.cart.Cart;
@@ -31,6 +33,7 @@ import com.hekr.store.model.stock.Stock;
 import com.hekr.store.model.user.User;
 import com.hekr.store.model.warehouse.Warehouse;
 import com.hekr.store.repository.OrderRepository;
+import com.hekr.store.repository.OrderStatusHistoryRepository;
 import com.hekr.store.utils.Status;
 import com.hekr.store.utils.Utils;
 
@@ -49,6 +52,13 @@ public class OrderService {
     private final ProductService productService;
     private final SingleCheckoutRequestMapper singleCheckoutRequestMapper;
     private final SimpleOrderResponseMapper simpleOrderResponseMapper;
+    private final OrderStatusHistoryRepository orderStatusHistoryRepository;
+    private final OrderStatusHistoryMapper orderStatusHistoryMapper;
+
+    private Order findById(Long orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new NotFoundException("Заказ не найден"));
+    }
 
     public List<? extends OrderDtoInterface> getOrders(UserDetails userDetails, boolean verbose) {
         User user = userService.findByLogin(userDetails.getUsername());
@@ -173,6 +183,20 @@ public class OrderService {
         order.addHistory(orderStatusHistory);
         Order saved = orderRepository.saveAndFlush(order);
         return orderResponseMapper.toDto(saved);
+    }
+
+    public OrderStatusHistoryResponseDto updateStatus(UserDetails userDetails, Long orderId, Status status,
+            String comment) {
+        User user = userService.findByLogin(userDetails.getUsername());
+        Order order = findById(orderId);
+        OrderStatusHistory orderStatusHistory = OrderStatusHistory.builder()
+                .newStatus(status)
+                .changedAt(LocalDateTime.now())
+                .changedBy(user)
+                .comment(comment)
+                .order(order)
+                .build();
+        return orderStatusHistoryMapper.toDto(orderStatusHistoryRepository.save(orderStatusHistory));
     }
 
 }
