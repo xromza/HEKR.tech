@@ -22,6 +22,7 @@ import com.hekr.store.model.stock.Stock;
 import com.hekr.store.model.warehouse.Warehouse;
 import com.hekr.store.service.OrderService;
 import com.hekr.store.service.ProductService;
+import com.hekr.store.service.ProductVariantService;
 import com.hekr.store.service.StockService;
 import com.hekr.store.service.UserService;
 import com.hekr.store.service.WarehouseService;
@@ -52,6 +53,7 @@ public class AdminController {
     private final UserMapper userMapper;
     private final OrderService orderService;
     private final ProductService productService;
+    private final ProductVariantService productVariantService;
     private final CategoryService categoryService;
     private final DiscountService discountService;
     @GetMapping("/warehouse")
@@ -67,7 +69,7 @@ public class AdminController {
     @PutMapping("/stock/{warehouseId}")
     public ResponseEntity<Stock> updateStock(@PathVariable Long warehouseId,
             @RequestParam Long variantId, @RequestBody Integer quantity) {
-        return ResponseEntity.ok(stockService.updateStock(variantId, warehouseId, quantity));
+        return ResponseEntity.ok(stockService.upsertStock(variantId, warehouseId, quantity));
     }
 
     @GetMapping("/stock/{warehouseId}")
@@ -100,7 +102,7 @@ public class AdminController {
     }
     @PostMapping("/products/{productId}/variants")
     public ResponseEntity<ProductVariantResponseDto> createVariant(@PathVariable Long productId, @RequestBody ProductVariantRequestDto dto) {
-        return ResponseEntity.ok(productService.createVariant(dto, productId));
+        return ResponseEntity.ok(productVariantService.createVariant(dto, productId));
     }
 
     @PatchMapping("/discounts/{categoryId}")

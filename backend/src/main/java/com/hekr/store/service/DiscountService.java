@@ -3,6 +3,7 @@ package com.hekr.store.service;
 import java.math.BigDecimal;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.hekr.store.dto.discount.DiscountDto;
 import com.hekr.store.mapper.discount.DiscountMapper;
@@ -14,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class DiscountService {
 
     private final DiscountRepository discountRepository;
@@ -22,10 +24,19 @@ public class DiscountService {
 
     public DiscountDto updateDiscount(Long categoryId, BigDecimal discountAmount) {
         Category category = categoryService.getCategoryById(categoryId);
-        Discount discount = Discount.builder()
+        Discount discount = discountRepository.findById(categoryId).orElseGet(() -> createNewDiscount(category));
+
+        discount.setDiscount(discountAmount);
+        if (discount.getId() == null) {
+            discount = discountRepository.save(discount);
+        }
+
+        return discountMapper.toDto(discount);
+    }
+
+    private Discount createNewDiscount(Category category) {
+        return Discount.builder()
                 .category(category)
-                .discount(discountAmount)
                 .build();
-        return discountMapper.toDto(discountRepository.save(discount));
     }
 }

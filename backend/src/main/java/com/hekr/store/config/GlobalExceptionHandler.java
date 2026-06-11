@@ -2,6 +2,7 @@ package com.hekr.store.config;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
+import jakarta.persistence.OptimisticLockException;
 import tools.jackson.databind.exc.InvalidTypeIdException;
 
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.hekr.store.dto.error.ErrorResponseDto;
 import com.hekr.store.dto.error.MapErrorResponseDto;
+import com.hekr.store.dto.error.MapLongErrorResponseDto;
 import com.hekr.store.exceptions.*;
 
 @RestControllerAdvice
@@ -121,9 +123,9 @@ public class GlobalExceptionHandler {
         }
 
         @ExceptionHandler(NotEnoughItems.class)
-        public ResponseEntity<MapErrorResponseDto> handleNEI(NotEnoughItems ex) {
+        public ResponseEntity<MapLongErrorResponseDto> handleNEI(NotEnoughItems ex) {
                 return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(
-                                MapErrorResponseDto.builder().error(ex.getMessage()).errors(ex.getErrors()).build());
+                                MapLongErrorResponseDto.builder().error(ex.getMessage()).errors(ex.getErrors()).build());
         }
 
         @ExceptionHandler(EmptyException.class)
@@ -192,6 +194,16 @@ public class GlobalExceptionHandler {
                                 .body(ErrorResponseDto.builder()
                                                 .error("ExpiredToken")
                                                 .description("Токен устарел")
+                                                .build());
+        }
+
+        @ExceptionHandler(OptimisticLockException.class)
+        public ResponseEntity<ErrorResponseDto> handleOptimisticLockException(OptimisticLockException ex) {
+                                return ResponseEntity
+                                .status(HttpStatus.CONFLICT)
+                                .body(ErrorResponseDto.builder()
+                                                .error("DataChanged")
+                                                .description("Другой пользователь внёс изменения")
                                                 .build());
         }
 }
