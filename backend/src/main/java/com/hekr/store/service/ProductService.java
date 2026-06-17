@@ -102,4 +102,18 @@ public class ProductService {
                 .build();
         return productMapper.toResponse(productRepository.save(product));
     }
+
+    @Transactional(readOnly = true)
+    public Long countByCategoryId(Long categoryId) {
+        return productRepository.countProductsByCategoryId(categoryId);
+    }
+
+    public Long countWithSale() {
+        return productRepository.countProductWithSale();
+    }
+
+    public Long countBrands() {
+        return productRepository.countDistinctBrands();
+    }
+
 }

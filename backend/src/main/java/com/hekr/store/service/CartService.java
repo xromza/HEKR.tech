@@ -67,9 +67,9 @@ public class CartService {
         });
 
         return CartResponseDto.builder()
-                .can_checkout(canCheckout)
-                .discount_applied(discountApplied)
-                .total_price(totalPrice)
+                .canCheckout(canCheckout)
+                .discountApplied(discountApplied)
+                .totalPrice(totalPrice)
                 .items(cartItems)
                 .build();
 

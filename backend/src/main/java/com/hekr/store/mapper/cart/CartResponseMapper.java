@@ -69,9 +69,9 @@ public abstract class CartResponseMapper {
                 }
             }
         }
-        dto.setTotal_price(totalPrice);
-        dto.setDiscount_applied(false);
-        dto.setCan_checkout(carts != null && !carts.isEmpty());
+        dto.setTotalPrice(totalPrice);
+        dto.setDiscountApplied(false);
+        dto.setCanCheckout(carts != null && !carts.isEmpty());
     }  
 
     @AfterMapping

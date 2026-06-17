@@ -11,10 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hekr.store.dto.order.CartCheckoutRequestDto;
 import com.hekr.store.dto.order.OrderRequestDto;
 import com.hekr.store.dto.order.OrderResponseDto;
-import com.hekr.store.dto.order.SingleCheckoutRequestDto;
 import com.hekr.store.exceptions.ForbiddenException;
 import com.hekr.store.interfaces.OrderDtoInterface;
 import com.hekr.store.model.user.User;

@@ -42,9 +42,9 @@ public class CartResponseDto {
     private List<CartItemResponseDto> items;
 
     @Schema(description = "Общая стоимость корзины", example = "450.00")
-    private BigDecimal total_price;
+    private BigDecimal totalPrice;
     @Schema(description = "Применены ли скидки к корзине", example = "false")
-    private Boolean discount_applied;
+    private Boolean discountApplied;
     @Schema(description = "Возможно ли оформить заказ", example = "true")
-    private Boolean can_checkout;
+    private Boolean canCheckout;
 }
