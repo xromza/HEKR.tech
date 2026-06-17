@@ -34,6 +34,8 @@ class ProductServiceTest {
     @Mock
     private ProductMapper productMapper;
 
+    @InjectMocks
+    private ProductVariantService productVariantService;
     
     @InjectMocks
     private ProductService productService;
@@ -67,7 +69,7 @@ class ProductServiceTest {
         @DisplayName("Успешное получение товара по ID")
         void getProductDtoById_Success_ReturnsProduct() {
             // Arrange
-            when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
+            when(productRepository.findByIdWithVariantsAndImages(1L)).thenReturn(Optional.of(testProduct));
 
             ProductResponseDto responseDto = ProductResponseDto.builder()
                     .id(1L)
@@ -82,7 +84,7 @@ class ProductServiceTest {
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(1L);
             assertThat(result.getTitle()).isEqualTo("Тестовый товар");
-            verify(productRepository).findById(1L);
+            verify(productRepository).findByIdWithVariantsAndImages(1L);
             verify(productMapper).toResponse(testProduct);
         }
 
@@ -90,14 +92,14 @@ class ProductServiceTest {
         @DisplayName("Негативный: товар не найден")
         void getProductDtoById_NotFound_ThrowsException() {
             // Arrange
-            when(productRepository.findById(999L)).thenReturn(Optional.empty());
+            lenient().when(productRepository.findById(999L)).thenReturn(Optional.empty());
 
             // Act & Assert
             assertThatThrownBy(() -> productService.getProductDtoById(999L))
                     .isInstanceOf(NotFoundException.class)
                     .hasMessage("Товар с id 999 не найден");
 
-            verify(productRepository).findById(999L);
+            verify(productRepository).findByIdWithVariantsAndImages(999L);
         }
     }
 
@@ -112,7 +114,7 @@ class ProductServiceTest {
             when(productVariantsRepository.findById(10000L)).thenReturn(Optional.of(testVariant));
 
             // Act
-            ProductVariant result = productService.getProductVariantById(10000L);
+            ProductVariant result = productVariantService.getProductVariantById(10000L);
 
             // Assert
             assertThat(result).isNotNull();
@@ -129,7 +131,7 @@ class ProductServiceTest {
             when(productVariantsRepository.findById(99999L)).thenReturn(Optional.empty());
 
             // Act & Assert
-            assertThatThrownBy(() -> productService.getProductVariantById(99999L))
+            assertThatThrownBy(() -> productVariantService.getProductVariantById(99999L))
                     .isInstanceOf(NotFoundException.class)
                     .hasMessage("Вариант товара не найден");
 
