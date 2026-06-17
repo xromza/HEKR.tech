@@ -1,0 +1,66 @@
+services:
+  db-dev:
+    image: postgres:16-alpine
+    container_name: store_db_dev
+    restart: always
+    environment:
+      POSTGRES_DB: store_db_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d store_db_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  backend-dev:
+    image: xromza/hekr-store-backend:dev
+    container_name: store-backend-dev
+    restart: always
+    expose:
+      - "8081"
+    depends_on:
+      db-dev:
+        condition: service_healthy
+    environment:
+      - SERVER_PORT=8081
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-dev:5432/store_db_dev
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=1234
+      - SPRING_FLYWAY_BASELINE_ON_MIGRATE=true
+      - JAVA_OPTS=-Xmx768m -XX:ActiveProcessorCount=2
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+
+  frontend-dev:
+    image: xromza/hekr-store-nextjs:dev
+    container_name: store-nextjs-dev
+    restart: always
+    expose:
+      - "3001"
+    depends_on:
+      - backend-dev
+    environment:
+      - NEXT_PUBLIC_API_URL=/api 
+      - BACKEND_URL=http://backend-dev:8081/api
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+
+volumes:
+  postgres_data_dev:
+networks:
+  default:
+    external: true
+    name: shop-network

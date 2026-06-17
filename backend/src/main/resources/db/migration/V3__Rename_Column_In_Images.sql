@@ -1,0 +1,1 @@
+ALTER TABLE images RENAME COLUMN product_variant_id TO variant_id;
