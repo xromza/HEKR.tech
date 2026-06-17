@@ -2,7 +2,6 @@ package com.hekr.store.service;
 
 import com.hekr.store.dto.user.UserEditDto;
 import com.hekr.store.dto.user.UserResponseDto;
-import com.hekr.store.exceptions.NotFoundException;
 import com.hekr.store.mapper.user.UserEditMapper;
 import com.hekr.store.mapper.user.UserMapper;
 import com.hekr.store.model.user.User;

@@ -2,6 +2,7 @@ package com.hekr.store.service;
 
 import com.hekr.store.dto.product.ProductResponseDto;
 import com.hekr.store.exceptions.NotFoundException;
+import com.hekr.store.mapper.product.ProductMapper;
 import com.hekr.store.model.product.Product;
 import com.hekr.store.model.product.ProductVariant;
 import com.hekr.store.repository.ProductRepository;
@@ -30,6 +31,10 @@ class ProductServiceTest {
     @Mock
     private ProductVariantsRepository productVariantsRepository;
 
+    @Mock
+    private ProductMapper productMapper;
+
+    
     @InjectMocks
     private ProductService productService;
 
@@ -64,6 +69,12 @@ class ProductServiceTest {
             // Arrange
             when(productRepository.findById(1L)).thenReturn(Optional.of(testProduct));
 
+            ProductResponseDto responseDto = ProductResponseDto.builder()
+                    .id(1L)
+                    .title("Тестовый товар")
+                    .build();
+            when(productMapper.toResponse(testProduct)).thenReturn(responseDto);
+
             // Act
             ProductResponseDto result = productService.getProductDtoById(1L);
 
@@ -72,6 +83,7 @@ class ProductServiceTest {
             assertThat(result.getId()).isEqualTo(1L);
             assertThat(result.getTitle()).isEqualTo("Тестовый товар");
             verify(productRepository).findById(1L);
+            verify(productMapper).toResponse(testProduct);
         }
 
         @Test

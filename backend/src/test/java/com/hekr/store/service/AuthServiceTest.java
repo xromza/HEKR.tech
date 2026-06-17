@@ -151,7 +151,7 @@ class AuthServiceTest {
                                         .thenReturn(UserToken.builder().token("refresh-token").build());
 
                         // Act
-                        AuthResult result = authService.register(request);
+                        authService.register(request);
 
                         // Assert
                         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
