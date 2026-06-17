@@ -41,12 +41,12 @@ public class ProfileService {
         if (!user.getIsApproved())
             throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
         User mapped = userEditMapper.updateEntity(userEditDto, user);
-        if (userEditDto.getPassword() != null) {
+        if (org.springframework.util.StringUtils.hasText(userEditDto.getPassword())) {
             mapped = authService.changePassword(user, userEditDto.getPassword());
         }
 
         userRepository.save(mapped);
-        return userMapper.toResponse(user);
+        return userMapper.toResponse(mapped);
 
     }
 }

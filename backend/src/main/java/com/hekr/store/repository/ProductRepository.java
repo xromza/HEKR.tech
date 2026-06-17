@@ -12,6 +12,10 @@ import org.springframework.data.repository.query.Param;
 import com.hekr.store.model.product.Product;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
+
+    @Query("SELECT DISTINCT p FROM Product p LEFT JOIN FETCH p.variants v LEFT JOIN FETCH v.images WHERE p.id = :id")
+    Optional<Product> findByIdWithVariantsAndImages(@Param("id") Long id);
+
     @Query("SELECT p FROM Product p LEFT JOIN FETCH p.variants WHERE p.id = :id")
     Optional<Product> findByIdWithVariants(Long id);
 
@@ -25,7 +29,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @EntityGraph(attributePaths = { "variants" })
     @Query("SELECT p FROM Product p WHERE p.isActive = true AND p.category.id = :categoryId")
-    Page<Product> findAllActiveByIdCategoryIdVerbose(@Param("categoryId") Long categoryId, Pageable pageable );
+    Page<Product> findAllActiveByIdCategoryIdVerbose(@Param("categoryId") Long categoryId, Pageable pageable);
 
     Page<Product> findByTitleContainingIgnoreCaseAndIsActiveTrue(String title, Pageable pageable);
 

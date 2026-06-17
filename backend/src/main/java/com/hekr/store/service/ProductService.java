@@ -2,19 +2,21 @@ package com.hekr.store.service;
 
 import org.springframework.data.domain.Pageable;
 
+import java.util.ArrayList;
+
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.hekr.store.dto.product.ProductRequestDto;
 import com.hekr.store.dto.product.ProductResponseDto;
 import com.hekr.store.exceptions.NotFoundException;
 import com.hekr.store.interfaces.ProductDtoInterface;
 import com.hekr.store.mapper.product.ProductCatalogResponseMapper;
 import com.hekr.store.mapper.product.ProductMapper;
+import com.hekr.store.model.category.Category;
 import com.hekr.store.model.product.Product;
-import com.hekr.store.model.product.ProductVariant;
 import com.hekr.store.repository.ProductRepository;
-import com.hekr.store.repository.ProductVariantsRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,8 +25,9 @@ import lombok.RequiredArgsConstructor;
 public class ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
-    private final ProductVariantsRepository productVariantsRepository;
     private final ProductCatalogResponseMapper productCatalogResponseMapper;
+    private final CategoryService categoryService;
+
 
     @Transactional(readOnly = true)
     public Page<ProductDtoInterface> getProductCatalog(Pageable pageable) {
@@ -34,7 +37,6 @@ public class ProductService {
                 .map(productCatalogResponseMapper::toResponse);
     }
 
-    @Transactional(readOnly = true)
     public Page<ProductDtoInterface> getVerboseProductCatalog(Pageable pageable) {
 
         return productRepository
@@ -42,21 +44,18 @@ public class ProductService {
                 .map(productMapper::toResponse);
     }
 
-    @Transactional(readOnly = true)
     public Page<ProductDtoInterface> getProductCatalogByCategoryId(Pageable pageable, Long categoryId) {
         return productRepository
                 .findAllActiveByIdCategoryId(categoryId, pageable)
                 .map(productCatalogResponseMapper::toResponse);
     }
 
-    @Transactional(readOnly = true)
     public Page<ProductDtoInterface> getVerboseProductCatalogByCategoryId(Pageable pageable, Long categoryId) {
         Page<Product> productPage = productRepository.findAllActiveByIdCategoryId(categoryId, pageable);
 
         return productPage.map(productMapper::toResponse);
     }
 
-    @Transactional(readOnly = true)
     public Page<ProductDtoInterface> findProductsByTitle(String query, Pageable pageable) {
 
         return productRepository
@@ -64,7 +63,6 @@ public class ProductService {
                 .map(productCatalogResponseMapper::toResponse);
     }
 
-    @Transactional(readOnly = true)
     public Page<ProductDtoInterface> findVerboseProductsByTitle(String query, Pageable pageable) {
 
         return productRepository
@@ -72,20 +70,37 @@ public class ProductService {
                 .map(productMapper::toResponse);
     }
 
-    @Transactional(readOnly = true)
     public ProductResponseDto getProductDtoById(Long id) {
         Product product = productRepository
-                .findById(id)
+                .findByIdWithVariantsAndImages(id)
                 .orElseThrow(
                         () -> new NotFoundException("Товар с id " + id + " не найден"));
-        product.getVariants().forEach(v -> v.getImages().size());
         return productMapper.toResponse(product);
     }
 
-    @Transactional(readOnly = true)
-    public ProductVariant getProductVariantById(Long id) {
-        return productVariantsRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Вариант товара не найден"));
+    public Product getProductById(Long id) {
+        Product product = productRepository
+                .findByIdWithVariantsAndImages(id)
+                .orElseThrow(
+                        () -> new NotFoundException("Товар с id " + id + " не найден"));
+        return product;
+    }
+
+    @Transactional
+    public ProductResponseDto createProduct(ProductRequestDto dto) {
+        Category category = categoryService.getCategoryById(dto.getCategoryId());
+        Product product = Product.builder()
+                .brand(dto.getBrand())
+                .category(category)
+                .description(dto.getDescription())
+                .isActive(true)
+                .priceRetail(dto.getPriceRetail())
+                .priceWholesale(dto.getPriceWholesale())
+                .title(dto.getTitle())
+                .variants(new ArrayList<>())
+                .wholesaleThreshold(dto.getWholesaleThreshold())
+                .build();
+        return productMapper.toResponse(productRepository.save(product));
     }
 
     @Transactional(readOnly = true)
@@ -100,4 +115,5 @@ public class ProductService {
     public Long countBrands() {
         return productRepository.countDistinctBrands();
     }
+
 }

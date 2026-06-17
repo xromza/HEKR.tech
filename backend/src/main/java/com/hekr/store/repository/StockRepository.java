@@ -19,4 +19,9 @@ public interface StockRepository extends JpaRepository<Stock, StockId> {
     List<Stock> findAllByWarehouseIdWithVariant(@Param("warehouseId") Long warehouseId);
     @Query("SELECT s FROM Stock s WHERE s.id.variantId = :variantId")
     List<Stock> findAllByVariantId(@Param("variantId") Long variantId);
+    @Query("SELECT s FROM Stock s WHERE s.id.warehouseId = :warehouseId")
+    List<Stock> findAllByWarehouseId(@Param("warehouseId") Long warehouseId);
+    @Query("SELECT s FROM Stock s WHERE s.id.warehouseId = :warehouseId AND s.id.variantId IN :variantIds")
+    List<Stock> findAllByWarehouseIdAndVariantIdsIn(@Param("warehouseId") Long warehouseId, @Param("variantIds") List<Long> variantIds);
+
 }

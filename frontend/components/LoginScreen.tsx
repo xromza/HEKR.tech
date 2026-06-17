@@ -5,12 +5,13 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X, Eye, EyeOff, Loader } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { login as apiLogin } from '@/app/lib/auth.service';
+import { useRouter } from "next/navigation";
 interface LoginScreenProps {
     isVisible: boolean;
     setIsVisible: Dispatch<SetStateAction<boolean>>;
     setSelectedScreen: Dispatch<SetStateAction<string>>;
 }
-export default function LoginScreen({ isVisible, setIsVisible, setSelectedScreen }: LoginScreenProps) {
+export default function LoginScreen({ isVisible, setIsVisible, setSelectedScreen, windowTitle, referrer }: LoginScreenProps & {windowTitle: string | null, referrer: string | null}) {
     const [showPassword, setShowPassword] = useState(false);
 
     const [password, setPassword] = useState<string>("");
@@ -18,7 +19,7 @@ export default function LoginScreen({ isVisible, setIsVisible, setSelectedScreen
     const [data, setData] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
-
+    const router = useRouter();
     const updateToken = useToken((state) => state.updateToken);
     const updateSession = useToken((state) => state.updateSession)
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -40,13 +41,15 @@ export default function LoginScreen({ isVisible, setIsVisible, setSelectedScreen
         });
         if (isSuccess) {
             setIsVisible(false);
+            console.log("referrer", referrer);
+            referrer && router.push(referrer);
         }
     };
 
     return (
         <form onSubmit={handleSubmit} className='flex p-10 md:p-22 relative flex-col gap-5'>
             <legend className='text-3xl flex flex-row justify-between font-semibold uppercase mb-8'>
-                <div>Войти</div>
+                <div>{windowTitle ? windowTitle : "войти"}</div>
                 <X
                     onClick={() => setIsVisible(false)}
                     className="cursor-pointer transition-transform hover:scale-110" 
@@ -114,8 +117,6 @@ export default function LoginScreen({ isVisible, setIsVisible, setSelectedScreen
             <button
                 type="submit"
                 className='bg-black text-white uppercase py-2 text-lg rounded mt-2 w-[40%] ml-[30%]'
-
-
             >
                 {loading ? <Loader className="mx-auto animate-spin" /> : "Войти"}
             </button>

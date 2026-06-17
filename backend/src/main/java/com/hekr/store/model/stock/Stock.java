@@ -3,7 +3,6 @@ package com.hekr.store.model.stock;
 import com.hekr.store.model.product.ProductVariant;
 import com.hekr.store.model.warehouse.Warehouse;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -12,6 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,6 +27,9 @@ import lombok.Setter;
 @Entity
 public class Stock {
 
+    @Version
+    private Long version;
+
     @EmbeddedId
     private StockId id;
 
@@ -36,11 +39,11 @@ public class Stock {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("variantId")
-    @JoinColumn(name = "variant_id", insertable = false, updatable = false)
+    @JoinColumn(name = "variant_id")
     private ProductVariant variant;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("warehouseId")
-    @JoinColumn(name = "warehouse_id", insertable = false, updatable = false)
+    @JoinColumn(name = "warehouse_id")
     private Warehouse warehouse;
 }

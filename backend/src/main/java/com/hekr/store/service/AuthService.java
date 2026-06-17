@@ -151,6 +151,7 @@ public class AuthService {
                 .build();
     }
 
+    @Transactional
     private void revokeAllTokens(User user) {
         List<UserToken> validUserTokens = userTokenRepository.findAllValidTokensByUser(user.getId());
         validUserTokens.forEach((token) -> {
@@ -170,7 +171,8 @@ public class AuthService {
                 .description("Токен отозван")
                 .build();
     }
-
+    
+    @Transactional
     protected User changePassword(User user, String password) {
         user.setPasswordHash(passwordEncoder.encode(password));
         revokeAllTokens(user);

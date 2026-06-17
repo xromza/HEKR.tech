@@ -3,7 +3,6 @@ package com.hekr.store.service;
 import java.math.BigDecimal;
 import java.util.List;
 
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.hekr.store.dto.cart.CartItemRequestDto;
 import com.hekr.store.dto.cart.CartItemResponseDto;
 import com.hekr.store.dto.cart.CartResponseDto;
+import com.hekr.store.exceptions.NotFoundException;
+import com.hekr.store.interfaces.UserProvider;
 import com.hekr.store.mapper.cart.CartItemResponseMapper;
 import com.hekr.store.model.cart.Cart;
 import com.hekr.store.model.cart.CartItemId;
@@ -19,6 +20,7 @@ import com.hekr.store.model.product.Product;
 import com.hekr.store.model.product.ProductVariant;
 import com.hekr.store.model.user.User;
 import com.hekr.store.repository.CartRepository;
+import com.hekr.store.repository.ProductVariantsRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,14 +28,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CartService {
     private final CartRepository cartRepository;
-    private final UserService userService;
-    private final ProductService productService;
+
+    private final UserProvider userProvider;
+    private final ProductVariantsRepository productVariantsRepository;
     private final CartItemResponseMapper cartItemResponseMapper;
 
+    @Transactional(readOnly = true)
     public CartResponseDto getCart(UserDetails userDetails) {
-        User user = userService.findByLogin(userDetails.getUsername());
-        if (!user.getIsApproved())
-            throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
+        User user = userProvider.getApprovedUserByLogin(userDetails.getUsername());
+
         List<Cart> cart = cartRepository.findByIdUserId(user.getId());
         List<CartItemResponseDto> cartItems = cartItemResponseMapper.toResponseList(cart);
 
@@ -64,9 +67,9 @@ public class CartService {
         });
 
         return CartResponseDto.builder()
-                .can_checkout(canCheckout)
-                .discount_applied(discountApplied)
-                .total_price(totalPrice)
+                .canCheckout(canCheckout)
+                .discountApplied(discountApplied)
+                .totalPrice(totalPrice)
                 .items(cartItems)
                 .build();
 
@@ -74,10 +77,9 @@ public class CartService {
 
     @Transactional
     public CartItemResponseDto addOrUpdateItem(UserDetails userDetails, CartItemRequestDto cartItemRequestDto) {
-        User user = userService.findByLogin(userDetails.getUsername());
-        if (!user.getIsApproved())
-            throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
-        ProductVariant variant = productService.getProductVariantById(cartItemRequestDto.getVariantId());
+        User user = userProvider.getApprovedUserByLogin(userDetails.getUsername());
+
+        ProductVariant variant = getProductVariantById(cartItemRequestDto.getVariantId());
         CartItemId id = CartItemId
                 .builder()
                 .userId(user.getId())
@@ -96,18 +98,27 @@ public class CartService {
 
     @Transactional
     public void deleteItem(UserDetails userDetails, Long variantId) {
-        User user = userService.findByLogin(userDetails.getUsername());
-        if (!user.getIsApproved())
-            throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
+        User user = userProvider.getApprovedUserByLogin(userDetails.getUsername());
         cartRepository.deleteByIdUserIdAndIdVariantId(user.getId(), variantId);
     }
 
     @Transactional
     public void deleteAll(UserDetails userDetails) {
-        User user = userService.findByLogin(userDetails.getUsername());
-        if (!user.getIsApproved())
-            throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
+        User user = userProvider.getApprovedUserByLogin(userDetails.getUsername());
         cartRepository.deleteByIdUserId(user.getId());
+    }
+
+    @Transactional
+    public void deleteItems(UserDetails userDetails, List<CartItemRequestDto> dto) {
+        User user = userProvider.getApprovedUserByLogin(userDetails.getUsername());
+        List<CartItemId> ids = dto.stream()
+                .map(item -> CartItemId.builder()
+                        .variantId(item.getVariantId())
+                        .userId(user.getId())
+                        .build())
+                .toList();
+        cartRepository.deleteAllByIdInBatch(ids);
+
     }
 
     public List<Cart> findByUserId(Long userId) {
@@ -116,11 +127,10 @@ public class CartService {
 
     @Transactional
     public CartResponseDto migrateCart(UserDetails userDetails, List<CartItemRequestDto> dto) {
-        User user = userService.findByLogin(userDetails.getUsername());
-        if (!user.getIsApproved())
-            throw new DisabledException("Ваш аккаунт ожидает подтверждения администратором");
+        User user = userProvider.getApprovedUserByLogin(userDetails.getUsername());
+
         dto.stream().forEach((item) -> {
-            ProductVariant variant = productService.getProductVariantById(item.getVariantId());
+            ProductVariant variant = getProductVariantById(item.getVariantId());
             CartItemId id = CartItemId
                     .builder()
                     .userId(user.getId())
@@ -137,6 +147,11 @@ public class CartService {
 
         return getCart(userDetails);
 
+    }
+
+    private ProductVariant getProductVariantById(Long variantId) {
+        return productVariantsRepository.findById(variantId)
+                .orElseThrow(() -> new NotFoundException("Вариант товара не найден"));
     }
 
 }

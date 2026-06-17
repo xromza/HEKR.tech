@@ -16,5 +16,6 @@ public interface ProductVariantsRepository extends JpaRepository<ProductVariant,
 
     @Query("SELECT DISTINCT pv FROM ProductVariant pv LEFT JOIN FETCH pv.images WHERE pv.product.id = :productId")
     List<ProductVariant> findByProductIdWithImages(Long productId);
-    
+    @Query("SELECT pv FROM ProductVariant pv WHERE pv.id IN :ids")
+    List<ProductVariant> findAllVariantsByIds(List<Long> ids);
 }

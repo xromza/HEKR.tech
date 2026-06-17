@@ -15,5 +15,5 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     @Query("SELECT c FROM Category c LEFT JOIN FETCH c.discount WHERE c.id = :id")
     Optional<Category> findByIdWithDiscount(Long id);
-
+    Boolean existsByName(String name);
 }

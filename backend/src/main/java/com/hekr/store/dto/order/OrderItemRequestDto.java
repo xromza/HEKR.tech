@@ -31,5 +31,5 @@ public class OrderItemRequestDto {
     @Schema(description = "Количество товара", example = "2")
     @Min(1)
     @NotNull
-    private Long quantity;
+    private Integer quantity;
 }
