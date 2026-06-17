@@ -664,161 +664,155 @@
 
 ## 5. Заказы (Orders)
 
-### 5.1. Создать заказ из корзины
-**Метод:** `POST`  
-**Путь:** `/orders`  
-**Доступ:** Авторизованный пользователь  
-**Заголовки:** `Authorization: Bearer <your_token_here>`
+### 5.1. Создать заказ
+Унифицированный эндпоинт для оформления заказа. Поддерживает покупку как всей корзины целиком, так и кастомного набора позиций (включая покупку в один клик "Buy Now"). При успешном оформлении заказанные позиции автоматически удаляются из корзины пользователя.
 
-**Тело запроса:**
+* **Метод:** `POST`  
+* **Путь:** `/orders`  
+* **Доступ:** Авторизованный пользователь (с подтвержденным аккаунтом)  
+* **Заголовки:** `Authorization: Bearer <your_token_here>`
+
+#### Тело запроса (OrderRequestDto)
 ```json
 {
-  "warehouseId": 1,
-  "address": "г. Москва, ул. Арбат, д. 1, кв. 12",
-  "payment": "CARD",
-  "comment": "Срочная доставка"
-}
-```
-
-**Успешный ответ (201 Created):**
-```json
-{
-    "id": 9,
-    "userId": 8,
-    "warehouseId": 2,
-    "totalPrice": 395000.00,
-    "address": "г. Краснодар Витаминокомбинат 101 п. 2",
-    "paymentMethod": "SBP",
-    "status": "NEW",
-    "date": "2026-05-07T20:07:09.946603482",
-    "items": [
-        {
-            "productId": 1,
-            "variantId": 1,
-            "brand": "Gucci",
-            "title": "Бомбер GG Marmont",
-            "sku": "GUC-BMB-BLK-M",
-            "size": "M",
-            "color": "Черный",
-            "mainImageUrl": "https://lux-cdn.example.com/gucci_bomber_blk_thumb.jpg",
-            "quantity": 1,
-            "appliedPrice": 185000.00,
-            "subtotal": 185000.00,
-            "priceType": "RETAIL"
-        },
-        {
-            "productId": 5,
-            "variantId": 15,
-            "brand": "Gucci",
-            "title": "Костюм из шерсти Super 120",
-            "sku": "GUC-SUT-NVY-50",
-            "size": "50",
-            "color": "Темно-синий",
-            "mainImageUrl": null,
-            "quantity": 1,
-            "appliedPrice": 210000.00,
-            "subtotal": 210000.00,
-            "priceType": "RETAIL"
-        }
-    ],
-    "statusHistory": [
-        {
-            "orderId": 9,
-            "status": "NEW",
-            "changedAt": "2026-05-07T20:07:09.949302167",
-            "changedByName": "system",
-            "comment": "Заказ создан"
-        }
-    ]
-}
-```
-
-**Недостаточно товаров (422 Unprocessable Entity)**
-```json
-{
-    "error": "NotEnoughItems",
-    "errors": {
-        "1": "Бомбер GG Marmont (Черный M): Недостаточно товара. Доступно: 2",
-        "15": "Костюм из шерсти Super 120 (Темно-синий 50): Недостаточно товара. Доступно: 1"
+  "items": [
+    {
+      "variantId": 1,
+      "quantity": 1
+    },
+    {
+      "variantId": 15,
+      "quantity": 3
     }
-}
-```
-### 5.2. Создать заказ одного товара
-**Метод:** `POST`  
-**Путь:** `/orders/single`  
-**Доступ:** Авторизованный пользователь  
-**Заголовки:** `Authorization: Bearer <your_token_here>`
-
-**Тело запроса:**
-```json
-{
-    "quantity": 3,
-    "variantId": 4,
-    "warehouseId": 2,
-    "address": "г. Краснодар Витаминокомбинат 101 п. 2",
-    "payment": "SBP",
-    "comment": "ПОБЫСТРЕЕ"
+  ],
+  "warehouseId": 2,
+  "address": "г. Краснодар, ул. Витаминокомбинат, д. 101, под. 2",
+  "payment": "SBP",
+  "comment": "Срочная доставка, поднять на этаж"
 }
 ```
 
-**Успешный ответ (201 Created):**
-```json
-{
-    "id": 10,
-    "userId": 8,
-    "warehouseId": 2,
-    "totalPrice": 216000.00,
-    "address": "г. Краснодар Витаминокомбинат 101 п. 2",
-    "paymentMethod": "SBP",
-    "status": "NEW",
-    "date": "2026-05-07T20:07:51.01555857",
-    "items": [
-        {
-            "productId": 2,
-            "variantId": 4,
-            "brand": "Prada",
-            "title": "Рубашка из поплина",
-            "sku": "PRA-SHT-WHT-39",
-            "size": "39",
-            "color": "Белый",
-            "mainImageUrl": "https://lux-cdn.example.com/prada_shirt_wht_thumb.jpg",
-            "quantity": 3,
-            "appliedPrice": 72000.00,
-            "subtotal": 216000.00,
-            "priceType": "RETAIL"
-        }
-    ],
-    "statusHistory": [
-        {
-            "orderId": 10,
-            "status": "NEW",
-            "changedAt": "2026-05-07T20:07:51.017698609",
-            "changedByName": "system",
-            "comment": "Заказ создан"
-        }
-    ]
-}
-```
+#### Успешный ответ (201 Created)
+*Примечание: Тип цены (`priceType`) автоматически переключается на `WHOLESALE`, если количество товара в позиции достигает или превышает оптовый порог категории.*
 
-**Недостаточно товаров (422 Unprocessable Entity)**
 ```json
 {
-    "error": "NotEnoughItems",
-    "errors": {
-        "1": "Бомбер GG Marmont (Черный M): Недостаточно товара. Доступно: 2",
-        "15": "Костюм из шерсти Super 120 (Темно-синий 50): Недостаточно товара. Доступно: 1"
+  "id": 9,
+  "userId": 8,
+  "warehouseId": 2,
+  "totalPrice": 815000.00,
+  "address": "г. Краснодар, ул. Витаминокомбинат, д. 101, под. 2",
+  "paymentMethod": "SBP",
+  "status": "NEW",
+  "date": "2026-06-17T12:29:06.946603",
+  "items": [
+    {
+      "productId": 1,
+      "variantId": 1,
+      "brand": "Gucci",
+      "title": "Бомбер GG Marmont",
+      "sku": "GUC-BMB-BLK-M",
+      "size": "M",
+      "color": "Черный",
+      "mainImageUrl": "https://lux-cdn.example.com/gucci_bomber_blk_thumb.jpg",
+      "quantity": 1,
+      "appliedPrice": 185000.00,
+      "subtotal": 185000.00,
+      "priceType": "RETAIL"
+    },
+    {
+      "productId": 5,
+      "variantId": 15,
+      "brand": "Gucci",
+      "title": "Костюм из шерсти Super 120",
+      "sku": "GUC-SUT-NVY-50",
+      "size": "50",
+      "color": "Темно-синий",
+      "mainImageUrl": null,
+      "quantity": 3,
+      "appliedPrice": 210000.00,
+      "subtotal": 630000.00,
+      "priceType": "WHOLESALE"
     }
-}
-```
-**Склад не существует (404 Not Found)**
-```json
-{
-    "error": "NotFound",
-    "description": "Склад не найден"
+  ],
+  "statusHistory": [
+    {
+      "orderId": 9,
+      "status": "NEW",
+      "changedAt": "2026-06-17T12:29:06.949302",
+      "changedByName": "system",
+      "comment": "Заказ создан"
+    }
+  ]
 }
 ```
 
-### 5.3. Список заказов пользователя
+---
+
+#### Возможные ошибки (Error Responses)
+
+**1. Недостаточно товаров на складе (422 Unprocessable Entity)**
+* *Исключение:* `NotEnoughItems`
+* *Обработчик:* `handleNEI` возвращает `MapLongErrorResponseDto`. Поле `error` содержит текст из `ex.getMessage()` (обычно там строка "NotEnoughItems").
+
+```json
+{
+  "error": "NotEnoughItems",
+  "errors": {
+    "1": "Бомбер GG Marmont (Черный M): Недостаточно товара. Доступно: 0",
+    "15": "Костюм из шерсти Super 120 (Темно-синий 50): Недостаточно товара. Доступно: 1"
+  }
+}
+```
+
+**2. Товар больше не доступен или склад не найден (404 Not Found)**
+* *Исключение:* `NotFoundException` (или `UsernameNotFoundException`)
+* *Обработчик:* `handleNotFound` / `handleUsernameNotFound` возвращает `ErrorResponseDto`.
+
+```json
+{
+  "error": "NotFound",
+  "description": "Товар с ID: 999 больше недоступен"
+}
+```
+
+**3. Аккаунт не подтвержден администратором (403 Forbidden)**
+* *Исключение:* `DisabledException`
+* *Обработчик:* `handleDisabledAccount` возвращает `ErrorResponseDto` с жестко прописанным кодом `"AccountDisabled"`.
+
+```json
+{
+  "error": "AccountDisabled",
+  "description": "Ваш аккаунт ожидает подтверждения администратором"
+}
+```
+
+**4. Ошибка валидации полей DTO (400 Bad Request)**
+* *Исключение:* `MethodArgumentNotValidException` (срабатывает на `@NotBlank`, `@NotNull`, `@Min(1)`)
+* *Обработчик:* `handleMethodArgumentNotValid` возвращает `MapErrorResponseDto` с кодом `"ValidationMapError"`.
+
+```json
+{
+  "error": "ValidationMapError",
+  "errors": {
+    "address": "must not be blank",
+    "items[0].quantity": "must be greater than or equal to 1"
+  }
+}
+```
+
+**5. Передан невалидный JSON или неверный Enum (400 Bad Request)**
+* *Исключение:* `HttpMessageNotReadableException` (например, если в поле `payment` передать `"CARD_DUMMY"`, которого нет в вашем `PaymentMethod`)
+* *Обработчик:* `handleMessageNotReadable` возвращает `ErrorResponseDto` с кодом `"ValidationError"`.
+
+```json
+{
+  "error": "ValidationError",
+  "description": "Одно из полей заполнено некорректно (неверный тип данных)"
+}
+```
+
+### 5.2. Список заказов пользователя
 **Метод:** `GET`  
 **Путь:** `/orders`  
 **Доступ:** Авторизованный пользователь  
@@ -930,7 +924,7 @@
 ]
 ```
 
-### 5.4 Получить информацию о заказе
+### 5.3. Получить информацию о заказе
 **Метод:** `GET`  
 **Путь:** `/orders/{id}`  
 **Доступ:** Авторизованный пользователь  
@@ -1005,7 +999,6 @@
 }
 ```
 ## 7. Администрирование (Admin/Manager)
-**ОТЛОЖЕНО**
 
 ### 7.1. Обновить статус заказа
 **Метод:** `PATCH`  
