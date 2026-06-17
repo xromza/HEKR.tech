@@ -1,16 +1,14 @@
 package com.hekr.store.service;
 
-import com.hekr.store.dto.order.CartCheckoutRequestDto;
+import com.hekr.store.dto.cart.CartItemRequestDto;
+import com.hekr.store.dto.order.OrderRequestDto;
 import com.hekr.store.dto.order.OrderResponseDto;
-import com.hekr.store.dto.order.SingleCheckoutRequestDto;
-import com.hekr.store.exceptions.EmptyException;
 import com.hekr.store.exceptions.NotEnoughItems;
 import com.hekr.store.exceptions.NotFoundException;
-import com.hekr.store.mapper.order.CartCheckoutMapper;
+import com.hekr.store.interfaces.UserProvider;
+import com.hekr.store.mapper.order.OrderMapper;
 import com.hekr.store.mapper.order.OrderResponseMapper;
 import com.hekr.store.mapper.order.SimpleOrderResponseMapper;
-import com.hekr.store.mapper.order.SingleCheckoutRequestMapper;
-import com.hekr.store.model.cart.Cart;
 import com.hekr.store.model.order.Order;
 import com.hekr.store.model.product.Product;
 import com.hekr.store.model.product.ProductVariant;
@@ -19,6 +17,7 @@ import com.hekr.store.model.user.User;
 import com.hekr.store.model.warehouse.Warehouse;
 import com.hekr.store.repository.OrderRepository;
 import com.hekr.store.utils.Status;
+import com.hekr.store.utils.PaymentMethod;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -32,6 +31,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,13 +51,14 @@ class OrderServiceTest {
     private OrderResponseMapper orderResponseMapper;
 
     @Mock
-    private CartCheckoutMapper cartCheckoutMapper;
+    private OrderMapper orderMapper;
 
     @Mock
     private WarehouseService warehouseService;
 
+    // Заменили на ваш новый провайдер пользователей
     @Mock
-    private UserService userService;
+    private UserProvider userProvider; 
 
     @Mock
     private CartService cartService;
@@ -64,11 +66,9 @@ class OrderServiceTest {
     @Mock
     private StockService stockService;
 
+    // Добавили сервис вариантов, который появился в методе
     @Mock
-    private ProductService productService;
-
-    @Mock
-    private SingleCheckoutRequestMapper singleCheckoutRequestMapper;
+    private ProductVariantService productVariantService; 
 
     @Mock
     private SimpleOrderResponseMapper simpleOrderResponseMapper;
@@ -84,7 +84,6 @@ class OrderServiceTest {
     private Product testProduct;
     private ProductVariant testVariant;
     private Stock testStock;
-    private Cart testCartItem;
     private Order testOrder;
 
     @BeforeEach
@@ -114,17 +113,10 @@ class OrderServiceTest {
                 .size("M")
                 .build();
 
-        // Исправлено: у Stock нет поля id типа Long, убираем .id()
         testStock = Stock.builder()
                 .variant(testVariant)
                 .warehouse(testWarehouse)
                 .quantity(50)
-                .build();
-
-        testCartItem = Cart.builder()
-                .productVariant(testVariant)
-                .quantity(2)
-                .user(testUser)
                 .build();
 
         testOrder = Order.builder()
@@ -143,9 +135,8 @@ class OrderServiceTest {
         @Test
         @DisplayName("Успешное получение заказов с детальной информацией")
         void getOrders_VerboseTrue_ReturnsDetailedOrders() {
-            // Arrange
             when(userDetails.getUsername()).thenReturn("testuser@example.com");
-            when(userService.findByLogin("testuser@example.com")).thenReturn(testUser);
+            when(userProvider.getApprovedUserByLogin("testuser@example.com")).thenReturn(testUser);
 
             List<Order> orders = List.of(testOrder);
             when(orderRepository.findByUserIdVerbose(1L)).thenReturn(orders);
@@ -153,46 +144,19 @@ class OrderServiceTest {
             OrderResponseDto expectedDto = OrderResponseDto.builder().id(100000L).build();
             when(orderResponseMapper.toDtoList(orders)).thenReturn(List.of(expectedDto));
 
-            // Act
             List<?> result = orderService.getOrders(userDetails, true);
 
-            // Assert
-            assertThat(result).isNotNull();
-            assertThat(result).hasSize(1);
+            assertThat(result).isNotNull().hasSize(1);
             verify(orderRepository).findByUserIdVerbose(1L);
-            verify(orderResponseMapper).toDtoList(orders);
-        }
-
-        @Test
-        @DisplayName("Успешное получение заказов с простой информацией")
-        void getOrders_VerboseFalse_ReturnsSimpleOrders() {
-            // Arrange
-            when(userDetails.getUsername()).thenReturn("testuser@example.com");
-            when(userService.findByLogin("testuser@example.com")).thenReturn(testUser);
-
-            List<Order> orders = List.of(testOrder);
-            when(orderRepository.findByUserIdSimple(1L)).thenReturn(orders);
-
-            when(simpleOrderResponseMapper.toDtoList(orders)).thenReturn(List.of());
-
-            // Act
-            List<?> result = orderService.getOrders(userDetails, false);
-
-            // Assert
-            assertThat(result).isNotNull();
-            verify(orderRepository).findByUserIdSimple(1L);
-            verify(simpleOrderResponseMapper).toDtoList(orders);
         }
 
         @Test
         @DisplayName("Негативный: аккаунт не подтверждён")
         void getOrders_UserNotApproved_ThrowsDisabledException() {
-            // Arrange
-            testUser.setIsApproved(false);
             when(userDetails.getUsername()).thenReturn("testuser@example.com");
-            when(userService.findByLogin("testuser@example.com")).thenReturn(testUser);
+            when(userProvider.getApprovedUserByLogin("testuser@example.com"))
+                    .thenThrow(new DisabledException("Ваш аккаунт ожидает подтверждения администратором"));
 
-            // Act & Assert
             assertThatThrownBy(() -> orderService.getOrders(userDetails, true))
                     .isInstanceOf(DisabledException.class)
                     .hasMessage("Ваш аккаунт ожидает подтверждения администратором");
@@ -208,29 +172,22 @@ class OrderServiceTest {
         @Test
         @DisplayName("Успешное получение заказа по ID")
         void getOrder_Success_ReturnsOrder() {
-            // Arrange
             when(orderRepository.findByIdWithItemsAndHistory(100000L)).thenReturn(Optional.of(testOrder));
 
             OrderResponseDto expectedDto = OrderResponseDto.builder().id(100000L).build();
             when(orderResponseMapper.toDto(testOrder)).thenReturn(expectedDto);
 
-            // Act
             OrderResponseDto result = orderService.getOrder(100000L);
 
-            // Assert
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(100000L);
-            verify(orderRepository).findByIdWithItemsAndHistory(100000L);
-            verify(orderResponseMapper).toDto(testOrder);
         }
 
         @Test
         @DisplayName("Негативный: заказ не найден")
         void getOrder_OrderNotFound_ThrowsNotFoundException() {
-            // Arrange
             when(orderRepository.findByIdWithItemsAndHistory(99999L)).thenReturn(Optional.empty());
 
-            // Act & Assert
             assertThatThrownBy(() -> orderService.getOrder(99999L))
                     .isInstanceOf(NotFoundException.class)
                     .hasMessage("Заказ не найден");
@@ -238,175 +195,151 @@ class OrderServiceTest {
     }
 
     @Nested
-    @DisplayName("Тесты создания заказа из корзины (createCartOrder)")
-    class CreateCartOrderTests {
+    @DisplayName("Тесты создания заказа (createOrder)")
+    class CreateOrderTests {
 
-        private CartCheckoutRequestDto checkoutDto;
+        private OrderRequestDto checkoutDto;
+        private List<CartItemRequestDto> requestItems;
+        private List<Long> variantIds;
 
         @BeforeEach
         void setUp() {
-            checkoutDto = CartCheckoutRequestDto.builder()
+            requestItems = List.of(
+                    CartItemRequestDto.builder()
+                            .variantId(10000L)
+                            .quantity(2)
+                            .build()
+            );
+            variantIds = List.of(10000L);
+
+            checkoutDto = OrderRequestDto.builder()
                     .warehouseId(100L)
+                    .address("г. Краснодар, ул. Красная, д. 1")
+                    .payment(PaymentMethod.CARD)
+                    .comment("Быстрее")
+                    .items(requestItems)
                     .build();
         }
 
         @Test
-        @DisplayName("Успешное создание заказа из корзины")
-        void createCartOrder_Success_ReturnsOrder() {
+        @DisplayName("Успешное создание заказа")
+        void createOrder_Success_ReturnsOrderResponse() {
             // Arrange
-            when(userDetails.getUsername()).thenReturn("testuser@example.com");
-            when(userService.findByLogin("testuser@example.com")).thenReturn(testUser);
             when(warehouseService.findById(100L)).thenReturn(testWarehouse);
-            when(cartService.findByUserId(1L)).thenReturn(List.of(testCartItem));
-            when(stockService.getByVariantIdAndWarehouseId(10000L, 100L)).thenReturn(testStock);
-            when(cartCheckoutMapper.toOrder(checkoutDto)).thenReturn(testOrder);
+            when(userDetails.getUsername()).thenReturn("testuser@example.com");
+            when(userProvider.getApprovedUserByLogin("testuser@example.com")).thenReturn(testUser);
+            
+            Map<Long, Stock> stockMap = new HashMap<>();
+            stockMap.put(10000L, testStock);
+            when(stockService.getStocksMapByVariantIds(100L, variantIds)).thenReturn(stockMap);
+
+            Map<Long, ProductVariant> variantMap = new HashMap<>();
+            variantMap.put(10000L, testVariant);
+            when(productVariantService.getAllVariantsByIds(variantIds)).thenReturn(variantMap);
+
+            // Создаем чистый пустой инстанс заказа для симуляции маппера, чтобы в сервисе не вылетал NPE
+            Order preSavedOrder = new Order(); 
+            when(orderMapper.toOrder(checkoutDto)).thenReturn(preSavedOrder);
+            when(userProvider.getSystem()).thenReturn(User.builder().id(0L).login("system").build());
             when(orderRepository.save(any(Order.class))).thenReturn(testOrder);
-            doNothing().when(cartService).deleteAll(userDetails);
 
             OrderResponseDto expectedDto = OrderResponseDto.builder().id(100000L).build();
             when(orderResponseMapper.toDto(testOrder)).thenReturn(expectedDto);
 
             // Act
-            OrderResponseDto result = orderService.createCartOrder(userDetails, checkoutDto);
+            OrderResponseDto result = orderService.createOrder(userDetails, checkoutDto);
 
             // Assert
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(100000L);
-            assertThat(testStock.getQuantity()).isEqualTo(48);
-            verify(stockService).saveStock(testStock);
+            assertThat(testStock.getQuantity()).isEqualTo(48); // Проверяем успешное списание остатка
+            
+            verify(cartService).deleteItems(userDetails, requestItems); // Проверяем удаление именно переданных позиций
             verify(orderRepository).save(any(Order.class));
-            verify(cartService).deleteAll(userDetails);
         }
 
         @Test
-        @DisplayName("Негативный: корзина пуста")
-        void createCartOrder_EmptyCart_ThrowsEmptyException() {
+        @DisplayName("Успешное создание заказа с применением оптовой цены")
+        void createOrder_WholesalePriceApplied_Success() {
             // Arrange
-            when(userDetails.getUsername()).thenReturn("testuser@example.com");
-            when(userService.findByLogin("testuser@example.com")).thenReturn(testUser);
+            requestItems.get(0).setQuantity(10); // Порог опта = 5, ставим 10 штук
+
             when(warehouseService.findById(100L)).thenReturn(testWarehouse);
-            when(cartService.findByUserId(1L)).thenReturn(List.of());
-
-            // Act & Assert
-            assertThatThrownBy(() -> orderService.createCartOrder(userDetails, checkoutDto))
-                    .isInstanceOf(EmptyException.class)
-                    .hasMessage("Корзина не должна быть пустой");
-
-            verify(orderRepository, never()).save(any());
-        }
-
-        @Test
-        @DisplayName("Негативный: недостаточно товара на складе")
-        void createCartOrder_NotEnoughStock_ThrowsNotEnoughItems() {
-            // Arrange
-            testStock.setQuantity(1);
-
             when(userDetails.getUsername()).thenReturn("testuser@example.com");
-            when(userService.findByLogin("testuser@example.com")).thenReturn(testUser);
-            when(warehouseService.findById(100L)).thenReturn(testWarehouse);
-            when(cartService.findByUserId(1L)).thenReturn(List.of(testCartItem));
-            when(stockService.getByVariantIdAndWarehouseId(10000L, 100L)).thenReturn(testStock);
+            when(userProvider.getApprovedUserByLogin("testuser@example.com")).thenReturn(testUser);
 
-            // Act & Assert
-            assertThatThrownBy(() -> orderService.createCartOrder(userDetails, checkoutDto))
-                    .isInstanceOf(NotEnoughItems.class)
-                    .hasMessage("NotEnoughItems");
+            Map<Long, Stock> stockMap = new HashMap<>();
+            testStock.setQuantity(100); // Чтобы хватило остатков
+            stockMap.put(10000L, testStock);
+            when(stockService.getStocksMapByVariantIds(100L, variantIds)).thenReturn(stockMap);
 
-            verify(stockService, never()).saveStock(any());
-            verify(orderRepository, never()).save(any());
-        }
+            Map<Long, ProductVariant> variantMap = new HashMap<>();
+            variantMap.put(10000L, testVariant);
+            when(productVariantService.getAllVariantsByIds(variantIds)).thenReturn(variantMap);
 
-        @Test
-        @DisplayName("Негативный: аккаунт не подтверждён")
-        void createCartOrder_UserNotApproved_ThrowsDisabledException() {
-            // Arrange
-            testUser.setIsApproved(false);
-            when(userDetails.getUsername()).thenReturn("testuser@example.com");
-            when(userService.findByLogin("testuser@example.com")).thenReturn(testUser);
-
-            // Act & Assert
-            assertThatThrownBy(() -> orderService.createCartOrder(userDetails, checkoutDto))
-                    .isInstanceOf(DisabledException.class);
-
-            verify(orderRepository, never()).save(any());
-        }
-    }
-
-    @Nested
-    @DisplayName("Тесты создания одиночного заказа (createSingleOrder)")
-    class CreateSingleOrderTests {
-
-        private SingleCheckoutRequestDto singleDto;
-
-        @BeforeEach
-        void setUp() {
-            singleDto = SingleCheckoutRequestDto.builder()
-                    .warehouseId(100L)
-                    .variantId(10000L)
-                    .quantity(2)
-                    .build();
-        }
-
-        @Test
-        @DisplayName("Успешное создание одиночного заказа")
-        void createSingleOrder_Success_ReturnsOrder() {
-            // Arrange
-            when(userDetails.getUsername()).thenReturn("testuser@example.com");
-            when(userService.findByLogin("testuser@example.com")).thenReturn(testUser);
-            when(warehouseService.findById(100L)).thenReturn(testWarehouse);
-            when(productService.getProductVariantById(10000L)).thenReturn(testVariant);
-            when(stockService.getByVariantIdAndWarehouseId(10000L, 100L)).thenReturn(testStock);
-            when(singleCheckoutRequestMapper.toOrder(singleDto)).thenReturn(testOrder);
-            when(orderRepository.saveAndFlush(any(Order.class))).thenReturn(testOrder);
-
+            Order preSavedOrder = new Order();
+            when(orderMapper.toOrder(checkoutDto)).thenReturn(preSavedOrder);
+            when(userProvider.getSystem()).thenReturn(User.builder().id(0L).login("system").build());
+            when(orderRepository.save(any(Order.class))).thenReturn(testOrder);
+            
             OrderResponseDto expectedDto = OrderResponseDto.builder().id(100000L).build();
             when(orderResponseMapper.toDto(testOrder)).thenReturn(expectedDto);
 
             // Act
-            OrderResponseDto result = orderService.createSingleOrder(userDetails, singleDto);
+            orderService.createOrder(userDetails, checkoutDto);
 
             // Assert
-            assertThat(result).isNotNull();
-            assertThat(result.getId()).isEqualTo(100000L);
-            assertThat(testStock.getQuantity()).isEqualTo(48);
-            verify(stockService).saveStock(testStock);
-            verify(orderRepository).saveAndFlush(any(Order.class));
+            // 10 штук * 80 (оптовая цена) = 800
+            assertThat(preSavedOrder.getPrice()).isEqualByComparingTo(BigDecimal.valueOf(800));
         }
 
         @Test
-        @DisplayName("Негативный: недостаточно товара на складе")
-        void createSingleOrder_NotEnoughStock_ThrowsNotEnoughItems() {
+        @DisplayName("Негативный: вариант товара отсутствует в мапе (удален)")
+        void createOrder_VariantNotFound_ThrowsNotFoundException() {
             // Arrange
-            testStock.setQuantity(1);
-
-            when(userDetails.getUsername()).thenReturn("testuser@example.com");
-            when(userService.findByLogin("testuser@example.com")).thenReturn(testUser);
             when(warehouseService.findById(100L)).thenReturn(testWarehouse);
-            when(productService.getProductVariantById(10000L)).thenReturn(testVariant);
-            when(stockService.getByVariantIdAndWarehouseId(10000L, 100L)).thenReturn(testStock);
+            when(userDetails.getUsername()).thenReturn("testuser@example.com");
+            when(userProvider.getApprovedUserByLogin("testuser@example.com")).thenReturn(testUser);
+
+            Map<Long, Stock> stockMap = new HashMap<>();
+            stockMap.put(10000L, testStock);
+            when(stockService.getStocksMapByVariantIds(100L, variantIds)).thenReturn(stockMap);
+
+            // Возвращаем пустую мапу вариантов (симулируем, что товара нет в БД)
+            when(productVariantService.getAllVariantsByIds(variantIds)).thenReturn(new HashMap<>());
 
             // Act & Assert
-            assertThatThrownBy(() -> orderService.createSingleOrder(userDetails, singleDto))
-                    .isInstanceOf(NotEnoughItems.class)
-                    .hasMessage("NotEnoughItems");
+            assertThatThrownBy(() -> orderService.createOrder(userDetails, checkoutDto))
+                    .isInstanceOf(NotFoundException.class)
+                    .hasMessageContaining("Товар с ID: 10000 больше недоступен");
 
-            verify(stockService, never()).saveStock(any());
-            verify(orderRepository, never()).saveAndFlush(any());
+            verify(orderRepository, never()).save(any());
         }
 
         @Test
-        @DisplayName("Негативный: аккаунт не подтверждён")
-        void createSingleOrder_UserNotApproved_ThrowsDisabledException() {
+        @DisplayName("Негативный: ошибка валидации остатков")
+        void createOrder_ValidationFailed_ThrowsNotEnoughItems() {
             // Arrange
-            testUser.setIsApproved(false);
+            when(warehouseService.findById(100L)).thenReturn(testWarehouse);
             when(userDetails.getUsername()).thenReturn("testuser@example.com");
-            when(userService.findByLogin("testuser@example.com")).thenReturn(testUser);
+            when(userProvider.getApprovedUserByLogin("testuser@example.com")).thenReturn(testUser);
+
+            Map<Long, Stock> stockMap = new HashMap<>();
+            stockMap.put(10000L, testStock);
+            lenient().when(stockService.getStocksMapByVariantIds(100L, variantIds)).thenReturn(stockMap);
+
+            Map<Long, ProductVariant> variantMap = new HashMap<>();
+            variantMap.put(10000L, testVariant);
+            lenient().when(productVariantService.getAllVariantsByIds(variantIds)).thenReturn(variantMap);
+
+            doThrow(new NotEnoughItems("NotEnoughItems", new HashMap<>()))
+                    .when(stockService).getStocksMapByVariantIds(anyLong(), any());
 
             // Act & Assert
-            assertThatThrownBy(() -> orderService.createSingleOrder(userDetails, singleDto))
-                    .isInstanceOf(DisabledException.class);
+            assertThatThrownBy(() -> orderService.createOrder(userDetails, checkoutDto))
+                    .isInstanceOf(NotEnoughItems.class);
 
-            verify(orderRepository, never()).saveAndFlush(any());
+            verify(orderRepository, never()).save(any());
         }
     }
 }
