@@ -1,6 +1,6 @@
 import { ApiArgs } from "@/types/ApiArgs";
 import { CartInterface } from "@/types/CartInterface";
-import { CartItemRequest } from "@/types/CartItemRequest";
+import { OrderItemRequest } from "@/types/OrderItemRequest";
 import api from "./api";
 import { CartItemInterface } from "@/types/CartItemInterface";
 
@@ -34,7 +34,7 @@ export async function changeQuantityCart({
     setData,
     setError,
     setLoading
-}: CartItemRequest & Pick<ApiArgs, 'setData' | 'setError' | 'setLoading'>) {
+}: OrderItemRequest & Pick<ApiArgs, 'setData' | 'setError' | 'setLoading'>) {
     try {
         setLoading(true);
         setData(null);

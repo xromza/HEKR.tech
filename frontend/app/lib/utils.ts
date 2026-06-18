@@ -1,3 +1,7 @@
+import { CartItemInterface } from "@/types/CartItemInterface";
+import { OrderItemInterface } from "@/types/OrderItemInterface";
+import { OrderItemRequest } from "@/types/OrderItemRequest";
+
 export const formatPrice = (price: number) => {
   return new Intl.NumberFormat("ru-RU", {
     style: "currency",
@@ -40,3 +44,10 @@ export const getEnding = (count: number, titles: [string, string, string]): stri
   // Для всех остальных (0, 5-9) -> 5 товаров
   return titles[2];
 };
+
+export const mapToOrderSubmit = ({cartItems}: {cartItems: CartItemInterface[]}): OrderItemRequest[] => {
+  return cartItems.map(item => ({
+                variantId: item.variantId,
+                quantity: item.quantity
+            }));
+}

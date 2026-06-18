@@ -2,9 +2,9 @@ import { ApiArgs } from "@/types/ApiArgs";
 import api from "./api";
 import { OrderInterface } from "@/types/OrderInterface";
 import { VerboseOrderInterface } from "@/types/VerboseOrderInterface";
-import { OrderShippingInterface } from "@/types/CartCheckoutInterface";
+import { OrderShippingInterface } from "@/types/OrderCheckoutInterface";
 import { CartItemInterface } from "@/types/CartItemInterface";
-import { CartItemRequest } from "@/types/CartItemRequest";
+import { OrderItemRequest } from "@/types/OrderItemRequest";
 
 export async function getOrders({ setData,
     setError,
@@ -57,7 +57,8 @@ export async function getOrder({
     }
 }
 
-export async function cartCheckout({
+export async function checkout({
+    items,
     warehouseId,
     address,
     payment,
@@ -69,7 +70,8 @@ export async function cartCheckout({
     try {
         setLoading(true);
         setError(null);
-        const res = await api.post<VerboseOrderInterface>(`/v1/orders/all`, {
+        const res = await api.post<VerboseOrderInterface>(`/v1/orders`, {
+            items: items,
             warehouseId: warehouseId,
             address: address,
             payment: payment,
@@ -77,46 +79,7 @@ export async function cartCheckout({
         }, {
             withCredentials: true
         });
-        console.log("CART CHECKOUT SUCCESSFUL: ", res.data)
-        setData(res.data);
-        return true;
-    } catch (err: any) {
-        const serverErrors = err.error || err.response?.data?.error;
-        const mainMessage = err.description || err.response?.data?.description || "Произошла ошибка при заказе всей корзины";
-        if (serverErrors) {
-            setError(mainMessage);
-        }
-        return false;
-    } finally {
-        setLoading(false);
-    }
-}
-
-export async function singleCheckout({
-    variantId,
-    quantity,
-    warehouseId,
-    address,
-    payment,
-    comment,
-    setData,
-    setError,
-    setLoading }:
-    CartItemRequest & OrderShippingInterface & Pick<ApiArgs, 'setData' | 'setError' | 'setLoading'>) {
-    try {
-        setLoading(true);
-        setError(null);
-        const res = await api.post<VerboseOrderInterface>(`/v1/orders/single`, {
-            variantId: variantId,
-            quantity: quantity,
-            warehouseId: warehouseId,
-            address: address,
-            payment: payment,
-            comment: comment
-        }, {
-            withCredentials: true
-        });
-        console.log("SINGLE CHECKOUT SUCCESSFUL: ", res.data)
+        console.log("CHECKOUT SUCCESSFUL: ", res.data)
         setData(res.data);
         return true;
     } catch (err: any) {

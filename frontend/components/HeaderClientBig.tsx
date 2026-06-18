@@ -51,6 +51,8 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
         lastScrollY.current = latest;
     })
 
+    useEffect(() => setDropdownVisible(false), [pathname])
+
     const userButtonTitle = isMounted && loginValue ? loginValue : "войти";
 
     const handleLogout = () => {
@@ -71,6 +73,7 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
         : () => handleLogin();
 
     const handleCart = () => {
+        setDropdownVisible(false);
         if (loginValue)
             router.push("/cart")
         else {
@@ -83,7 +86,10 @@ export default function HeaderClientBig({ items, isLoginVisible, setIsLoginVisib
         {
             icon: Search,
             title: "поиск",
-            event: () => setIsSearchActive(true)
+            event: () => {
+                setIsSearchActive(true)
+                setDropdownVisible(false)
+            }
         },
         {
             icon: Handbag,

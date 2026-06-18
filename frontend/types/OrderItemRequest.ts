@@ -1,4 +1,4 @@
-export interface CartItemRequest {
+export interface OrderItemRequest {
     variantId: number,
     quantity: number
 }
