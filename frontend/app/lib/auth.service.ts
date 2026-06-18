@@ -5,7 +5,7 @@ import { UserMinimal } from "@/types/UserMinimal";
 import { RegisterInterface } from "@/types/Registerinterface";
 import { useToken } from "@/store/useToken";
 import { CartInterface } from "@/types/CartInterface";
-import { CartItemRequest } from "@/types/OrderItemRequest";
+import { OrderItemRequest } from "@/types/OrderItemRequest";
 import { ApiArgs } from "@/types/ApiArgs";
 import { getProfile } from "./profile.service";
 
