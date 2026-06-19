@@ -17,10 +17,13 @@ export async function getCart({ setData,
         setData(res.data);
         return true;
     } catch (err: any) {
-        const serverErrors = err.error || err.response?.data?.error;
-        const mainMessage = err.description || err.response?.data?.description || "Произошла ошибка при получении корзины";
-        if (serverErrors) {
+        if (err?.isAuthError && err.message === "SESSION_EXPIRED") {
+            setError("Сессия истекла. Пожалуйста, войдите в аккаунт заново.");
+        } else if (err.error || err.response?.data?.error) {
+            const mainMessage = err.description || err.response?.data?.description || "Произошла ошибка при получении корзины";
             setError(mainMessage);
+        } else {
+            setError(err?.response?.data?.description || "Не удалось загрузить заказы");
         }
         return false;
     }
@@ -71,7 +74,7 @@ export async function deleteSingleItem({
     variantId,
     setError,
     setLoading
-}: { variantId: number } & Pick<ApiArgs, 'setError' | 'setLoading'>) { // Убрали setData из типов, он тут не нужен
+}: { variantId: number } & Pick<ApiArgs, 'setError' | 'setLoading'>) { 
     try {
         setLoading(true);
         setError(null);

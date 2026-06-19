@@ -3,8 +3,6 @@ import api from "./api";
 import { OrderInterface } from "@/types/OrderInterface";
 import { VerboseOrderInterface } from "@/types/VerboseOrderInterface";
 import { OrderShippingInterface } from "@/types/OrderCheckoutInterface";
-import { CartItemInterface } from "@/types/CartItemInterface";
-import { OrderItemRequest } from "@/types/OrderItemRequest";
 
 export async function getOrders({ setData,
     setError,
@@ -12,17 +10,21 @@ export async function getOrders({ setData,
     try {
         setLoading(true);
         setError(null);
-        const res = await api.get<OrderInterface>("/v1/orders", {
+        const res = await api.get<OrderInterface[]>("/v1/orders", {
             withCredentials: true
         });
         console.log("GET ORDERS SUCCESSFUL: ", res.data)
         setData(res.data);
         return true;
     } catch (err: any) {
-        const serverErrors = err.error || err.response?.data?.error;
-        const mainMessage = err.description || err.response?.data?.description || "Произошла ошибка при получении списка заказов";
-        if (serverErrors) {
+
+        if (err?.isAuthError && err.message === "SESSION_EXPIRED") {
+            setError("Сессия истекла. Пожалуйста, войдите в аккаунт заново.");
+        } else if (err.error || err.response?.data?.error) {
+            const mainMessage = err.description || err.response?.data?.description || "Произошла ошибка при получении списка заказов";
             setError(mainMessage);
+        } else {
+            setError(err?.response?.data?.description || "Не удалось загрузить заказы");
         }
         return false;
     } finally {
