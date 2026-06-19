@@ -7,6 +7,7 @@ import com.hekr.store.model.image.Image;
 import com.hekr.store.model.stock.Stock;
 import com.hekr.store.utils.ImageType;
 
+import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,9 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(componentModel = "spring", uses = CartItemResponseMapper.class)
 public abstract class CartResponseMapper {
-
     @Autowired
-    protected CartItemResponseMapper itemMapper;
+    private CartItemResponseMapper itemMapper;
 
     public CartResponseDto toDto(List<Cart> carts) {
         if (carts == null) {
