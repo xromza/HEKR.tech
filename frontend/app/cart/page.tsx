@@ -53,7 +53,7 @@ export default function CartPage() {
         <div className="flex-1">
           {loading ? <Loader className="animate-spin mx-auto my-auto" /> :
             (error || !loginValue || !isMounted) ? <div className="flex flex-col items-center justify-center w-full px-4 gap-4 text-md md:text-xl h-[60vh]">
-              <TriangleAlert className="w-[7rem] h-[7rem] text-red-700" />
+              <TriangleAlert className="w-[7rem] h-[7rem] text-black" />
               <div className="text-center uppercase">{error ? error : "сначала необходимо авторизоваться в системе"}</div>
             </div>
               :
