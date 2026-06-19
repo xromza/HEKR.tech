@@ -30,7 +30,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -112,7 +111,6 @@ class AuthServiceTest {
                         assertThat(result.getAuthResponseDto().getRole()).isEqualTo(UserRole.CLIENT);
                         assertThat(result.getAuthResponseDto().getDescription()).contains("Successful");
 
-                        // Проверяем, что пользователь создан с правильными параметрами
                         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
                         verify(userService).saveNew(userCaptor.capture());
                         User capturedUser = userCaptor.getValue();
@@ -158,7 +156,7 @@ class AuthServiceTest {
                         verify(userService).saveNew(userCaptor.capture());
                         User capturedUser = userCaptor.getValue();
                         assertThat(capturedUser.getClientType()).isEqualTo(ClientType.LEGAL);
-                        assertThat(capturedUser.getIsApproved()).isFalse(); // Юрлица требуют подтверждения
+                        assertThat(capturedUser.getIsApproved()).isFalse();
                         assertThat(capturedUser.getLegalDetails()).isEqualTo(legalEntity);
                 }
 
@@ -171,7 +169,7 @@ class AuthServiceTest {
                                         .email("test@test.com")
                                         .phone("+79123456789")
                                         .password("password")
-                                        .details(null) // Нет деталей
+                                        .details(null)
                                         .build();
 
                         // Act & Assert
@@ -229,11 +227,13 @@ class AuthServiceTest {
                         // Arrange
                         var request = new AuthRequestDto("testuser", "password123");
                         var user = createValidUser();
-                        var existingTokens = List.<UserToken>of();
 
                         when(userService.findByLogin("testuser")).thenReturn(user);
                         when(passwordEncoder.matches("password123", "encodedPassword")).thenReturn(true);
-                        when(userTokenRepository.findAllValidTokensByUser(1L)).thenReturn(existingTokens);
+                        
+                        // Метод deleteAllByUserId возвращает void, мокировать behavior не нужно, только верифицировать
+                        doNothing().when(userTokenRepository).deleteAllByUserId(1L); 
+                        
                         when(jwtService.generateToken(user)).thenReturn("new-access-token");
                         when(jwtService.generateRefreshToken(user))
                                         .thenReturn(UserToken.builder().token("new-refresh-token").build());
@@ -246,25 +246,20 @@ class AuthServiceTest {
                         assertThat(result.getRefreshToken().getToken()).isEqualTo("new-refresh-token");
                         assertThat(result.getAuthResponseDto().getDescription()).isEqualTo("Успешный вход");
 
-                        // Проверяем отзыв старых токенов
-                        verify(userTokenRepository).findAllValidTokensByUser(1L);
-                        verify(userTokenRepository).saveAll(existingTokens);
+                        // Проверяем физическое удаление старых токенов по id пользователя
+                        verify(userTokenRepository).deleteAllByUserId(1L);
                         verify(userTokenRepository).save(any(UserToken.class));
                 }
 
                 @Test
-                @DisplayName("Edge-case: аутентификация с отзывом существующих токенов")
-                void authenticate_RevokesExistingTokens() {
+                @DisplayName("Аутентификация вызывает удаление старых токенов")
+                void authenticate_DeletesExistingTokens() {
                         // Arrange
                         var request = new AuthRequestDto("testuser", "password");
                         var user = createValidUser();
-                        var oldToken1 = UserToken.builder().id(1L).revoked(false).build();
-                        var oldToken2 = UserToken.builder().id(2L).revoked(false).build();
-                        var existingTokens = List.of(oldToken1, oldToken2);
 
                         when(userService.findByLogin("testuser")).thenReturn(user);
                         when(passwordEncoder.matches(any(), any())).thenReturn(true);
-                        when(userTokenRepository.findAllValidTokensByUser(1L)).thenReturn(existingTokens);
                         when(jwtService.generateToken(user)).thenReturn("new-token");
                         when(jwtService.generateRefreshToken(user))
                                         .thenReturn(UserToken.builder().token("refresh").build());
@@ -273,9 +268,9 @@ class AuthServiceTest {
                         authService.authenticate(request);
 
                         // Assert
-                        assertThat(oldToken1.getRevoked()).isTrue();
-                        assertThat(oldToken2.getRevoked()).isTrue();
-                        verify(userTokenRepository).saveAll(existingTokens);
+                        // Проверяем, что метод репозитория на удаление был гарантированно вызван
+                        verify(userTokenRepository).deleteAllByUserId(1L);
+                        verify(userTokenRepository).save(any(UserToken.class));
                 }
 
                 @Test
@@ -417,7 +412,6 @@ class AuthServiceTest {
                                         .isInstanceOf(BadCredentialsException.class)
                                         .hasMessage("Refresh token expired");
 
-                        // Проверяем, что токен был отозван
                         assertThat(token.getRevoked()).isTrue();
                         verify(userTokenRepository).save(token);
                         verify(jwtService, never()).generateToken(any());
@@ -476,7 +470,7 @@ class AuthServiceTest {
                 }
 
                 @Test
-                @DisplayName("Негативный: попытка выхода с несуществующим токеном")
+                @DisplayName("Негативный: попытка выхода с несуществующим токением")
                 void logout_TokenNotFound_ThrowsException() {
                         // Arrange
                         when(userTokenRepository.findActiveByRefreshToken("invalid-token"))
@@ -489,18 +483,6 @@ class AuthServiceTest {
 
                         verify(userTokenRepository, never()).save(any());
                 }
-
-                @Test
-                @DisplayName("Edge-case: повторный выход с уже отозванным токеном")
-                void logout_AlreadyRevokedToken_ThrowsException() {
-                        // Arrange
-                        when(userTokenRepository.findActiveByRefreshToken("revoked-token"))
-                                        .thenReturn(Optional.empty());
-
-                        // Act & Assert
-                        assertThatThrownBy(() -> authService.logout("revoked-token"))
-                                        .isInstanceOf(BadCredentialsException.class);
-                }
         }
 
         @Nested
@@ -508,7 +490,7 @@ class AuthServiceTest {
         class ChangePasswordTests {
 
                 @Test
-                @DisplayName("Успешная смена пароля с отзывом всех токенов")
+                @DisplayName("Успешная смена пароля с физическим удалением токенов")
                 void changePassword_Success() {
                         // Arrange
                         var user = User.builder()
@@ -516,12 +498,8 @@ class AuthServiceTest {
                                         .login("testuser")
                                         .passwordHash("oldHash")
                                         .build();
-                        var existingTokens = List.of(
-                                        UserToken.builder().id(1L).revoked(false).build(),
-                                        UserToken.builder().id(2L).revoked(false).build());
 
                         when(passwordEncoder.encode("newPassword")).thenReturn("newEncodedHash");
-                        when(userTokenRepository.findAllValidTokensByUser(1L)).thenReturn(existingTokens);
                         when(userService.update(any(User.class))).thenReturn(user);
 
                         // Act
@@ -529,19 +507,17 @@ class AuthServiceTest {
 
                         // Assert
                         assertThat(result.getPasswordHash()).isEqualTo("newEncodedHash");
-                        assertThat(existingTokens.get(0).getRevoked()).isTrue();
-                        assertThat(existingTokens.get(1).getRevoked()).isTrue();
-                        verify(userTokenRepository).saveAll(existingTokens);
+                        // Проверяем, что метод удаления токенов юзера вызвался вместо старого saveAll
+                        verify(userTokenRepository).deleteAllByUserId(1L);
                         verify(userService).update(user);
                 }
 
                 @Test
-                @DisplayName("Edge-case: смена пароля на null или пустую строку")
+                @DisplayName("Edge-case: смена пароля на пустую строку")
                 void changePassword_EmptyPassword_StillEncodes() {
                         // Arrange
                         var user = User.builder().id(1L).build();
                         when(passwordEncoder.encode("")).thenReturn("encodedEmpty");
-                        when(userTokenRepository.findAllValidTokensByUser(1L)).thenReturn(List.of());
                         when(userService.update(any())).thenReturn(user);
 
                         // Act
@@ -551,6 +527,7 @@ class AuthServiceTest {
                         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
                         verify(userService).update(captor.capture());
                         assertThat(captor.getValue().getPasswordHash()).isEqualTo("encodedEmpty");
+                        verify(userTokenRepository).deleteAllByUserId(1L);
                 }
         }
 }
