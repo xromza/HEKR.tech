@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { changeQuantityCart, deleteSingleItem } from "@/app/lib/cart.service";
-import { ProductInterface } from "@/types/ProductInterface"; 
+import { ProductInterface } from "@/types/ProductInterface";
 import { ProductVariantInterface } from "@/types/ProductVariantInterface";
+import { AnimatePresence, motion } from "framer-motion";
+import { Loader } from "lucide-react";
 
 interface ProductFormProps {
   product: ProductInterface;
@@ -12,16 +14,16 @@ interface ProductFormProps {
 export default function ProductForm({ product }: ProductFormProps) {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cartData, setCartData] = useState<any>(null); 
+  const [cartData, setCartData] = useState<any>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [addedQuantity, setAddedQuantity] = useState<number>(0);
 
   const variants = product.variants as ProductVariantInterface[];
   const allColors = [...new Set(variants.map((v) => v.color))];
-  const allSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+  const allSizes = [...new Set(variants.map((v) => v.size))];
 
   const isColorAvailable = (color: string) => {
     return variants.some((v) => v.color === color && v.isActive && v.stock.reduce((sum, s) => sum + s.quantity, 0) > 0);
@@ -42,7 +44,7 @@ export default function ProductForm({ product }: ProductFormProps) {
 
     const variant = variants.find((v) => v.color === selectedColor && v.size === selectedSize);
     const totalStock = variant?.stock.reduce((sum, s) => sum + s.quantity, 0) || 0;
-    
+
     if (!variant || !variant.isActive || totalStock === 0) {
       setError("Товар закончился");
       return;
@@ -50,14 +52,14 @@ export default function ProductForm({ product }: ProductFormProps) {
 
     const isSuccess = await changeQuantityCart({
       variantId: variant.id,
-      quantity: 1, 
+      quantity: 1,
       setData: setCartData,
       setError: setError,
       setLoading: setIsLoading
     });
 
     if (isSuccess) {
-      setAddedQuantity(1); 
+      setAddedQuantity(1);
       setSuccessMessage("Товар успешно добавлен в корзину!");
       setTimeout(() => setSuccessMessage(null), 3000);
     }
@@ -127,33 +129,86 @@ export default function ProductForm({ product }: ProductFormProps) {
           })}
         </div>
       </div>
-
-      {error && <div className="bg-red-50 text-red-500 p-4 rounded-lg text-sm font-medium border border-red-200">{error}</div>}
-      {successMessage && <div className="bg-green-50 text-green-600 p-4 rounded-lg text-sm font-medium border border-green-200">{successMessage}</div>}
-
       <div className="flex gap-9 h-[60px]">
-        
-        <button className="flex-1 bg-black text-white rounded-lg font-bold uppercase hover:bg-white border-2 border-black transition hover:text-black">Купить сейчас</button>
 
-        {addedQuantity === 0 ? (
-          <button disabled={isLoading} onClick={handleAddToCart} className="flex-1 border-2 border-black text-black rounded-lg font-bold uppercase hover:bg-black hover:text-white transition">{isLoading ? "Загрузка..." : "В корзину"}</button>
-        ) : (
-          <div className="flex-1 flex items-center justify-between border-2 border-black rounded-lg overflow-hidden bg-white">
-            <button disabled={isLoading} onClick={() => handleUpdateQuantity(addedQuantity - 1)} className="w-14 h-full flex items-center justify-center hover:bg-gray-100 transition text-2xl font-medium cursor-pointer">−</button>
-            <span className="font-bold text-lg">{isLoading ? "..." : `${addedQuantity} шт.`}</span>
-            <button disabled={isLoading} onClick={() => handleUpdateQuantity(addedQuantity + 1)} className="w-14 h-full flex items-center justify-center hover:bg-gray-100 transition text-2xl font-medium cursor-pointer">+</button>
-          </div>
-        )}
+        <button className="flex-1 bg-black text-white rounded-lg font-bold uppercase hover:bg-white border-2 border-black transition hover:text-black">Купить сейчас</button>
+        <div
+          onClick={() => addedQuantity === 0 && handleAddToCart()}
+          className={`flex-1 border-2 flex items-center justify-center border-black rounded-lg font-bold 
+            ${addedQuantity === 0 ? 'text-white hover:bg-white cursor-pointer hover:text-black bg-black' : 'text-black bg-white'} transition`}
+
+        >
+          <AnimatePresence mode="wait">
+            {addedQuantity === 0 ? (
+              <motion.div
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0 }}
+                className="flex-1 font-bold 
+            uppercase transition flex justify-center">
+                {isLoading ? <Loader className="animate-spin" /> : "В корзину"}
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 1.2 }}
+                animate={{ opacity: 1, scale: 1.0 }}
+                exit={{ opacity: 0, scale: 1.2 }}
+                className="flex-1 flex items-center justify-between overflow-hidden">
+                <button disabled={isLoading} onClick={() => handleUpdateQuantity(addedQuantity - 1)} className="w-14 h-full flex items-center justify-center transition text-2xl font-medium cursor-pointer">−</button>
+                <div className="font-bold w-full text-lg flex flex-row items-center justify-center gap-2">
+                  <AnimatePresence mode="popLayout">
+                    <motion.div
+                      key={addedQuantity}
+                      initial={{ y: -10, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: 10, opacity: 0 }}
+                    >{addedQuantity}
+                    </motion.div>
+                  </AnimatePresence>
+                  шт.
+                </div>
+                <button disabled={isLoading} onClick={() => handleUpdateQuantity(addedQuantity + 1)} className="w-14 h-full flex items-center justify-center transition text-2xl font-medium cursor-pointer">+</button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
       </div>
-
+      <div className="py-2">
+        <AnimatePresence mode="popLayout">
+          {error && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.35, bounce: 0 }}
+              className="ring ring-red-200 py-2 w-full bg-red-50 rounded-lg overflow-hidden"
+            >
+              <div className="px-3 py-2 text-center text-sm text-red-600">
+                {error}
+              </div>
+            </motion.div>
+          )}
+          {successMessage && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.35, bounce: 0 }}
+              className="bg-green-50 text-green-600 py-2 rounded-lg text-sm font-medium border border-green-200"
+            >
+              <div className="px-3 py-2 text-center text-sm text-green-600">
+                {successMessage}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-11 pt-8 mt-15">
         <div className="space-y-5 text-sm">
           <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold uppercase">Бренд</span><span className="text-gray-600 uppercase">{product.brand}</span></div>
 
           <div className="flex justify-between border-b border-gray-100 pb-2"><span className="font-bold uppercase">Категория</span><span className="text-gray-600 uppercase">{product.categoryName}</span></div>
 
-          <div className="flex justify-between"><span className="font-bold uppercase">Страна</span><span className="text-gray-600 uppercase">Китай</span></div>
         </div>
         <div>
           <p className="font-bold uppercase mb-5">Описание</p>

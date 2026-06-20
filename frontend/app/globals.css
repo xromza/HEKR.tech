@@ -29,5 +29,5 @@ body {
 }
 
 .swiper-wrapper {
-  transition-timing-function: linear !important;
+  transition-timing-function: ease-in-out !important;
 }

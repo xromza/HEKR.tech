@@ -24,9 +24,9 @@ export default async function Header() {
       link: categoryPath + "/woman"
     },
     {
-      title: "Бренды",
-      count: header.brandCount,
-      link: categoryPath + "/brands"
+      title: "Каталог",
+      count: null,
+      link: "/catalog"
     },
   ];
   return (

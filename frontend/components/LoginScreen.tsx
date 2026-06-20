@@ -69,7 +69,7 @@ export default function LoginScreen({ isVisible, setIsVisible, setSelectedScreen
                 placeholder='ВАШ ЛОГИН' />
             <div className='flex flex-row justify-between items-center'>
                 <label htmlFor="password" className='uppercase font-bold text-base'>Пароль</label>
-                <p className='text-xs text-gray-500 transition-colors uppercase hover:underline hover:text-black cursor-pointer'>Забыли пароль?</p>
+                {/*<p className='text-xs text-gray-500 transition-colors uppercase hover:underline hover:text-black cursor-pointer'>Забыли пароль?</p>*/}
             </div>
             <div className="w-full relative ">
                 <input

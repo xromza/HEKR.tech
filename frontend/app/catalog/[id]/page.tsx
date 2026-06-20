@@ -9,7 +9,6 @@ export default async function CardPage({
   const product = await getProduct(id);
 
   if (!product) {
-    //return <div></div>
     return <div className="w-full flex justify-center items-center">Товар не найден</div>
   }
 
