@@ -1,5 +1,5 @@
 export interface HeaderItem {
     title: string,
-    count: number,
+    count: number | null,
     link: string
 }

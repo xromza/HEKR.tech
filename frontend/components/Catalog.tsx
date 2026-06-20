@@ -133,7 +133,8 @@ export default function Catalog(
                 <div className="uppercase text-4xl font-semibold">
                     {title}
                 </div>
-                <div className="flex flex-row gap-6 md:gap-8 items-center text-md md:text-xl h-[70px]">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-8 items-start sm:items-center text-md pt-4 md:text-xl h-[70px] mb-3">
+                    
                     <button
                         onClick={() => {
                             setSortBy("id");

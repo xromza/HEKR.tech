@@ -22,6 +22,8 @@ public class ProductCatalogResponseDto implements ProductDtoInterface {
 
     private String brand;
 
+    private Long mainVariantId;
+
     @Schema(description = "Название товара", example = "Смартфон Samsung Galaxy A51")
     private String title;
 
