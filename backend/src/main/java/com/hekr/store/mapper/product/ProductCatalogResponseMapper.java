@@ -3,6 +3,7 @@ package com.hekr.store.mapper.product;
 import com.hekr.store.dto.product.ProductCatalogResponseDto;
 import com.hekr.store.model.image.Image;
 import com.hekr.store.model.product.Product;
+import com.hekr.store.model.product.ProductVariant;
 import com.hekr.store.utils.ImageType;
 import org.mapstruct.*;
 
@@ -19,7 +20,16 @@ public interface ProductCatalogResponseMapper {
     @Mapping(target = "priceRetail", source = "priceRetail")
     @Mapping(target = "mainImageUrl", ignore = true)
     @Mapping(target = "wholesaleThreshold", source = "wholesaleThreshold")
+    @Mapping(target = "mainVariantId", ignore = true)
     ProductCatalogResponseDto toResponse(Product product);
+
+    @AfterMapping
+    default void setMainVariantId(Product product, @MappingTarget ProductCatalogResponseDto.ProductCatalogResponseDtoBuilder dtoBuilder) {
+                if (product.getVariants() == null)
+            return;
+        ProductVariant variant = product.getVariants().get(0);
+        dtoBuilder.mainVariantId(variant.getId());
+    }
 
     @AfterMapping
     default void setMainImageUrl(Product product,
