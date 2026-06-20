@@ -64,19 +64,19 @@ export default function CartPage() {
                   <div className="flex flex-col gap-3 p-2 w-full lg:w-1/2 xl:w-1/3">
                     <div className="flex flex-row justify-between border-b-1">
                       <div>Итого</div>
-                      <div>{formatPrice(cartData.total_price)}</div>
+                      <div>{formatPrice(cartData.totalPrice)}</div>
                     </div>
                     <div className="text-sm">
                       {cartData.items.length} {getEnding(cartData.items.length, ["товар", "товара", "товаров"])}
                     </div>
                     <AnimatePresence mode="popLayout">
-                      {(cartData.can_checkout && cartData.items.length !== 0) &&
+                      {(cartData.canCheckout && cartData.items.length !== 0) &&
                         <motion.button
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
 
-                          disabled={!cartData.can_checkout || cartData.items.length === 0} className="px-6 py-4 bg-gray-900 text-white uppercase cursor-pointer disabled:cursor-default transition-colors rounded">
+                          disabled={!cartData.canCheckout || cartData.items.length === 0} className="px-6 py-4 bg-gray-900 text-white uppercase cursor-pointer disabled:cursor-default transition-colors rounded">
                           Перейти к оформлению заказа
                         </motion.button>}
                     </AnimatePresence>
