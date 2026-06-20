@@ -38,7 +38,7 @@ api.interceptors.request.use(
     (config) => {
         const token = useToken.getState().accessToken;
 
-        if (token && config.headers) {
+        if (token && config.headers && !config.url?.includes('/v1/auth/refresh')) {
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
@@ -55,35 +55,40 @@ api.interceptors.response.use(
             && !(originalRequest as any)._retry
         ) {
             const errorData = error.response.data as any;
-            if (isErrorResponse(errorData) && errorData.error === "ExpiredJwt") {
-                if (isRefreshing)
+            const isTokenExpired = isErrorResponse(errorData) && 
+                (errorData.error === "ExpiredJwt" || errorData.error === "TokenExpired" || errorData.error === "ExpiredToken" || errorData.description === "Токен устарел");
+            if (isTokenExpired) {
+                if (isRefreshing) {
                     return new Promise((resolve, reject) => {
-                        failedQueue.push({ resolve, reject })
+                        failedQueue.push({ resolve, reject });
                     }).then((token) => {
                         if (originalRequest.headers) {
                             originalRequest.headers.Authorization = `Bearer ${token}`;
                         }
                         return api(originalRequest);
                     }).catch((err) => Promise.reject(err));
+                }
+
                 isRefreshing = true;
                 (originalRequest as any)._retry = true;
-                try {
-                    console.log("[Axios Interceptor]: Токен устарел. Пытаюсь обновить...");
-                    const res = await api.post<AuthAction>("/v1/auth/refresh", {}, {
-                        withCredentials: true
-                    })
 
+                try {
+                    console.log("[Axios Interceptor]: Токен устарел. Пытаюсь обновить через HttpOnly куку...");
+                    
+                    const res = await axios.post<AuthAction>("/api/v1/auth/refresh", {}, {
+                        withCredentials: true,
+                        headers: { 'Content-Type': 'application/json' }
+                    });
 
                     const newAccessToken = res.data.accessToken;
-
                     console.log("[Axios Interceptor]: Токен успешно обновлен!");
-
 
                     useToken.getState().updateToken(newAccessToken);
 
                     if (originalRequest.headers) {
                         originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
                     }
+
                     processQueue(null, newAccessToken);
                     isRefreshing = false;
 
@@ -91,15 +96,16 @@ api.interceptors.response.use(
                 } catch (refreshError) {
                     processQueue(refreshError, null);
                     isRefreshing = false;
-                    console.error("[Axios Interceptor]: Рефреш-кука тоже устарела или невалидна. Тотальный разлогин.");
-
+                    
+                    console.error("[Axios Interceptor]: Рефреш-кука тоже невалидна. Полный разлогин.");
                     useToken.getState().deleteSession();
 
-                    if (typeof window !== "undefined") {
-                        window.location.href = "/login";
-                    }
 
-                    return Promise.reject(refreshError);
+                    return Promise.reject({
+                        isAuthError: true,
+                        message: "SESSION_EXPIRED",
+                        originalError: refreshError
+                    });
                 }
             }
         }

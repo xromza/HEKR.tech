@@ -2,7 +2,6 @@ package com.hekr.store.service;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -132,7 +131,7 @@ public class AuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash()))
             throw new BadCredentialsException("Неверный логин или пароль");
 
-        revokeAllTokens(user);
+        userTokenRepository.deleteAllByUserId(user.getId());
 
         String jwtToken = jwtService.generateToken(user);
         UserToken refreshToken = jwtService.generateRefreshToken(user);
@@ -152,15 +151,6 @@ public class AuthService {
     }
 
     @Transactional
-    private void revokeAllTokens(User user) {
-        List<UserToken> validUserTokens = userTokenRepository.findAllValidTokensByUser(user.getId());
-        validUserTokens.forEach((token) -> {
-            token.setRevoked(true);
-        });
-        userTokenRepository.saveAll(validUserTokens);
-    }
-
-    @Transactional
     public StatusDto logout(String refreshToken) {
         UserToken userToken = userTokenRepository.findActiveByRefreshToken(refreshToken)
                 .orElseThrow(() -> new BadCredentialsException("Token not found"));
@@ -175,7 +165,7 @@ public class AuthService {
     @Transactional
     protected User changePassword(User user, String password) {
         user.setPasswordHash(passwordEncoder.encode(password));
-        revokeAllTokens(user);
+        userTokenRepository.deleteAllByUserId(user.getId());
         return userService.update(user);
     }
 
