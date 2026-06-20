@@ -18,7 +18,7 @@ export default async function ManCollectionPage() {
             path: total_path,
             page: 0,
             size: 6,
-            verbose: true,
+            verbose: false,
             sort: "",
             order: OrderTypes.ASC,
             searchQuery: null

@@ -4,6 +4,7 @@ export interface ItemCardInterface {
     title: string,
     categoryId: number,
     categoryName: string,
+    mainVariantId: number,
     isActive: boolean,
     priceWholesale: number,
     priceRetail: number,
