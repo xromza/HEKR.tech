@@ -220,7 +220,7 @@ export default function OrdersExtendedTestPage() {
                         <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs space-y-1">
                             <span className="font-bold text-blue-900 block">Лог предзагрузки корзины:</span>
                             <div>Позиций обнаружено: {cart.items?.length || 0}</div>
-                            <div>Общая сумма: {cart.total_price} ₽</div>
+                            <div>Общая сумма: {cart.totalPrice} ₽</div>
                         </div>
                     )}
 

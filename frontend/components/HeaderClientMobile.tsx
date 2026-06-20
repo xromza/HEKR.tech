@@ -9,17 +9,14 @@ import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-
 import SearchBar from "./SearchBar";
 import { logout } from "@/app/lib/auth.service";
 import { useToken } from "@/store/useToken";
-interface HeaderItems {
-    title: string,
-    count: number,
-    link: string
-}
+import { HeaderItem } from "@/types/HeaderItem";
+
 interface ControlItems {
     icon: LucideIcon,
     title: string,
     event: () => void
 }
-export default function HeaderClientMobile({ items, isLoginVisible, setIsLoginVisible }: { items: HeaderItems[], isLoginVisible: boolean, setIsLoginVisible: Dispatch<SetStateAction<boolean>> }) {
+export default function HeaderClientMobile({ items, isLoginVisible, setIsLoginVisible }: { items: HeaderItem[], isLoginVisible: boolean, setIsLoginVisible: Dispatch<SetStateAction<boolean>> }) {
 
     const router = useRouter();
     const [isBurgerActive, setIsBurgerActive] = useState(false);
