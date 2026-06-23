@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Home, ShoppingCart, Minus, Plus, Loader } from "lucide-react";
+import {Minus, Plus, Loader, ArrowUp } from "lucide-react";
 import { getCart } from "../lib/cart.service";
 import { checkout } from "../lib/order.service";
 import { useToken } from "@/store/useToken";
@@ -11,6 +11,7 @@ import { CartItemInterface } from "@/types/CartItemInterface";
 import { VerboseOrderInterface } from "@/types/VerboseOrderInterface";
 import { formatPrice } from "../lib/utils";
 import OrderNav from "@/components/OrderNav";
+import useMobile from '@/hooks/useMobile';
 
 // ---------- МОКОВЫЕ ДАННЫЕ (для тестирования без бэкенда) ----------
 const mockItems: CartItemInterface[] = [
@@ -100,6 +101,11 @@ const mockItems: CartItemInterface[] = [
 export default function CheckoutPage() {
   const router = useRouter();
   const loginValue = useToken((state) => state.user?.login);
+  const formRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useMobile(1024);
+
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Состояния корзины
   const [cartData, setCartData] = useState<CartInterface | null>(null);
@@ -289,14 +295,37 @@ export default function CheckoutPage() {
     return null; // редирект сработает
   }
 
-  // Основная вёрстка
+  const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start'
+    });
+  };
+  
+  const handleScroll = () => {
+    if (containerRef.current) {
+      setShowScrollTop(containerRef.current.scrollTop > 400);
+    }
+  };
+
+  const scrollToTop = () => {
+    containerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+
+
   return (
-    <div className="h-screen flex flex-row md:flex-col  max-w-[1680px] md:items-center gap-8">
-      <div className="flex-1 flex overflow-hidden ">
-        {/* Левая колонка – навигация (30%) */}
-        {/*<OrderNav/>*/}
-        {/* Центральная часть – товары с прокруткой */}
-        <div className="flex-1 overscroll-auto  p-6 max-w-[50%]">
+    <div className="h-screen flex flex-col max-w-[1680px] mx-auto">
+      {/* На мобильных - всё в колонку, на десктопе - строкой */}
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
+        
+        {/* Навигация - сверху на мобильных, слева на десктопе */}
+        <div className="md:w-[35%] lg:w-[30%] xl:w-[25%] min-w-[200px] lg:min-w-[250px]">
+        <OrderNav onScrollToForm={scrollToForm} />
+        </div>
+  
+        {/* Центральная часть - товары */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 order-2 md:order-none">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Товары в корзине</h2>
             <button
@@ -307,21 +336,23 @@ export default function CheckoutPage() {
               {selectedIds.size === items.length ? "Снять все" : "Выбрать все"}
             </button>
           </div>
-
+  
           <div className="space-y-4">
             {items.map((item) => {
               const isSelected = selectedIds.has(item.variantId);
               const qty = quantities[item.variantId] ?? item.quantity;
               const unitPrice = item.appliedPrice ?? (item.subtotal / item.quantity);
               const subtotal = isSelected ? unitPrice * qty : 0;
-
+  
               return (
-                <div
+                                <div
                   key={item.variantId}
-                  className={`flex items-center gap-4 border-b border-gray-100 pb-4 ${
+                  className={`flex flex-col border-b border-gray-100 pb-4 ${
                     isSelected ? "opacity-100" : "opacity-50"
                   }`}
                 >
+                {/* Первая строка: чекбокс + информация о товаре */}
+                <div className="flex items-center gap-4">
                   <input
                     type="checkbox"
                     checked={isSelected}
@@ -346,6 +377,10 @@ export default function CheckoutPage() {
                     </p>
                     <p className="text-sm text-gray-500">{item.size}</p>
                   </div>
+                </div>
+
+                {/* Вторая строка: контролы количества и цена - только на десктопе */}
+                <div className="flex items-center justify-end gap-4 mt-2 md:mt-3 pl-9 md:pl-0">
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
@@ -361,7 +396,7 @@ export default function CheckoutPage() {
                       value={qty}
                       onChange={(e) => setQuantityDirect(item.variantId, parseInt(e.target.value) || 1)}
                       disabled={!isSelected}
-                      className="w-12 text-center border border-gray-300 rounded py-1 disabled:opacity-50"
+                      className="w-full min-w-[24px] max-w-[40px] lg:max-w-[52px] text-center border border-gray-300 rounded py-1 text-sm lg:text-base disabled:opacity-50"
                     />
                     <button
                       type="button"
@@ -376,122 +411,227 @@ export default function CheckoutPage() {
                     {isSelected ? formatPrice(subtotal) : "—"}
                   </div>
                 </div>
+              </div>
               );
             })}
           </div>
-
+  
           <div className="mt-6 pt-4 border-t-2 border-black flex justify-between text-2xl font-bold">
             <span>ИТОГО</span>
             <span>{formatPrice(totalPrice)}</span>
           </div>
+          {/* Мобильная версия формы - внизу */}
+          {isMobile && (
+            <div ref={formRef} className="mt-8 pt-4 border-t-2 border-gray-200">
+              <h2 className="text-xl font-bold uppercase tracking-wider mb-4">
+                Данные доставки
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Поля формы */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 uppercase tracking-wider">
+                    Склад
+                  </label>
+                  <select
+                    value={warehouseId}
+                    onChange={(e) => setWarehouseId(Number(e.target.value))}
+                    className="mt-1 block w-full border-b-2 border-gray-300 py-2 px-0 focus:border-black focus:ring-0 bg-transparent"
+                    required
+                  >
+                    <option value={1}>Склад №1 (Москва)</option>
+                    <option value={2}>Склад №2 (Санкт-Петербург)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 uppercase tracking-wider">
+                    Адрес доставки
+                  </label>
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="г. Москва, ул. Примерная, д. 1"
+                    className="mt-1 block w-full border-b-2 border-gray-300 py-2 px-0 focus:border-black focus:ring-0 bg-transparent"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 uppercase tracking-wider mb-2">
+                    Выберите способ оплаты
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {["НАЛИЧНЫЕ", "КАРТА", "СБП", "СЧЕТ"].map((method) => {
+                      const value = method === "СБП" ? "SBP" : method === "КАРТА" ? "CARD" : method === "НАЛИЧНЫЕ" ? "CASH" : "INVOICE";
+                      return (
+                        <button
+                          key={method}
+                          type="button"
+                          onClick={() => setPayment(value)}
+                          className={`px-4 py-2 text-sm uppercase tracking-wider border-2 transition ${
+                            payment === value
+                              ? "border-black bg-black text-white"
+                              : "border-gray-300 text-gray-600 hover:border-gray-400"
+                          }`}
+                        >
+                          {method}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 uppercase tracking-wider">
+                    Комментарий
+                  </label>
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    rows={2}
+                    placeholder="Дополнительная информация"
+                    className="mt-1 block w-full border-b-2 border-gray-300 py-2 px-0 focus:border-black focus:ring-0 bg-transparent resize-none"
+                  />
+                </div>
+
+                {submitError && (
+                  <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm rounded">
+                    <p className="font-medium">Ошибка:</p>
+                    <p className="text-sm whitespace-pre-wrap">{submitError}</p>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={submitting || selectedCount === 0}
+                  className="w-full bg-black text-white py-4 text-lg uppercase tracking-widest hover:bg-gray-800 transition disabled:opacity-50"
+                >
+                  {submitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader className="animate-spin w-5 h-5" />
+                      Оформление...
+                    </span>
+                  ) : (
+                    `ЗАКАЗАТЬ (${selectedCount})`
+                  )}
+                </button>
+              </form>
+            </div>
+          )}
         </div>
 
-        {/* Правая колонка – форма */}
-        <aside className="w-[30%] min-w-[280px] bg-gray-50 p-6 overflow-y-auto border-l border-gray-200">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <h2 className="text-xl font-bold uppercase tracking-wider">Данные доставки</h2>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 uppercase tracking-wider">
-                Склад
-              </label>
-              <select
-                value={warehouseId}
-                onChange={(e) => setWarehouseId(Number(e.target.value))}
-                className="mt-1 block w-full border-b-2 border-gray-300 py-2 px-0 focus:border-black focus:ring-0 bg-transparent"
-                required
-              >
-                <option value={1}>Склад №1 (Москва)</option>
-                <option value={2}>Склад №2 (Санкт-Петербург)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 uppercase tracking-wider">
-                Адрес доставки
-              </label>
-              <input
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="г. Москва, ул. Примерная, д. 1"
-                className="mt-1 block w-full border-b-2 border-gray-300 py-2 px-0 focus:border-black focus:ring-0 bg-transparent"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 uppercase tracking-wider mb-2">
-                Выберите способ оплаты
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {["НАЛИЧНЫЕ", "КАРТА", "СБП", "СЧЕТ"].map((method) => {
-                  const value =
-                    method === "СБП"
-                      ? "SBP"
-                      : method === "КАРТА"
-                      ? "CARD"
-                      : method === "НАЛИЧНЫЕ"
-                      ? "CASH"
-                      : "INVOICE";
-                  return (
-                    <button
-                      key={method}
-                      type="button"
-                      onClick={() => setPayment(value)}
-                      className={`px-4 py-2 text-sm uppercase tracking-wider border-2 transition ${
-                        payment === value
-                          ? "border-black bg-black text-white"
-                          : "border-gray-300 text-gray-600 hover:border-gray-400"
-                      }`}
-                    >
-                      {method}
-                    </button>
-                  );
-                })}
+        {/* Десктопная версия формы - справа */}
+        {!isMobile && (
+          <aside className="w-[35%] lg:w-[30%] xl:w-[25%] min-w-[200px] lg:min-w-[250px] bg-gray-50 p-4 lg:p-6 border-l border-gray-200 overflow-y-auto">
+            <h2 className="text-xl font-bold uppercase tracking-wider mb-4">
+              Данные доставки
+            </h2>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Поля формы (дублируем те же самые) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 uppercase tracking-wider">
+                  Склад
+                </label>
+                <select
+                  value={warehouseId}
+                  onChange={(e) => setWarehouseId(Number(e.target.value))}
+                  className="mt-1 block w-full border-b-2 border-gray-300 py-2 px-0 focus:border-black focus:ring-0 bg-transparent"
+                  required
+                >
+                  <option value={1}>Склад №1 (Москва)</option>
+                  <option value={2}>Склад №2 (Санкт-Петербург)</option>
+                </select>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 uppercase tracking-wider">
-                Комментарий
-              </label>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                rows={2}
-                placeholder="Дополнительная информация"
-                className="mt-1 block w-full border-b-2 border-gray-300 py-2 px-0 focus:border-black focus:ring-0 bg-transparent resize-none"
-              />
-            </div>
-
-            {submitError && (
-              <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm rounded">
-                <p className="font-medium">Ошибка:</p>
-                <p className="text-sm whitespace-pre-wrap">{submitError}</p>
-                {submitError.includes("NotEnoughItems") && (
-                  <p className="text-sm mt-1">Некоторые товары недоступны в нужном количестве.</p>
-                )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 uppercase tracking-wider">
+                  Адрес доставки
+                </label>
+                <input
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="г. Москва, ул. Примерная, д. 1"
+                  className="mt-1 block w-full border-b-2 border-gray-300 py-2 px-0 focus:border-black focus:ring-0 bg-transparent"
+                  required
+                />
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={submitting || selectedCount === 0}
-              className="w-full bg-black text-white py-4 text-lg uppercase tracking-widest hover:bg-gray-800 transition disabled:opacity-50"
-            >
-              {submitting ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader className="animate-spin w-5 h-5" />
-                  Оформление...
-                </span>
-              ) : (
-                `ЗАКАЗАТЬ (${selectedCount})`
+              <div>
+                <label className="block text-sm font-medium text-gray-700 uppercase tracking-wider mb-2">
+                  Выберите способ оплаты
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {["НАЛИЧНЫЕ", "КАРТА", "СБП", "СЧЕТ"].map((method) => {
+                    const value = method === "СБП" ? "SBP" : method === "КАРТА" ? "CARD" : method === "НАЛИЧНЫЕ" ? "CASH" : "INVOICE";
+                    return (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() => setPayment(value)}
+                        className={`px-2 lg:px-3 py-1.5 text-xs lg:text-sm uppercase tracking-wider border-2 ${
+                          payment === value
+                            ? "border-black bg-black text-white"
+                            : "border-gray-300 text-gray-600 hover:border-gray-400"
+                        }`}
+                      >
+                        {method}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 uppercase tracking-wider">
+                  Комментарий
+                </label>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  rows={2}
+                  placeholder="Дополнительная информация"
+                  className="mt-1 block w-full border-b-2 border-gray-300 py-2 px-0 focus:border-black focus:ring-0 bg-transparent resize-none"
+                />
+              </div>
+
+              {submitError && (
+                <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm rounded">
+                  <p className="font-medium">Ошибка:</p>
+                  <p className="text-sm whitespace-pre-wrap">{submitError}</p>
+                </div>
               )}
-            </button>
-          </form>
-        </aside>
+
+              <button
+                type="submit"
+                disabled={submitting || selectedCount === 0}
+                className="w-full bg-black text-white py-4 text-lg uppercase tracking-widest hover:bg-gray-800 transition disabled:opacity-50"
+              >
+                {submitting ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader className="animate-spin w-5 h-5" />
+                    Оформление...
+                  </span>
+                ) : (
+                  `ЗАКАЗАТЬ (${selectedCount})`
+                )}
+              </button>
+            </form>
+          </aside>
+        )}
       </div>
+      {/*кнопка наверх*/ }
+      {isMobile && (
+  <button
+    onClick={() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }}
+    className="fixed bottom-6 right-6 bg-black text-white px-4 py-3 rounded-lg shadow-lg hover:bg-gray-800 transition z-20"
+  >
+    <ArrowUp className="w-5 h-5" />
+  </button>
+)}
     </div>
   );
 }
