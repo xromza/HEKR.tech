@@ -7,7 +7,7 @@ import com.hekr.store.utils.ImageType;
 import org.mapstruct.*;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 @Mapper(componentModel = "spring")
 public interface OrderItemMapper {
@@ -29,17 +29,20 @@ public interface OrderItemMapper {
     default void setMainImageUrl(OrderItem orderItem,
             @MappingTarget OrderItemResponseDto.OrderItemResponseDtoBuilder dtoBuilder) {
         if (orderItem.getProductVariant() != null && orderItem.getProductVariant().getImages() != null) {
-            Optional<String> mainImageUrl = orderItem.getProductVariant().getImages().stream()
-                    .filter(img -> img.getType() == ImageType.THUMBNAIL)
-                    .map(Image::getUrl)
-                    .findFirst()
-                    .or(() -> orderItem
-                            .getProductVariant()
-                            .getImages()
-                            .stream()
-                            .map(Image::getUrl)
-                            .findFirst());
-            mainImageUrl.ifPresent(dtoBuilder::mainImageUrl);
+            
+            Set<Image> images = orderItem.getProductVariant().getImages();
+            images.stream()
+            .filter(img -> img.getType() == ImageType.THUMBNAIL)
+                .map(Image::getUrl)
+                .findFirst()
+                .or(() -> images.stream()
+                        .filter(img -> img.getType() == ImageType.MAIN)
+                        .map(Image::getUrl)
+                        .findFirst())
+                .or(() -> images.stream()
+                        .map(Image::getUrl)
+                        .findFirst())
+                .ifPresent(dtoBuilder::mainImageUrl);
         }
     }
     @AfterMapping
