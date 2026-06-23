@@ -3,7 +3,7 @@
 import { useToken } from "@/store/useToken";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader, TriangleAlert, UserRound, Calendar, CreditCard, Package, Clock } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { formatPrice, getEnding } from "../lib/utils";
 import { ProfileInterface } from "@/types/ProfileInterface";
@@ -14,6 +14,7 @@ import { Variants } from "framer-motion";
 import { getOrders } from "../lib/order.service";
 import { OrderInterface } from "@/types/OrderInterface";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { UserTypes } from "@/types/UserTypes";
 interface NavFields {
     idx: number,
     title: string
@@ -21,23 +22,23 @@ interface NavFields {
 
 const getStatusConfig = (status: string) => {
     switch (status?.toUpperCase()) {
-        case 'NEW': 
+        case 'NEW':
             return { text: 'Новый', className: 'bg-blue-50 text-blue-700 border-blue-200' };
-        case 'PROCESSING': 
+        case 'PROCESSING':
             return { text: 'В обработке', className: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
-        case 'ASSEMBLING': 
+        case 'ASSEMBLING':
             return { text: 'Собирается', className: 'bg-amber-50 text-amber-700 border-amber-200' };
-        case 'ASSEMBLED': 
+        case 'ASSEMBLED':
             return { text: 'Собран', className: 'bg-orange-50 text-orange-700 border-orange-200' };
-        case 'SHIPPING': 
+        case 'SHIPPING':
             return { text: 'Передан в доставку', className: 'bg-purple-50 text-purple-700 border-purple-200' };
-        case 'SHIPPED': 
+        case 'SHIPPED':
             return { text: 'Доставляется', className: 'bg-sky-50 text-sky-700 border-sky-200' };
-        case 'COMPLETED': 
+        case 'COMPLETED':
             return { text: 'Выполнен', className: 'bg-green-50 text-green-700 border-green-200' };
-        case 'CANCELED': 
+        case 'CANCELED':
             return { text: 'Отменен', className: 'bg-red-50 text-red-700 border-red-200' };
-        default: 
+        default:
             return { text: status, className: 'bg-gray-50 text-gray-700  border-gray-200' };
     }
 };
@@ -55,11 +56,17 @@ const formatDate = (dateString: string) => {
 };
 
 export default function AccountPage() {
+    const searchParams = useSearchParams();
+
     const [profileData, setProfileData] = useState<ProfileInterface | null>(null);
     const [orders, setOrders] = useState<OrderInterface[] | null>(null);
     const [error, setError] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const loginValue = useToken((state) => state.user?.login)
+    const role = useToken((state) => state.user?.role)
+    const roleId = role && role in UserTypes
+        ? UserTypes[role as keyof typeof UserTypes]
+        : 0;
     const [isMounted, setIsMounted] = useState(false);
 
     const pageVariants: Variants = {
@@ -85,7 +92,15 @@ export default function AccountPage() {
             }
         })
     };
-    const [[screen, direction], setScreen] = useState([0, 0]);
+    const allowed_screens = {
+        0: [0, 1, 2], // client
+        1: [0, 1, 2, 3], // manager
+        2: [0, 1, 2, 3, 4] // admin 
+    };
+    const requestedScreen = Number(searchParams.get("s")) || 0;
+    const screensForRole = allowed_screens[roleId as keyof typeof allowed_screens] || [0];
+    const initSelectedScreen = screensForRole.includes(requestedScreen) ? requestedScreen : 0;
+    const [[screen, direction], setScreen] = useState([initSelectedScreen, 0]);
 
     const navigateTo = (newScreen: number) => {
         setScreen([newScreen, newScreen > screen ? 1 : -1]);
@@ -129,6 +144,14 @@ export default function AccountPage() {
             idx: 2,
             title: "Мои заказы"
         },
+        {
+            idx: 3,
+            title: "Менеджмент"
+        },
+        {
+            idx: 4,
+            title: "Администрирование"
+        },
     ]
 
     return (
@@ -141,7 +164,7 @@ export default function AccountPage() {
                     </div>
                     <div className="flex flex-col gap-2 w-full">
                         {
-                            navButtons.map((btn) => (
+                            navButtons.filter((screen) => screensForRole.includes(screen.idx)).map((btn) => (
                                 <button key={btn.idx} onClick={() => navigateTo(btn.idx)}
                                     className={`pt-2 hover:text-black ${btn.idx === screen ? "text-black" : "text-gray-400  "} w-full uppercase disabled:text-gray-400 
                                     text-xl text-start enabled:cursor-pointer transition-colors border-b-2`}>
@@ -160,7 +183,7 @@ export default function AccountPage() {
                             :
                             <div className="relative overflow-hidden w-full h-full min-h-[75vh]">
 
-                                <AnimatePresence mode="popLayout" custom={direction}>
+                                <AnimatePresence initial={false} mode="popLayout" custom={direction}>
                                     {screen === 0 && (
                                         <motion.div
                                             key={0}
@@ -199,7 +222,33 @@ export default function AccountPage() {
                                             exit="exit"
                                             className="w-full h-full"
                                         >
-                                            <OrdersPage orders={orders} router={router}/>
+                                            <OrdersPage orders={orders} router={router} />
+                                        </motion.div>
+                                    )}
+                                    {screen === 3 && (
+                                        <motion.div
+                                            key={3}
+                                            custom={direction}
+                                            variants={pageVariants}
+                                            initial="initial"
+                                            animate="animate"
+                                            exit="exit"
+                                            className="w-full h-full"
+                                        >
+                                            <ManagerPage />
+                                        </motion.div>
+                                    )}
+                                    {screen === 4 && (
+                                        <motion.div
+                                            key={4}
+                                            custom={direction}
+                                            variants={pageVariants}
+                                            initial="initial"
+                                            animate="animate"
+                                            exit="exit"
+                                            className="w-full h-full"
+                                        >
+                                            <AdminPage  />
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
@@ -308,16 +357,16 @@ function ProfilePage({ profileData }: { profileData: ProfileInterface }) {
         </div>
     )
 }
-function MainPage({ 
-    profileData, 
+function MainPage({
+    profileData,
     orders,
     router
-}: { 
-    profileData: ProfileInterface | null; 
-    orders: OrderInterface[] | null; 
+}: {
+    profileData: ProfileInterface | null;
+    orders: OrderInterface[] | null;
     router: AppRouterInstance;
 }) {
-    const lastOrder = orders && orders.length > 0 ? orders[orders.length-1] : null;
+    const lastOrder = orders && orders.length > 0 ? orders[orders.length - 1] : null;
     const lastOrderItemsCount = lastOrder?.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
 
     const totalSpent = orders?.reduce((acc, order) => {
@@ -394,7 +443,7 @@ function MainPage({
                     <h4 className="text-sm font-bold uppercase">Нужна помощь с заказом или возвратом?</h4>
                     <p className="text-xs text-gray-500 uppercase">Наша служба поддержки работает круглосуточно.</p>
                 </div>
-                <button 
+                <button
                     onClick={() => router.push('/support')}
                     className="border-2 border-black hover:bg-black hover:text-white px-4 py-2 text-xs font-bold uppercase transition-colors rounded-md flex-shrink-0"
                 >
@@ -405,7 +454,7 @@ function MainPage({
     );
 }
 function OrdersPage({ orders, router }: { orders: OrderInterface[] | null, router: AppRouterInstance }) {
-    const totalQuantity = (order: OrderInterface) => 
+    const totalQuantity = (order: OrderInterface) =>
         order.items?.reduce((acc, item) => acc + item.quantity, 0) || 0;
 
     return (
@@ -415,7 +464,7 @@ function OrdersPage({ orders, router }: { orders: OrderInterface[] | null, route
             </div>
 
             {orders === undefined || orders === null || orders.length === 0 ? (
-                <div className="w-full rounded-lg border-2 p-12 text-center uppercase text-gray-400 font-medium tracking-wide">
+                <div className="w-full rounded-lg border-2 p-12 text-center uppercase text-black font-medium tracking-wide">
                     Заказов пока нет
                 </div>
             ) : (
@@ -424,7 +473,7 @@ function OrdersPage({ orders, router }: { orders: OrderInterface[] | null, route
 
                     return (
                         <button
-                            onClick={() => router.push(`/order/${order.id}`)} 
+                            onClick={() => router.push(`/order/${order.id}`)}
                             key={order.id}
                             className="w-full cursor-pointer rounded-lg border-2 p-6 md:p-8 flex flex-col gap-6 hover:border-black transition-colors"
                         >
@@ -483,15 +532,15 @@ function OrdersPage({ orders, router }: { orders: OrderInterface[] | null, route
 
                             <div className="flex flex-wrap items-center gap-3 pt-2">
                                 {order.items && order.items.map((item, idx) => (
-                                    <div 
-                                        key={idx} 
+                                    <div
+                                        key={idx}
                                         className="relative w-16 h-16 rounded border-2 border-gray-200 bg-white p-1 flex-shrink-0 overflow-hidden group/thumb"
                                         title={`${item.brand} - ${item.title}`}
                                     >
                                         {item.mainImageUrl ? (
-                                            <img 
-                                                src={item.mainImageUrl} 
-                                                alt={item.title} 
+                                            <img
+                                                src={item.mainImageUrl}
+                                                alt={item.title}
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (
@@ -516,4 +565,20 @@ function OrdersPage({ orders, router }: { orders: OrderInterface[] | null, route
             )}
         </div>
     );
+}
+
+function ManagerPage() {
+    return (
+        <div>
+            Страница Менеджмент
+        </div>
+    )
+}
+
+function AdminPage() {
+    return (
+        <div>
+            Страница Администрирование
+        </div>
+    )
 }
