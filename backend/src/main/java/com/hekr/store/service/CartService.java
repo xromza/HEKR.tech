@@ -11,6 +11,7 @@ import com.hekr.store.dto.cart.CartItemRequestDto;
 import com.hekr.store.dto.cart.CartItemResponseDto;
 import com.hekr.store.dto.cart.CartResponseDto;
 import com.hekr.store.exceptions.NotFoundException;
+import com.hekr.store.interfaces.ItemRequestInterface;
 import com.hekr.store.interfaces.UserProvider;
 import com.hekr.store.mapper.cart.CartItemResponseMapper;
 import com.hekr.store.model.cart.Cart;
@@ -109,7 +110,7 @@ public class CartService {
     }
 
     @Transactional
-    public void deleteItems(UserDetails userDetails, List<CartItemRequestDto> dto) {
+    public void deleteItems(UserDetails userDetails, List<ItemRequestInterface> dto) {
         User user = userProvider.getApprovedUserByLogin(userDetails.getUsername());
         List<CartItemId> ids = dto.stream()
                 .map(item -> CartItemId.builder()

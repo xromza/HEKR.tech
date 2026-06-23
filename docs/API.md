@@ -979,6 +979,117 @@
 }
 ```
 
+### 5.4. Получить информацию для оформления заказа
+**Метод:** `POST`  
+**Путь:** `/orders/preview`  
+**Доступ:** Авторизованный пользователь  
+**Заголовки:** `Authorization: Bearer <your_token_here>`
+**Тело запроса:**
+```json
+{
+    "items": [
+        { "variantId": 1, "quantity": 1 },
+        { "variantId": 2, "quantity": 1 },
+        { "variantId": 3, "quantity": 3 }
+    ]
+}
+```
+
+**Успешный ответ (200 OK):**
+```json
+{
+    "items": [
+        {
+            "productId": 1,
+            "variantId": 1,
+            "brand": "SAINTS KELLY",
+            "title": "КУРТКА ДУТАЯ",
+            "sku": "SK-JKT-BLK-L",
+            "size": "L",
+            "color": "Черный",
+            "mainImageUrl": "https://res.cloudinary.com/dcc2qkmq7/image/upload/jacket_main_pf3q0q.png",
+            "quantity": 1,
+            "maxAvailableQuantity": 5,
+            "price": {
+                "applied": 19600.00,
+                "base": 19600.00,
+                "type": "RETAIL"
+            },
+            "subtotal": 19600.00,
+            "availableAtWarehouses": [
+                {
+                    "availableQuantity": 4,
+                    "warehouseId": 2
+                },
+                {
+                    "availableQuantity": 5,
+                    "warehouseId": 1
+                }
+            ],
+            "available": true
+        },
+        {
+            "productId": 2,
+            "variantId": 2,
+            "brand": "SAINTS KELLY",
+            "title": "ДЖИНСЫ ШИРОКИЕ",
+            "sku": "SK-JNS-GRY-32",
+            "size": "32",
+            "color": "Серый",
+            "mainImageUrl": "https://res.cloudinary.com/dcc2qkmq7/image/upload/woman_main_salhpi.png",
+            "quantity": 4,
+            "maxAvailableQuantity": 10,
+            "price": {
+                "applied": 18250.00,
+                "base": 18250.00,
+                "type": "RETAIL"
+            },
+            "subtotal": 73000.00,
+            "availableAtWarehouses": [
+                {
+                    "availableQuantity": 10,
+                    "warehouseId": 1
+                }
+            ],
+            "available": true
+        }
+    ],
+    "totalPrice": 92600.00,
+    "warehouses": [
+        {
+            "id": 1,
+            "address": "г. Москва, ул. Петровка, д. 2 (Центральный хаб)",
+            "availableForOrder": true
+        },
+        {
+            "id": 2,
+            "address": "г. Санкт-Петербург, Невский пр., д. 15 (Северный хаб)",
+            "availableForOrder": false
+        },
+        {
+            "id": 3,
+            "address": "г. Казань, ул. Баумана, д. 44 (Поволжье)",
+            "availableForOrder": false
+        },
+        {
+            "id": 4,
+            "address": "г. Новосибирск, Красный пр., д. 100 (Сибирь)",
+            "availableForOrder": false
+        },
+        {
+            "id": 5,
+            "address": "г. Сочи, ул. Навагинская, д. 8 (Южный регион)",
+            "availableForOrder": false
+        },
+        {
+            "id": 6,
+            "address": "г. Екатеринбург, ул. Вайнера, д. 12 (Урал)",
+            "availableForOrder": false
+        }
+    ]
+}
+```
+
 ## 6. Утилитарные эндпоинты
 Эндпоинты для Frontend
 

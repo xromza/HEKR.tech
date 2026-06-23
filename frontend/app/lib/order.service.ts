@@ -3,6 +3,8 @@ import api from "./api";
 import { OrderInterface } from "@/types/OrderInterface";
 import { VerboseOrderInterface } from "@/types/VerboseOrderInterface";
 import { OrderShippingInterface } from "@/types/OrderCheckoutInterface";
+import { OrderItemRequest } from "@/types/OrderItemRequest";
+import { PreOrderInterface } from "@/types/PreOrderInterface";
 
 export async function getOrders({ setData,
     setError,
@@ -82,6 +84,35 @@ export async function checkout({
             withCredentials: true
         });
         console.log("CHECKOUT SUCCESSFUL: ", res.data)
+        setData(res.data);
+        return true;
+    } catch (err: any) {
+        const serverErrors = err.error || err.response?.data?.error;
+        const mainMessage = err.description || err.response?.data?.description || "Произошла ошибка при заказе всей корзины";
+        if (serverErrors) {
+            setError(mainMessage);
+        }
+        return false;
+    } finally {
+        setLoading(false);
+    }
+}
+
+export async function getPreview({
+    items,
+    setData,
+    setError,
+    setLoading
+}: { items: OrderItemRequest[] } & ApiArgs) {
+    try {
+        setLoading(true);
+        setError(null);
+        const res = await api.post<PreOrderInterface>(`/v1/orders/preview`, {
+            items: items,
+        }, {
+            withCredentials: true
+        });
+        console.log("PREORDER FETCH SUCCESSFUL: ", res.data)
         setData(res.data);
         return true;
     } catch (err: any) {

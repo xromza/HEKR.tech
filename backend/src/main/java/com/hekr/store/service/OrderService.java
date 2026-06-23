@@ -10,13 +10,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.hekr.store.dto.cart.CartItemRequestDto;
 import com.hekr.store.dto.order.OrderRequestDto;
 import com.hekr.store.dto.order.OrderResponseDto;
 import com.hekr.store.dto.order.OrderStatusHistoryResponseDto;
 import com.hekr.store.exceptions.EmptyException;
 import com.hekr.store.exceptions.NotEnoughItems;
 import com.hekr.store.exceptions.NotFoundException;
+import com.hekr.store.interfaces.ItemRequestInterface;
 import com.hekr.store.interfaces.OrderDtoInterface;
 import com.hekr.store.interfaces.UserProvider;
 import com.hekr.store.mapper.order.OrderMapper;
@@ -81,15 +81,15 @@ public class OrderService {
     public OrderResponseDto createOrder(UserDetails userDetails, OrderRequestDto dto) {
         Warehouse warehouse = warehouseService.findById(dto.getWarehouseId());
         User user = userProvider.getApprovedUserByLogin(userDetails.getUsername());
-        List<CartItemRequestDto> items = dto.getItems();
-        List<Long> ids = items.stream().map(CartItemRequestDto::getVariantId).toList();
-        Map<Long, Stock> stocks = stockService.getStocksMapByVariantIds(dto.getWarehouseId(), ids);
+        List<ItemRequestInterface> items = dto.getItems();
+        List<Long> ids = items.stream().map(ItemRequestInterface::getVariantId).toList();
+        Map<Long, Stock> stocks = stockService.getStocksMapByVariantIdsAndWarehouseId(dto.getWarehouseId(), ids);
         Map<Long, ProductVariant> variants = productVariantService.getAllVariantsByIds(ids);
         validateStock(stocks, items);
 
         Order order = orderMapper.toOrder(dto);
         BigDecimal orderTotal = BigDecimal.ZERO;
-        for (CartItemRequestDto item : items) {
+        for (ItemRequestInterface item : items) {
             ProductVariant variant = variants.get(item.getVariantId());
             if (variant == null) {
                 throw new NotFoundException("Товар с ID: " + item.getVariantId() + " больше недоступен");
@@ -130,13 +130,13 @@ public class OrderService {
         return orderResponseMapper.toDto(saved);
     }
 
-    public void validateStock(Map<Long, Stock> stocks, List<CartItemRequestDto> items) {
+    public void validateStock(Map<Long, Stock> stocks, List<ItemRequestInterface> items) {
         if (items.isEmpty()) {
             throw new EmptyException("Заказ не может быть пустым");
         }
         Map<Long, String> errors = new HashMap<>();
         boolean canCheckout = true;
-        for (CartItemRequestDto item : items) {
+        for (ItemRequestInterface item : items) {
             Stock stock = stocks.get(item.getVariantId());
             if (stock.getQuantity() < item.getQuantity()) {
                 canCheckout = false;

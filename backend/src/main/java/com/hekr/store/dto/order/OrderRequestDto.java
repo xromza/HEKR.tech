@@ -2,7 +2,7 @@ package com.hekr.store.dto.order;
 
 import java.util.List;
 
-import com.hekr.store.dto.cart.CartItemRequestDto;
+import com.hekr.store.interfaces.ItemRequestInterface;
 import com.hekr.store.utils.PaymentMethod;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -18,7 +18,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class OrderRequestDto {
-    List<CartItemRequestDto> items;
+    List<ItemRequestInterface> items;
     @Schema(description = "Id склада", example = "1")
     @NotNull
     private Long warehouseId;
