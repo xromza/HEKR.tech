@@ -35,14 +35,26 @@ public class StockService {
     public List<Stock> getAllByWarehouseId(Long warehouseId) {
         return stockRepository.findAllByWarehouseId(warehouseId);
     }
-    @Transactional
-    public Map<Long, Stock> getStocksMapByVariantIds(Long warehouseId, List<Long> variantIds) {
+
+    @Transactional(readOnly = true)
+    public Map<Long, Stock> getStocksMapByVariantIdsAndWarehouseId(Long warehouseId, List<Long> variantIds) {
         if (variantIds == null || variantIds.isEmpty()) {
             return Map.of();
         }
 
         List<Stock> stocks = stockRepository.findAllByWarehouseIdAndVariantIdsIn(warehouseId, variantIds);
         return stocks.stream().collect(Collectors.toMap(stock -> stock.getId().variantId(), stock -> stock));
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, List<Stock>> getStocksMapByVariantIds(List<Long> variantIds) {
+        if (variantIds == null || variantIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<Stock> stocks = stockRepository.findAllByVariantIdsIn(variantIds);
+        return stocks.stream()
+                .collect(Collectors.groupingBy(stock -> stock.getId().variantId()));
     }
 
     @Transactional

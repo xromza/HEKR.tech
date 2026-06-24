@@ -74,6 +74,8 @@ public class SecurityConfig {
                                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_MANAGER")
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/cart/migrate")
                                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_MANAGER")
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/orders/preview")
+                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_MANAGER")
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/orders")
                                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_CLIENT", "ROLE_MANAGER")
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/orders")

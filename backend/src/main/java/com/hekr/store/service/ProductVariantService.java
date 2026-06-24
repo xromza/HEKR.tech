@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.hekr.store.dto.product.ProductVariantRequestDto;
 import com.hekr.store.dto.product.ProductVariantResponseDto;
 import com.hekr.store.exceptions.NotFoundException;
+import com.hekr.store.interfaces.ProductDtoInterface;
+import com.hekr.store.mapper.product.ProductMapper;
 import com.hekr.store.mapper.product.ProductVariantMapper;
 import com.hekr.store.model.product.Product;
 import com.hekr.store.model.product.ProductVariant;
@@ -24,7 +26,7 @@ public class ProductVariantService {
     private final ProductService productService;
     private final ProductVariantMapper productVariantMapper;
     private final ProductVariantsRepository productVariantsRepository;
-
+    private final ProductMapper productMapper;
     @Transactional
     public ProductVariantResponseDto createVariant(ProductVariantRequestDto dto, Long productId) {
         Product product = productService.getProductById(productId);
@@ -45,6 +47,11 @@ public class ProductVariantService {
     public ProductVariant getProductVariantById(Long id) {
         return productVariantsRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Вариант товара не найден"));
+    }
+
+    public ProductDtoInterface findProductByVariantId(Long variantId) {
+        return productMapper.toResponse(
+                getProductVariantById(variantId).getProduct());
     }
 
     @Transactional

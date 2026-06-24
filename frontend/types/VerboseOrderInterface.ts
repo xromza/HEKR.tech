@@ -10,6 +10,7 @@ export interface VerboseOrderInterface {
         paymentMethod: string,
         status: string,
         date: string,
+        comment: string,
         items: OrderItemInterface[],
         statusHistory: StatusHistoryInterface[]
 }

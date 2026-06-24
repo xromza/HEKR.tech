@@ -70,6 +70,8 @@ public class OrderResponseDto implements OrderDtoInterface {
     private PaymentMethod paymentMethod;
     @Schema(description = "Статус заказа", example = "SHIPPED")
     private Status status;
+    private String comment;
+
     @Schema(description = "Дата создания заказа", example = "2026-04-14T12:30:00")
     private LocalDateTime date;
     @Schema(description = "Список товаров в заказе")

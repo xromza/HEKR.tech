@@ -1,5 +1,7 @@
 package com.hekr.store.dto.order;
 
+import com.hekr.store.interfaces.ItemRequestInterface;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -24,7 +26,7 @@ import lombok.Getter;
 @Builder
 @NoArgsConstructor
 
-public class OrderItemRequestDto {
+public class OrderItemRequestDto implements ItemRequestInterface {
     @Schema(description = "Идентификатор варианта товара", example = "1")
     @NotNull
     private Long variantId;
