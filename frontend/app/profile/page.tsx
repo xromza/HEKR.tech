@@ -4,7 +4,7 @@ import { useToken } from "@/store/useToken";
 import { AnimatePresence, motion } from "framer-motion";
 import { Loader, TriangleAlert, UserRound, Calendar, CreditCard, Package, Clock } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { formatPrice, getEnding } from "../lib/utils";
 import { ProfileInterface } from "@/types/ProfileInterface";
 import { getProfile } from "../lib/profile.service";
@@ -55,7 +55,7 @@ const formatDate = (dateString: string) => {
     }
 };
 
-export default function AccountPage() {
+export function AccountPageContent() {
     const searchParams = useSearchParams();
 
     const [profileData, setProfileData] = useState<ProfileInterface | null>(null);
@@ -580,5 +580,19 @@ function AdminPage() {
         <div>
             Страница Администрирование
         </div>
+    )
+}
+
+export default function AccountPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="flex justify-center items-center min-h-[400px]">
+                    <Loader className="animate-spin" />
+                </div>
+            }
+        >
+            <AccountPageContent/>
+        </Suspense>
     )
 }

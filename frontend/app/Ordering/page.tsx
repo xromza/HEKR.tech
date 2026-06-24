@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Minus, Plus, Loader, ArrowUp } from "lucide-react";
@@ -13,7 +13,7 @@ import type { OrderItemRequest } from "@/types/OrderItemRequest";
 import type { CartInterface } from "@/types/CartInterface";
 import type { ApiArgs } from "@/types/ApiArgs";
 
-export default function OrderPage() {
+export function OrderPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const loginValue = useToken((state) => state.user?.login);
@@ -680,4 +680,18 @@ export default function OrderPage() {
       )}
     </div>
   );
+}
+
+export default function OrderPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="flex justify-center items-center min-h-[400px]">
+                    <Loader className="animate-spin" />
+                </div>
+            }
+        >
+            <OrderPageContent/>
+        </Suspense>
+    )
 }
