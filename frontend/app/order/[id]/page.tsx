@@ -51,17 +51,7 @@ export default function OrderPage({
     const { id } = use(params);
     const router = useRouter();
     const handleBack = () => {
-        const previousUrl = typeof window !== 'undefined' ? document.referrer : '';
-
-        if (previousUrl) {
-            const url = new URL(previousUrl);
-            url.searchParams.set('s', '2');
-
-            router.push(url.pathname + url.search);
-        } else {
-            // Оборотный путь, если истории нет
-            router.push('/profile?s=2');
-        }
+        router.push('/profile?s=2');
     };
     const [orderData, setOrderData] = useState<VerboseOrderInterface | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -162,12 +152,18 @@ export default function OrderPage({
                                             </td>
                                         </tr>
                                         <tr>
-                                            <td className="py-[0.5] md:pr-8 font-medium uppercase text-sm md:text-md md:whitespace-nowrap border-r-2 border-gray-300">
-                                                Комментарий
-                                            </td>
-                                            <td className="pl-4 md:pl-8 text-gray-900 break-all uppercase">
-                                                "{orderData.comment}"
-                                            </td>
+                                            {
+                                                orderData.comment !== null && orderData.comment.length > 0 &&
+                                                <td className="py-[0.5] md:pr-8 font-medium uppercase text-sm md:text-md md:whitespace-nowrap border-r-2 border-gray-300">
+                                                    Комментарий
+                                                </td>
+                                            }
+                                            {
+                                                orderData.comment !== null && orderData.comment.length > 0 &&
+                                                <td className="pl-4 md:pl-8 text-gray-900 break-all uppercase">
+                                                    "{orderData.comment}"
+                                                </td>
+                                            }
                                         </tr>
                                     </tbody>
                                 </table>
