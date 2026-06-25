@@ -6,82 +6,12 @@ import { Minus, Plus, Loader, ArrowUp } from "lucide-react";
 import { getPreview, checkout } from "../lib/order.service";
 import { useToken } from "@/store/useToken";
 import { formatPrice } from "../lib/utils";
-import OrderNav from "@/components/OrderNav"; // ваш компонент навигации
+import OrderNav from "@/components/OrderNav";
 import type { PreOrderInterface } from "@/types/PreOrderInterface";
 import type { OrderItemRequest } from "@/types/OrderItemRequest";
-import type { CartInterface } from "@/types/CartInterface";
 import type { ApiArgs } from "@/types/ApiArgs";
 
 export default function OrderPage() {
-
-  const mockPreviewData: PreOrderInterface = {
-  totalPrice: 356500,
-  items: [
-    {
-      productId: 1,
-      variantId: 101,
-      brand: "SAINTS KELLY",
-      title: "КУРТКА ДУТАЯ",
-      sku: "SK-JKT-BLK-L",
-      size: "L",
-      color: "Черный",
-      mainImageUrl: "",
-      quantity: 1,
-      maxAvailableQuantity: 5,
-      isAvailable: true,
-      price: { base: 19600, applied: 19600, type: "RETAIL" },
-      subtotal: 19600,
-      availableAtWarehouses: [
-        { warehouseId: 1, availableQuantity: 5 },
-        { warehouseId: 2, availableQuantity: 4 },
-      ],
-    },
-    {
-      productId: 2,
-      variantId: 102,
-      brand: "SAINTS KELLY",
-      title: "ДЖИНСЫ ШИРОКИЕ",
-      sku: "SK-JNS-GRY-32",
-      size: "32",
-      color: "Серый",
-      mainImageUrl: "",
-      quantity: 2,
-      maxAvailableQuantity: 10,
-      isAvailable: true,
-      price: { base: 18250, applied: 18250, type: "RETAIL" },
-      subtotal: 36500,
-      availableAtWarehouses: [
-        { warehouseId: 1, availableQuantity: 10 },
-        { warehouseId: 2, availableQuantity: 4 },
-      ],
-    },
-    {
-      productId: 3,
-      variantId: 103,
-      brand: "Rick Owens",
-      title: "DRKSHDW",
-      sku: "RO-DRK-001",
-      size: "48 FR | RU 52",
-      color: "Черный",
-      mainImageUrl: "",
-      quantity: 1,
-      maxAvailableQuantity: 3,
-      isAvailable: true,
-      price: { base: 78900, applied: 78900, type: "RETAIL" },
-      subtotal: 78900,
-      availableAtWarehouses: [
-        { warehouseId: 1, availableQuantity: 3 },
-        { warehouseId: 2, availableQuantity: 1 },
-      ],
-    },
-  ],
-  warehouses: [
-    { id: 1, address: "г. Москва, ул. Петровка, д. 2 (Центральный хаб)", isAvailableForOrder: true },
-    { id: 2, address: "г. Санкт-Петербург, Невский пр., д. 15 (Северный хаб)", isAvailableForOrder: true },
-    { id: 3, address: "г. Казань, ул. Баумана, д. 44 (Поволжье)", isAvailableForOrder: false },
-    { id: 4, address: "г. Новосибирск, Красный пр., д. 100 (Сибирь)", isAvailableForOrder: false },
-  ],
-};
   const router = useRouter();
   const searchParams = useSearchParams();
   const loginValue = useToken((state) => state.user?.login);
@@ -107,16 +37,12 @@ export default function OrderPage() {
   // Для debounce
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
-
-  //  ФЛАГ ДЛЯ ПРЕДОТВРАЩЕНИЯ БЕСКОНЕЧНОГО ЦИКЛА
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-
-  // ✅ ПРОСТОЙ ФЛАГ: БЫЛА ЛИ УЖЕ ПЕРВАЯ ЗАГРУЗКА?
   const [isInitialLoadDone, setIsInitialLoadDone] = useState(false);
 
-  // Для мобильной версии — реф на форму
+  // Для мобильной версии
   const formRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
     checkMobile();
@@ -129,7 +55,7 @@ export default function OrderPage() {
   };
 
   // Вспомогательная функция для ApiArgs
-  const createApiArgs = <T,>(overrides: Partial<ApiArgs>): ApiArgs => ({
+  const createApiArgs = (overrides: Partial<ApiArgs>): ApiArgs => ({
     setData: () => {},
     setError: () => {},
     setErrorMap: () => {},
@@ -139,35 +65,57 @@ export default function OrderPage() {
     ...overrides,
   });
 
-   // ===== ОСНОВНАЯ ФУНКЦИЯ ЗАГРУЗКИ ПРЕВЬЮ =====
-  const fetchPreview = useCallback(async (items: OrderItemRequest[]) => {
-     console.log("🔵 [fetchPreview] ВЫЗВАН с items:", items);
+  
+  const fetchPreview = useCallback(async (items: OrderItemRequest[]) => { // основная функция загрузки getPreview
     if (items.length === 0) {
-       console.log("🔵 [fetchPreview] items пуст → очищаем");
       setPreviewData(null);
       setSelectedWarehouseId(null);
       return;
     }
 
     setIsPreviewLoading(true);
-    console.log("🔵 [fetchPreview] setIsPreviewLoading = true");
-    
-    try {
-      // ⚠️ ДЛЯ ТЕСТА ИСПОЛЬЗУЕМ МОК
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const preview = mockPreviewData;
-       console.log("🔵 [fetchPreview] Мок загружен, обновляем previewData");
-     // ✅ НЕ ОБНОВЛЯЕМ selectedIds И quantities, ЕСЛИ ЭТО НЕ ПЕРВАЯ ЗАГРУЗКА
-      setPreviewData(preview);
-      setSelectedWarehouseId(null);
-       console.log("🔵 [fetchPreview] previewData обновлён");
-      
-      
 
-  // Загрузка данных
-  /*useEffect(() => {
+    try {
+      const success = await getPreview({
+        items,
+        ...createApiArgs({
+          setData: (data) => {
+            const preview = data as PreOrderInterface;
+            setPreviewData(preview);
+            setSelectedWarehouseId(null);
+          },
+          setError: (msg) => setError(msg),
+          setLoading: () => {},
+        })
+      });
+
+      if (!success) {
+        // ошибка уже в setError
+      }
+    } catch (err) {
+      console.error("Error fetching preview:", err);
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  }, []);
+
+ 
+  const debouncedFetchPreview = useCallback((items: OrderItemRequest[]) => { //debounce для перезапроса
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    const timer = setTimeout(() => {
+      fetchPreview(items);
+    }, 2500);
+
+    setDebounceTimer(timer);
+  }, [debounceTimer, fetchPreview]);
+
+  
+  useEffect(() => { // одноразовая начальная загрузка
     if (!loginValue) {
-      /*router.push("/");
+      router.push("/");
       return;
     }
 
@@ -179,40 +127,50 @@ export default function OrderPage() {
         const variantsParam = searchParams.get("variants");
         const quantitiesParam = searchParams.get("quantity");
 
-        if (!variantsParam || !quantitiesParam) { //если нет ничего в поисковой строке,то переводим главную? 
-            router.push('/');
-            return;
-        } 
+        if (!variantsParam || !quantitiesParam) {
+          router.push("/cart");
+          return;
+        }
 
         const variantIds = variantsParam.split(",").map(Number);
         const quantitiesArray = quantitiesParam.split(",").map(Number);
 
-        const items: OrderItemRequest[] = variantIds.map((id, idx) => ({
-        variantId: id,
-        quantity: quantitiesArray[idx] || 1,
-      }));
+        if (variantIds.length !== quantitiesArray.length) {
+          setError("Количество товаров и количество единиц не совпадают");
+          setLoading(false);
+          return;
+        }
 
-        if (items.length === 0) {
+        const initialItems: OrderItemRequest[] = variantIds.map((id, idx) => ({
+          variantId: id,
+          quantity: quantitiesArray[idx] || 1,
+        }));
+
+        if (initialItems.length === 0) {
           setError("Нет товаров для оформления");
           setLoading(false);
           return;
         }
 
-        // Запрос превью
+        // Загружаем превью без debounce при первой загрузке
         const success = await getPreview({
-          items,
+          items: initialItems,
           ...createApiArgs({
             setData: (data) => {
               const preview = data as PreOrderInterface;
               setPreviewData(preview);
+
               const allIds = preview.items.map((item) => item.variantId);
               setSelectedIds(new Set(allIds));
+
               const initialQuantities: Record<number, number> = {};
               preview.items.forEach((item) => {
                 initialQuantities[item.variantId] = item.quantity;
               });
               setQuantities(initialQuantities);
+
               setSelectedWarehouseId(null);
+              setIsInitialLoadDone(true);
             },
             setError: (msg) => setError(msg),
             setLoading: () => {},
@@ -230,148 +188,36 @@ export default function OrderPage() {
     };
 
     loadData();
-  }, [loginValue, searchParams, router]);*/
+  }, [loginValue, searchParams, router]);
 
-  } catch (err) { // подставить вместо catch выше
-      console.error("Error fetching preview:", err);
-      
-    } finally {
-      setIsPreviewLoading(false);
-      console.log("🔵 [fetchPreview] setIsPreviewLoading = false");
-    }
-  }, []);
-
-  // ===== DEBOUNCE ДЛЯ ПЕРЕЗАПРОСА =====
-  const debouncedFetchPreview = useCallback((items: OrderItemRequest[]) => {
-     console.log("🟣 [debouncedFetchPreview] ВЫЗВАН с items:", items);
-    if (debounceTimer) {
-       console.log("🟣 [debouncedFetchPreview] Очищаем предыдущий таймер");
-      clearTimeout(debounceTimer);
-    }
-    console.log("🟣 [debouncedFetchPreview] Устанавливаем новый таймер на 2.5 сек");
-    const timer = setTimeout(() => {
-      console.log("🟣 [debouncedFetchPreview] ТАЙМЕР СРАБОТАЛ → вызываем fetchPreview");
-      fetchPreview(items);
-    }, 2500);
-
-    setDebounceTimer(timer);
-     console.log("🟣 [debouncedFetchPreview] Таймер установлен");
-  }, [debounceTimer, fetchPreview]);
-
-  // ===== ОТСЛЕЖИВАНИЕ ИЗМЕНЕНИЙ В СОСТАВЕ ЗАКАЗА =====
- /* useEffect(() => {
-    if (!previewData) return;
+  
+  useEffect(() => { //обновление при изменении состава заказа
+    if (!isInitialLoadDone || !previewData) return;
 
     const currentItems = previewData.items
-      .filter(item => selectedIds.has(item.variantId))
-      .map(item => ({
+      .filter((item) => selectedIds.has(item.variantId))
+      .map((item) => ({
         variantId: item.variantId,
         quantity: quantities[item.variantId] ?? item.quantity,
       }));
 
-    if (currentItems.length > 0) {
-      debouncedFetchPreview(currentItems);
-    } else {
-      setPreviewData(null);
-      setSelectedWarehouseId(null);
-    }
-  }, [selectedIds, quantities, previewData, debouncedFetchPreview]);*/
-
-
-  // ✅ ИСПОЛЬЗУЕМ МОК ВМЕСТО РЕАЛЬНОГО ЗАПРОСА
-    
-  useEffect(() => {
-    console.log("🟢 [useEffect] Начальная загрузка START");
-    // ЗАКОММЕНТИРОВАНО для теста
-    // if (!loginValue) {
-    //   router.push("/");
-    //   return;
-    // }
-
-    const loadData = async () => {
-       console.log("🟢 [loadData] Начало загрузки данных");
-      setLoading(true);
-      setError(null);
-
-      try {
-        // ✅ ИСПОЛЬЗУЕМ МОК ВМЕСТО РЕАЛЬНОГО ЗАПРОСА
-       await new Promise(resolve => setTimeout(resolve, 500)); // Имитация задержки
-      const preview = mockPreviewData;
-       console.log("🟢 [loadData] Мок загружен:", preview);
-      
-      setPreviewData(preview);
-       console.log("🟢 [loadData] setPreviewData выполнен");
-      
-      const allIds = preview.items.map((item) => item.variantId);
-      setSelectedIds(new Set(allIds));
-       console.log("🟢 [loadData] setSelectedIds выполнен, allIds:", allIds);
-      
-      const initialQuantities: Record<number, number> = {};
-      preview.items.forEach((item) => {
-        initialQuantities[item.variantId] = item.quantity;
-      });
-      setQuantities(initialQuantities);
-      console.log("🟢 [loadData] setQuantities выполнен:", initialQuantities);
-      setIsInitialLoad(false);
-        
-        // Склад не выбираем автоматически
-        setSelectedWarehouseId(null);
-        console.log("🟢 [loadData] setSelectedWarehouseId выполнен");
-       // ✅ ПОМЕЧАЕМ, ЧТО ПЕРВАЯ ЗАГРУЗКА ЗАВЕРШЕНА
-        setIsInitialLoadDone(true);
-        console.log("🟢 [loadData] setIsInitialLoadDone = true");
-
-      } catch (err: any) {
-        console.error("Error fetching preview:", err);
-      } finally {
-        setIsPreviewLoading(false);
-        setLoading(false);
-         console.log("🟢 [loadData] setLoading = false, загрузка завершена");
-      }
-    };
-
-    loadData(); // ✅ ТОЛЬКО ОДИН ВЫЗОВ
-    console.log("🟢 [useEffect] Начальная загрузка END");
-  }, []); // ✅ ПУСТОЙ МАССИВ ЗАВИСИМОСТЕЙ - выполняется один раз
-
-  // ===== 2. ОБНОВЛЕНИЕ ПРИ ИЗМЕНЕНИИ СОСТАВА =====
-  useEffect(() => {
-    console.log("🟡 [useEffect-обновление] Сработал! isInitialLoadDone:", isInitialLoadDone, "previewData:", !!previewData);
-    // Если данных нет — ничего не делаем
-   if (!isInitialLoadDone || !previewData){ console.log("🟡 [useEffect-обновление] ПРОПУСК (isInitialLoadDone или previewData)"); return;} 
-
-    // Формируем актуальный список товаров
-     console.log("🟡 [useEffect-обновление] Формируем currentItems");
-    const currentItems = previewData.items
-      .filter(item => selectedIds.has(item.variantId))
-      .map(item => ({
-        variantId: item.variantId,
-        quantity: quantities[item.variantId] ?? item.quantity,
-      }));
-
-       console.log("🟡 [useEffect-обновление] currentItems:", currentItems);
-
-    // Если ничего не выбрано — очищаем данные
     if (currentItems.length === 0) {
-      console.log("🟡 [useEffect-обновление] currentItems пуст → очищаем данные");
       setPreviewData(null);
       setSelectedWarehouseId(null);
       return;
     }
 
-    // Запускаем debounce
-    console.log("🟡 [useEffect-обновление] Запускаем debouncedFetchPreview");
     debouncedFetchPreview(currentItems);
-  }, [selectedIds, quantities, isInitialLoadDone]); //
+  }, [selectedIds, quantities, isInitialLoadDone]);
+
   
-  useEffect(() => {  //очистка таймера
+  useEffect(() => { // очистка таймера
     return () => {
       if (debounceTimer) {
         clearTimeout(debounceTimer);
       }
     };
   }, [debounceTimer]);
-  
   
   
   
@@ -484,10 +330,8 @@ export default function OrderPage() {
       setSubmitting(false);
     }
   };
-console.log("🔵 [Рендер] loading:", loading, "previewData:", !!previewData);
   // Состояния загрузки
   if (loading) {
-    console.log("🔵 [Рендер] ПОКАЗЫВАЕМ СПИННЕР");
     return (
       <div className="h-screen flex justify-center items-center">
         <Loader className="animate-spin w-12 h-12" />
@@ -496,7 +340,6 @@ console.log("🔵 [Рендер] loading:", loading, "previewData:", !!previewDa
   }
 
   if (error || !previewData) {
-    console.log("🔵 [Рендер] ПОКАЗЫВАЕМ ОШИБКУ");
     return (
       <div className="h-screen flex justify-center items-center px-4">
         <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded text-center max-w-md">
@@ -506,8 +349,6 @@ console.log("🔵 [Рендер] loading:", loading, "previewData:", !!previewDa
       </div>
     );
   }
-  console.log("Количество складов:", warehouses.length);
-  console.log("🔵 [Рендер] ПОКАЗЫВАЕМ ОСНОВНУЮ СТРАНИЦУ");
   // Рендер
   return (
     <div className="h-screen flex flex-col max-w-[1680px] mx-auto">
