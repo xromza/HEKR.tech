@@ -1,16 +1,14 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Minus, Plus, Loader, ArrowUp } from "lucide-react";
 import { getPreview, checkout } from "../lib/order.service";
-import { getCart } from "../lib/cart.service";
 import { useToken } from "@/store/useToken";
 import { formatPrice } from "../lib/utils";
-import OrderNav from "@/components/OrderNav"; // ваш компонент навигации
+import OrderNav from "@/components/OrderNav";
 import type { PreOrderInterface } from "@/types/PreOrderInterface";
 import type { OrderItemRequest } from "@/types/OrderItemRequest";
-import type { CartInterface } from "@/types/CartInterface";
 import type { ApiArgs } from "@/types/ApiArgs";
 
 export default function OrderPage() {
@@ -36,9 +34,15 @@ export default function OrderPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Для мобильной версии — реф на форму
+  // Для debounce
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+  const [isInitialLoadDone, setIsInitialLoadDone] = useState(false);
+
+  // Для мобильной версии
   const formRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1024);
     checkMobile();
@@ -51,7 +55,7 @@ export default function OrderPage() {
   };
 
   // Вспомогательная функция для ApiArgs
-  const createApiArgs = <T,>(overrides: Partial<ApiArgs>): ApiArgs => ({
+  const createApiArgs = (overrides: Partial<ApiArgs>): ApiArgs => ({
     setData: () => {},
     setError: () => {},
     setErrorMap: () => {},
@@ -61,8 +65,55 @@ export default function OrderPage() {
     ...overrides,
   });
 
-  // Загрузка данных
-  useEffect(() => {
+  
+  const fetchPreview = useCallback(async (items: OrderItemRequest[]) => { // основная функция загрузки getPreview
+    if (items.length === 0) {
+      setPreviewData(null);
+      setSelectedWarehouseId(null);
+      return;
+    }
+
+    setIsPreviewLoading(true);
+
+    try {
+      const success = await getPreview({
+        items,
+        ...createApiArgs({
+          setData: (data) => {
+            const preview = data as PreOrderInterface;
+            setPreviewData(preview);
+            setSelectedWarehouseId(null);
+          },
+          setError: (msg) => setError(msg),
+          setLoading: () => {},
+        })
+      });
+
+      if (!success) {
+        // ошибка уже в setError
+      }
+    } catch (err) {
+      console.error("Error fetching preview:", err);
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  }, []);
+
+ 
+  const debouncedFetchPreview = useCallback((items: OrderItemRequest[]) => { //debounce для перезапроса
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    const timer = setTimeout(() => {
+      fetchPreview(items);
+    }, 2500);
+
+    setDebounceTimer(timer);
+  }, [debounceTimer, fetchPreview]);
+
+  
+  useEffect(() => { // одноразовая начальная загрузка
     if (!loginValue) {
       router.push("/");
       return;
@@ -73,79 +124,53 @@ export default function OrderPage() {
       setError(null);
 
       try {
-        let items: OrderItemRequest[] = [];
-
         const variantsParam = searchParams.get("variants");
         const quantitiesParam = searchParams.get("quantity");
 
-        if (variantsParam && quantitiesParam) {
-          const variantIds = variantsParam.split(",").map(Number);
-          const quantitiesArray = quantitiesParam.split(",").map(Number);
-          items = variantIds.map((id, idx) => ({
-            variantId: id,
-            quantity: quantitiesArray[idx] || 1,
-          }));
-        } else {
-          // Загружаем корзину
-          const cartData = await new Promise<CartInterface | null>((resolve) => {
-            getCart(
-              createApiArgs({
-                setData: resolve,
-                setError: () => {},
-                setLoading: () => {},
-              })
-            );
-          });
-
-          if (cartData && cartData.items.length > 0) {
-            items = cartData.items.map((item: any) => ({
-              variantId: item.variantId,
-              quantity: item.quantity,
-            }));
-          } else {
-            setError("Корзина пуста");
-            setLoading(false);
-            return;
-          }
+        if (!variantsParam || !quantitiesParam) {
+          router.push("/cart");
+          return;
         }
 
-        if (items.length === 0) {
+        const variantIds = variantsParam.split(",").map(Number);
+        const quantitiesArray = quantitiesParam.split(",").map(Number);
+
+        if (variantIds.length !== quantitiesArray.length) {
+          setError("Количество товаров и количество единиц не совпадают");
+          setLoading(false);
+          return;
+        }
+
+        const initialItems: OrderItemRequest[] = variantIds.map((id, idx) => ({
+          variantId: id,
+          quantity: quantitiesArray[idx] || 1,
+        }));
+
+        if (initialItems.length === 0) {
           setError("Нет товаров для оформления");
           setLoading(false);
           return;
         }
 
-        // Запрос превью
+        // Загружаем превью без debounce при первой загрузке
         const success = await getPreview({
-          items,
+          items: initialItems,
           ...createApiArgs({
             setData: (data) => {
               const preview = data as PreOrderInterface;
               setPreviewData(preview);
+
               const allIds = preview.items.map((item) => item.variantId);
               setSelectedIds(new Set(allIds));
+
               const initialQuantities: Record<number, number> = {};
               preview.items.forEach((item) => {
                 initialQuantities[item.variantId] = item.quantity;
               });
               setQuantities(initialQuantities);
 
-              // Автовыбор склада
-              const availableWarehouses = preview.warehouses.filter(
-                (w) => w.isAvailableForOrder
-              );
-              for (const wh of availableWarehouses) {
-                const allAvailable = preview.items.every((item) => {
-                  const stock = item.availableAtWarehouses.find(
-                    (s) => s.warehouseId === wh.id
-                  );
-                  return stock && stock.availableQuantity >= initialQuantities[item.variantId];
-                });
-                if (allAvailable) {
-                  setSelectedWarehouseId(wh.id);
-                  break;
-                }
-              }
+              setSelectedWarehouseId(null);
+              setIsInitialLoadDone(true);
             },
             setError: (msg) => setError(msg),
             setLoading: () => {},
@@ -165,6 +190,38 @@ export default function OrderPage() {
     loadData();
   }, [loginValue, searchParams, router]);
 
+  
+  useEffect(() => { //обновление при изменении состава заказа
+    if (!isInitialLoadDone || !previewData) return;
+
+    const currentItems = previewData.items
+      .filter((item) => selectedIds.has(item.variantId))
+      .map((item) => ({
+        variantId: item.variantId,
+        quantity: quantities[item.variantId] ?? item.quantity,
+      }));
+
+    if (currentItems.length === 0) {
+      setPreviewData(null);
+      setSelectedWarehouseId(null);
+      return;
+    }
+
+    debouncedFetchPreview(currentItems);
+  }, [selectedIds, quantities, isInitialLoadDone]);
+
+  
+  useEffect(() => { // очистка таймера
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    };
+  }, [debounceTimer]);
+  
+  
+  
+  
   // Обработчики количества
   const changeQuantity = (variantId: number, delta: number) => {
     setQuantities((prev) => {
@@ -208,20 +265,14 @@ export default function OrderPage() {
   };
 
   // Проверка наличия на складе
-  const isStockSufficient = (variantId: number, warehouseId: number, quantity: number) => {
+  /*const isStockSufficient = (variantId: number, warehouseId: number, quantity: number) => {
     const item = previewData?.items.find((i) => i.variantId === variantId);
     if (!item) return false;
     const stock = item.availableAtWarehouses.find((s) => s.warehouseId === warehouseId);
     return stock ? stock.availableQuantity >= quantity : false;
-  };
+  };*/
 
-  const canUseWarehouse = (warehouseId: number) => {
-    if (!previewData) return false;
-    return previewData.items.every((item) => {
-      const qty = quantities[item.variantId] ?? item.quantity;
-      return isStockSufficient(item.variantId, warehouseId, qty);
-    });
-  };
+  
 
   // Итоговая сумма
   const totalPrice = previewData?.totalPrice || 0;
@@ -241,16 +292,6 @@ export default function OrderPage() {
     }
     if (!address.trim()) {
       setSubmitError("Введите адрес доставки");
-      return;
-    }
-
-    const allAvailable = previewData?.items.every((item) => {
-      const qty = quantities[item.variantId] ?? item.quantity;
-      return isStockSufficient(item.variantId, selectedWarehouseId, qty);
-    });
-
-    if (!allAvailable) {
-      setSubmitError("На выбранном складе недостаточно товаров");
       return;
     }
 
@@ -289,7 +330,6 @@ export default function OrderPage() {
       setSubmitting(false);
     }
   };
-
   // Состояния загрузки
   if (loading) {
     return (
@@ -309,7 +349,7 @@ export default function OrderPage() {
       </div>
     );
   }
-
+  
   // Рендер
   return (
     <div className="h-screen flex flex-col max-w-[1680px] mx-auto">
@@ -434,23 +474,24 @@ export default function OrderPage() {
                     Выберите склад
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {availableWarehouses.length === 0 && (
+                    {warehouses.length === 0 && (
                       <p className="text-sm text-red-600">Нет доступных складов</p>
                     )}
-                    {availableWarehouses.map((wh) => {
-                      const available = canUseWarehouse(wh.id);
+                    {warehouses.map((wh) => {
+                      const isAvailable = wh.isAvailableForOrder === true;
+                      const isSelected = selectedWarehouseId === wh.id;
                       return (
                         <button
                           key={wh.id}
                           type="button"
-                          onClick={() => setSelectedWarehouseId(wh.id)}
-                          disabled={!available}
+                          onClick={() =>{ if(isAvailable) setSelectedWarehouseId(wh.id)}}
+                          disabled={!isAvailable}
                           className={`px-4 py-2 text-sm uppercase tracking-wider border-2 transition ${
-                            selectedWarehouseId === wh.id
-                              ? "border-black bg-black text-white"
-                              : "border-gray-300 text-gray-600 hover:border-gray-400"
-                          } ${!available ? "opacity-50 cursor-not-allowed" : ""}`}
-                        >
+                            isSelected
+                              ? "border-black bg-black text-white" : isAvailable ? "border-gray-300 text-gray-600 hover:border-gray-400"
+                             : "border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed"
+                                }`}
+                              >
                           Склад #{wh.id}
                         </button>
                       );
@@ -560,19 +601,20 @@ export default function OrderPage() {
                   {availableWarehouses.length === 0 && (
                     <p className="text-sm text-red-600">Нет доступных складов</p>
                   )}
-                  {availableWarehouses.map((wh) => {
-                    const available = canUseWarehouse(wh.id);
+                  {warehouses.map((wh) => {
+                   const isAvailable = wh.isAvailableForOrder === true;
+                   const isSelected = selectedWarehouseId === wh.id;
                     return (
                       <button
                         key={wh.id}
                         type="button"
-                        onClick={() => setSelectedWarehouseId(wh.id)}
-                        disabled={!available}
+                        onClick={() =>{if(isAvailable) setSelectedWarehouseId(wh.id)}}
+                        disabled={!isAvailable}
                         className={`px-3 py-1.5 text-xs lg:text-sm uppercase tracking-wider border-2 ${
-                          selectedWarehouseId === wh.id
-                            ? "border-black bg-black text-white"
-                            : "border-gray-300 text-gray-600 hover:border-gray-400"
-                        } ${!available ? "opacity-50 cursor-not-allowed" : ""}`}
+                           isSelected
+                              ? "border-black bg-black text-white" : isAvailable ? "border-gray-300 text-gray-600 hover:border-gray-400"
+                             : "border-gray-200 text-gray-400 bg-gray-100 cursor-not-allowed"
+                                }`}
                       >
                         Склад #{wh.id}
                       </button>
