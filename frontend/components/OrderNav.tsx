@@ -14,18 +14,9 @@ export default function OrderNav({ onScrollToForm }: OrderNavProps) {
   // Мобильная версия
   if (isMobile) {
     return (
-      <aside className="w-full bg-white border-b border-gray-200 p-4 flex flex-row items-center justify-between sticky top-0 z-10 shadow-sm">
+      <aside className="w-screen bg-white border-b border-gray-200 p-4 flex flex-row items-center justify-between sticky top-0 z-10 shadow-sm">
         <h1 className="text-2xl font-extrabold uppercase tracking-tight">Оформление заказа</h1>
         <nav className="flex flex-row space-x-4 items-center">
-          <div className="flex items-center gap-2 text-gray-900 hover:text-black cursor-pointer" onClick={() => router.push("/")}>
-            <Home className="w-6 h-6" />
-          </div>
-          <div className="flex items-center gap-2 text-gray-900 hover:text-black cursor-pointer" onClick={() => router.push("/cart")}>
-            <ShoppingCart className="w-6 h-6" />
-          </div>
-          <div className="flex items-center gap-2 text-gray-900 hover:text-black cursor-pointer" onClick={() => router.push("/profile")}>
-            <UserCircle2 className="w-6 h-6" />
-          </div>
           {/* Кнопка для скролла к форме */}
           <button
             onClick={onScrollToForm}
@@ -41,7 +32,7 @@ export default function OrderNav({ onScrollToForm }: OrderNavProps) {
 
   // Десктопная версия
   return (
-    <aside className="w-[30%] min-w-[250px] bg-white border-r border-gray-200 p-6 flex flex-col sticky top-0 h-screen">
+    <aside className="w-[30%] min-w-[280px] bg-white border-r border-gray-200 p-6 flex flex-col  sticky top-0 lg:h-[70vh]">
       <h1 className="text-4xl font-extrabold uppercase tracking-tight">
         Оформление<br />заказа
       </h1>
@@ -50,11 +41,11 @@ export default function OrderNav({ onScrollToForm }: OrderNavProps) {
           <Home className="w-4 h-4" />
           <span className="text-xl uppercase">Главная</span>
         </div>
-        <div className="flex items-center gap-2 text-gray-900 hover:text-black cursor-pointer border-b-2" onClick={() => router.push("/cart")}>
+        <div className="flex items-center gap-2 text-gray-600 hover:text-black cursor-pointer border-b-2" onClick={() => router.push("/cart")}>
           <ShoppingCart className="w-4 h-4" />
           <span className="text-xl uppercase">Корзина</span>
         </div>
-        <div className="flex items-center gap-2 text-gray-900 hover:text-black cursor-pointer border-b-2" onClick={() => router.push("/profile")}>
+        <div className="flex items-center gap-2 text-gray-600 hover:text-black cursor-pointer border-b-2" onClick={() => router.push("/profile")}>
           <UserCircle2 className="w-4 h-4" />
           <span className="text-xl uppercase">Личный кабинет</span>
         </div>

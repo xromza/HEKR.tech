@@ -745,7 +745,7 @@ console.log("🔵 [Рендер] loading:", loading, "previewData:", !!previewDa
 
         {/* Десктопная версия формы - справа */}
         {!isMobile && (
-          <aside className="w-[35%] lg:w-[30%] xl:w-[25%] min-w-[200px] lg:min-w-[250px] bg-gray-50 p-4 lg:p-6 border-l border-gray-200 overflow-y-auto">
+          <aside className="w-[35%] lg:w-[30%] xl:w-[25%] min-w-[200px] lg:min-w-[250px] bg-gray-50 p-4 lg:p-6 border-l border-gray-200  h-[70vh]">
             <h2 className="text-xl font-bold uppercase tracking-wider mb-4">
               Данные доставки
             </h2>
