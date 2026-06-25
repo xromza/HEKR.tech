@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,13 +71,18 @@ public class OrderService {
             return simpleOrderResponseMapper.toDtoList(orderRepository.findByUserIdSimple(user.getId()));
     }
 
+    @Transactional(readOnly = true)
+    public Page<OrderResponseDto> getAllOrders(Pageable pageable) {
+        Page<Order> order = orderRepository.findAll(pageable);
+        return order.map(orderResponseMapper::toDto);
+    }
+
     public OrderResponseDto getOrder(Long id) {
         Order order = orderRepository.findByIdWithItemsAndHistory(id)
                 .orElseThrow(() -> new NotFoundException("Заказ не найден"));
 
         return orderResponseMapper.toDto(order);
     }
-
 
     @Transactional
     public OrderResponseDto createOrder(UserDetails userDetails, OrderRequestDto dto) {
@@ -162,6 +169,9 @@ public class OrderService {
                 .comment(comment)
                 .order(order)
                 .build();
+
+        order.setStatus(status);
+        orderRepository.save(order);
         return orderStatusHistoryMapper.toDto(orderStatusHistoryRepository.save(orderStatusHistory));
     }
 }

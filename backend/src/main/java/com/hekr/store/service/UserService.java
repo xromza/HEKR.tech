@@ -2,14 +2,17 @@ package com.hekr.store.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.hekr.store.dto.user.UserResponseDto;
 import com.hekr.store.exceptions.UserAlreadyExistsException;
 import com.hekr.store.interfaces.UserProvider;
+import com.hekr.store.mapper.user.UserMapper;
 import com.hekr.store.model.user.User;
 import com.hekr.store.repository.UserRepository;
 
@@ -19,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UserService implements UserProvider {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
     public User getApprovedUserByLogin(String login) {
@@ -69,8 +73,13 @@ public class UserService implements UserProvider {
         return userRepository.save(user);
     }
 
-    public List<User> getAll(Pageable pageable, boolean isApproved) {
+    public List<User> getAllByIsApproved(Pageable pageable, boolean isApproved) {
         return userRepository.findByIsApproved(pageable, isApproved);
+    }
+
+    public Page<UserResponseDto> getAll(Pageable pageable) {
+        Page<User> usersPage = userRepository.findAll(pageable);
+        return usersPage.map(userMapper::toResponse);
     }
 
 }
