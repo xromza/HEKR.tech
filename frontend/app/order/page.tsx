@@ -279,7 +279,7 @@ export default function OrderPage() {
   const selectedCount = selectedIds.size;
   const items = previewData?.items || [];
   const warehouses = previewData?.warehouses || [];
-  const availableWarehouses = warehouses.filter((w) => w.isAvailableForOrder);
+  const availableWarehouses = warehouses.filter((w) => w.availableForOrder);
 
   // Отправка заказа
   const handleSubmit = async (e: React.FormEvent) => {
@@ -481,7 +481,7 @@ export default function OrderPage() {
                       <p className="text-sm text-red-600">Нет доступных складов</p>
                     )}
                     {warehouses.map((wh) => {
-                      const isAvailable = wh.isAvailableForOrder === true;
+                      const isAvailable = wh.availableForOrder === true;
                       const isSelected = selectedWarehouseId === wh.id;
                       return (
                         <button
@@ -605,7 +605,7 @@ export default function OrderPage() {
                     <p className="text-sm text-red-600">Нет доступных складов</p>
                   )}
                   {warehouses.map((wh) => {
-                   const isAvailable = wh.isAvailableForOrder === true;
+                   const isAvailable = wh.availableForOrder === true;
                    const isSelected = selectedWarehouseId === wh.id;
                     return (
                       <button
