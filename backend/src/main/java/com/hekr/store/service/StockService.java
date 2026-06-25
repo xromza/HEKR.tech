@@ -7,7 +7,11 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.hekr.store.dto.stock.StockResponseDto;
+import com.hekr.store.dto.stock.StockResponsePlainDto;
 import com.hekr.store.exceptions.NotFoundException;
+import com.hekr.store.mapper.stock.StockResponseMapper;
+import com.hekr.store.mapper.stock.StockResponsePlainMapper;
 import com.hekr.store.model.product.ProductVariant;
 import com.hekr.store.model.stock.Stock;
 import com.hekr.store.model.stock.StockId;
@@ -20,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StockService {
     private final StockRepository stockRepository;
+    private final StockResponsePlainMapper stockResponsePlainMapper;
     private final WarehouseService warehouseService;
     private final ProductVariantService productVariantService;
 
@@ -32,8 +37,8 @@ public class StockService {
                 .orElseThrow(() -> new NotFoundException("Данный вариант товара не найден на складе"));
     }
 
-    public List<Stock> getAllByWarehouseId(Long warehouseId) {
-        return stockRepository.findAllByWarehouseId(warehouseId);
+    public List<StockResponsePlainDto> getAllByWarehouseId(Long warehouseId) {
+        return stockResponsePlainMapper.toResponseList(stockRepository.findAllByWarehouseId(warehouseId));
     }
 
     @Transactional(readOnly = true)
@@ -63,7 +68,7 @@ public class StockService {
     }
 
     @Transactional
-    public Stock upsertStock(Long variantId, Long warehouseId, Integer quantity) {
+    public StockResponsePlainDto upsertStock(Long variantId, Long warehouseId, Integer quantity) {
 
         StockId stockId = new StockId(variantId, warehouseId);
 
@@ -72,7 +77,7 @@ public class StockService {
         stock.setQuantity(quantity);
         if (stock.getVersion() == null)
             stock = stockRepository.save(stock);
-        return stock;
+        return stockResponsePlainMapper.toResponse(stock);
     }
 
     private Stock createNewStock(StockId stockId, Long warehouseId, Long variantId) {
