@@ -225,7 +225,7 @@ export default function OrderPage({
 
                             {orderData.statusHistory && orderData.statusHistory.length > 0 ? (
                                 <div className="relative pl-4 space-y-6 before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[2px] before:bg-gray-200">
-                                    {orderData.statusHistory.map((history, hIdx) => (
+                                    {orderData.statusHistory.sort((a,b) => Date.parse(a.changedAt) - Date.parse(b.changedAt)).map((history, hIdx) => (
                                         <div key={hIdx} className="relative space-y-1">
                                             <div className="absolute -left-[21px] top-1.5 w-[12px] h-[12px] rounded-full border-2 border-black bg-white" />
 
