@@ -534,8 +534,12 @@ console.log("🔵 [Рендер] loading:", loading, "previewData:", !!previewDa
             {items.map((item) => {
               const isSelected = selectedIds.has(item.variantId);
               const qty = quantities[item.variantId] ?? item.quantity;
-              const unitPrice = item.price.applied;
-              const subtotal = unitPrice * qty;
+
+              //БЕРЁМ ГОТОВЫЕ ДАННЫЕ ОТ БЭКЕНДА
+              const subtotal = item.subtotal; // бэкенд уже посчитал конечную сумму
+              
+
+
               const stockOnSelected = item.availableAtWarehouses.find(
                 (s) => s.warehouseId === selectedWarehouseId
               );
