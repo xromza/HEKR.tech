@@ -101,6 +101,8 @@ public class SecurityConfig {
                                                 .hasAuthority("ROLE_ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/admin/orders")
                                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
+                                                .requestMatchers(HttpMethod.GET, "/api/v1/auth/verify")
+                                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER", "ROLE_CLIENT")
                                                 .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/orders/*/status")
                                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_MANAGER")
                                                 .requestMatchers(HttpMethod.PUT, "/api/v1/admin/stock")
