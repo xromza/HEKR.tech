@@ -36,6 +36,7 @@ public class ProductVariantService {
                 .images(Set.of())
                 .sku(dto.getSku())
                 .size(dto.getSize())
+                .weight(dto.getWeight())
                 .product(product)
                 .stocks(Set.of())
                 .isActive(true)
