@@ -15,7 +15,7 @@ import { getOrders } from "../lib/order.service";
 import { OrderInterface } from "@/types/OrderInterface";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { UserTypes } from "@/types/UserTypes";
-import { createCategory, createNewWarehouse, updateStock, updateOrderStatus, createProduct, updateCategoryDiscount, updateUserApproval, getAdminProductsList, getWarehouses, getCategories, getUsers, getAdminOrders, getStockOnWarehouse } from "../lib/admin.service";
+import { createCategory, createNewWarehouse, updateStock, updateOrderStatus, createProduct, updateCategoryDiscount, updateUserApproval, getAdminProductsList, getWarehouses, getCategories, getUsers, getAdminOrders, getStockOnWarehouse, createProductVariant } from "../lib/admin.service";
 import { ProductInterface } from "@/types/ProductInterface";
 interface NavFields {
     idx: number,
@@ -583,10 +583,10 @@ export function ManagerPage() {
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [activeAction, setActiveAction] = useState<string | null>(null);
 
-    // СТРОГАЯ ТИПИЗАЦИЯ СПИСКОВ
-    const [warehousesList, setWarehousesList] = useState<any[]>([]); // Если есть WarehouseInterface, подставь его
+    const [warehousesList, setWarehousesList] = useState<any[]>([]);
     const [categoriesList, setCategoriesList] = useState<any[]>([]);
-    const [productsList, setProductsList] = useState<ProductInterface[]>([]); // <-- Используем твой интерфейс!
+    const [productsList, setProductsList] = useState<ProductInterface[]>([]);
+
 
     // Стейты форм
     const [categoryName, setCategoryName] = useState("");
@@ -609,14 +609,23 @@ export function ManagerPage() {
     const [prodPriceW, setProdPriceW] = useState("");
     const [prodPriceR, setProdPriceR] = useState("");
     const [prodThreshold, setProdThreshold] = useState("");
+    const [prodDesc, setProdDesc] = useState("");
 
     const [discCatId, setDiscCatId] = useState("");
     const [discValue, setDiscValue] = useState("");
+
+    const [varProductId, setVarProductId] = useState("");
+    const [varSize, setVarSize] = useState("");
+    const [varColor, setVarColor] = useState("");
+    const [varSku, setVarSku] = useState("");
+    const [varAutoSku, setVarAutoSku] = useState(true);
+    const [varWeight, setVarWeight] = useState("");
 
     const triggerSuccess = (msg: string) => {
         setSuccessMessage(msg);
         setTimeout(() => setSuccessMessage(null), 4000);
     };
+
     useEffect(() => {
         if (stockWarehouseId) {
             getStockOnWarehouse({
@@ -627,8 +636,9 @@ export function ManagerPage() {
             });
         }
     }, [stockWarehouseId]);
+
     useEffect(() => {
-        if (activeAction === "STOCK") {
+        if (activeAction === "STOCK" || activeAction === "VARIANT") {
             getWarehouses({ setData: setWarehousesList, setError, setLoading });
             getAdminProductsList({ setData: setProductsList, setError, setLoading });
         }
@@ -647,6 +657,41 @@ export function ManagerPage() {
     }, [activeAction, currentPage]);
 
     const selectedProductVariants = productsList.find(p => p.id === Number(stockProductId))?.variants || [];
+
+    // ===== АВТОГЕНЕРАЦИЯ SKU ДЛЯ ВАРИАНТА =====
+    useEffect(() => {
+        if (!varAutoSku) return;
+
+        const product = productsList.find(p => p.id === Number(varProductId));
+        if (!product || !varColor || !varSize) {
+            setVarSku("");
+            return;
+        }
+
+        // Аббревиатура бренда: SAINTS KELLY -> SK
+        const brandAbbr = product.brand
+            .split(" ")
+            .map(w => w[0])
+            .join("")
+            .toUpperCase()
+            .slice(0, 3);
+
+        // Аббревиатура типа товара: КУРТКА ДУТАЯ -> JKT (упрощённо берём первые 3 буквы транслита)
+        const titleAbbr = transliterate(product.title)
+            .split(/[\s-]+/)[0]
+            .slice(0, 3)
+            .toUpperCase();
+
+        // Цвет: Черный -> BLK
+        const colorAbbr = transliterate(varColor)
+            .slice(0, 3)
+            .toUpperCase();
+
+        // Размер как есть
+        const sizeClean = varSize.replace(/\s+/g, "").toUpperCase();
+
+        setVarSku(`${brandAbbr}-${titleAbbr}-${colorAbbr}-${sizeClean}`);
+    }, [varProductId, varColor, varSize, varAutoSku, productsList]);
 
     const handleUpdateStock = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -696,8 +741,6 @@ export function ManagerPage() {
         });
     };
 
-    
-    const [prodDesc, setProdDesc] = useState("");
     const handleCreateProduct = async (e: React.FormEvent) => {
         e.preventDefault();
         const dto = {
@@ -716,6 +759,62 @@ export function ManagerPage() {
         e.preventDefault();
         await updateCategoryDiscount({ categoryId: Number(discCatId), discount: Number(discValue), setData: () => triggerSuccess("Скидка обновлена!"), setError, setLoading });
     };
+
+    const handleCreateVariant = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!varProductId) {
+            setError("Выберите продукт");
+            return;
+        }
+        if (!varSize.trim() || !varColor.trim() || !varSku.trim()) {
+            setError("Заполните все поля варианта");
+            return;
+        }
+
+        const product = productsList.find(p => p.id === Number(varProductId));
+
+        const exists = product?.variants.some(
+            v => v.color === varColor.trim() && v.size === varSize.trim()
+        );
+        if (exists) {
+            setError(`Вариант "${varColor} / ${varSize}" уже существует для этого продукта`);
+            return;
+        }
+
+        const skuExists = productsList.some(p =>
+            p.variants.some(v => v.sku === varSku.trim())
+        );
+        if (skuExists) {
+            setError(`SKU "${varSku}" уже используется`);
+            return;
+        }
+
+        const dto = {
+            size: varSize.trim(),
+            color: varColor.trim(),
+            sku: varSku.trim(),
+            weight: varWeight ? Number(varWeight) : 0
+        };
+
+        await createProductVariant({
+            productId: Number(varProductId),
+            dto,
+            setData: () => {
+                triggerSuccess(`Вариант "${varColor} / ${varSize}" успешно создан!`);
+                getAdminProductsList({ setData: setProductsList, setError, setLoading });
+            },
+            setError,
+            setLoading
+        });
+
+        setVarSize("");
+        setVarColor("");
+        setVarSku("");
+        setVarWeight("");
+        setVarAutoSku(true);
+    };
+
     return (
         <div className="w-full md:h-[75vh] md:overflow-y-auto pr-2 space-y-6 animate-fadeIn text-black">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b-2 border-gray-200">
@@ -750,427 +849,418 @@ export function ManagerPage() {
                         <button onClick={() => { setActiveAction(null); setError(null); }} className="border-2 border-black hover:bg-black hover:text-white px-2 py-1 text-[10px] uppercase font-bold">Закрыть</button>
                     </div>
                     <AnimatePresence mode="wait">
-                        {activeAction === "PRODUCT" && (
-                                <motion.div
-                                    key="product-management-window"
-                                    initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, height: "auto", scale: 1 }}
-                                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
-                                    transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
-                                    style={{ display: "block" }}
-                                    className="overflow-hidden"
-                                >
-                                    <div className="border-2 border-black p-6 rounded-lg bg-white mt-4">
-                                        <h4 className="font-black uppercase text-sm mb-4 border-b-2 border-gray-100 pb-2">Создать новый продукт</h4>
-                                        <form onSubmit={handleCreateProduct} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Бренд</label>
-                                                <input type="text" value={prodBrand} onChange={(e) => setProdBrand(e.target.value)} className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none" required />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Название</label>
-                                                <input type="text" value={prodTitle} onChange={(e) => setProdTitle(e.target.value)} className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none" required />
-                                            </div>
 
-                                            <div>
-                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Категория</label>
-                                                <select
-                                                    value={prodCatId}
-                                                    onChange={(e) => setProdCatId(e.target.value)}
-                                                    className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none bg-white font-bold"
-                                                    required
-                                                >
-                                                    <option value="" disabled>Выберите категорию...</option>
-                                                    {categoriesList.map(cat => (
-                                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                        {/* ===== НОВОЕ: СОЗДАНИЕ ВАРИАНТА ===== */}
+                        {activeAction === "VARIANT" && (
+                            <motion.div
+                                key="variant-management-window"
+                                initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, height: "auto", scale: 1 }}
+                                exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                                transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+                                style={{ display: "block" }}
+                                className="overflow-hidden"
+                            >
+                                <div className="border-2 border-black p-6 rounded-lg bg-white mt-4">
+                                    <h4 className="font-black uppercase text-sm mb-4 border-b-2 border-gray-100 pb-2">
+                                        Добавить новый вариант продукта
+                                    </h4>
+
+                                    <form onSubmit={handleCreateVariant} className="space-y-4">
+                                        {/* Выбор продукта */}
+                                        <div>
+                                            <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Продукт</label>
+                                            <select
+                                                value={varProductId}
+                                                onChange={(e) => {
+                                                    setVarProductId(e.target.value);
+                                                    setVarSize("");
+                                                    setVarColor("");
+                                                    setVarSku("");
+                                                }}
+                                                className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none bg-white font-bold"
+                                                required
+                                            >
+                                                <option value="" disabled>Выберите продукт...</option>
+                                                {productsList.map(p => (
+                                                    <option key={p.id} value={p.id}>
+                                                        {p.brand} — {p.title} ({p.variants.length} вар.)
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        {/* Превью существующих вариантов */}
+                                        {varProductId && (
+                                            <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                                                <div className="text-[10px] uppercase font-black text-gray-500 mb-2">
+                                                    Существующие варианты ({productsList.find(p => p.id === Number(varProductId))?.variants.length || 0})
+                                                </div>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {productsList.find(p => p.id === Number(varProductId))?.variants.map(v => (
+                                                        <div key={v.id} className="text-[10px] font-bold bg-white border border-gray-200 px-2 py-1 rounded uppercase">
+                                                            {v.color} / {v.size} <span className="text-gray-400">[{v.sku}]</span>
+                                                        </div>
                                                     ))}
-                                                </select>
+                                                    {productsList.find(p => p.id === Number(varProductId))?.variants.length === 0 && (
+                                                        <div className="text-[10px] text-gray-400 italic">Пока нет вариантов</div>
+                                                    )}
+                                                </div>
                                             </div>
+                                        )}
 
+                                        {/* Поля варианта */}
+                                        {/* Поля варианта */}
+                                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                                             <div>
-                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Порог ОПТА (шт)</label>
-                                                <input type="number" value={prodThreshold} onChange={(e) => setProdThreshold(e.target.value)} className="w-full border-2 border-black p-2 text-sm rounded focus:outline-none" required />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Розничная цена (₽)</label>
-                                                <input type="number" value={prodPriceR} onChange={(e) => setProdPriceR(e.target.value)} className="w-full border-2 border-black p-2 text-sm rounded focus:outline-none" required />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Оптовая цена (₽)</label>
-                                                <input type="number" value={prodPriceW} onChange={(e) => setProdPriceW(e.target.value)} className="w-full border-2 border-black p-2 text-sm rounded focus:outline-none" required />
-                                            </div>
-
-                                            <div className="sm:col-span-2">
-                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Описание</label>
-                                                <textarea value={prodDesc} onChange={(e) => setProdDesc(e.target.value)} className="w-full border-2 border-black p-2 text-sm rounded focus:outline-none" rows={3} />
-                                            </div>
-
-                                            <div className="sm:col-span-2">
-                                                <button type="submit" className="w-full sm:w-auto bg-black text-white px-6 py-3 text-xs font-bold uppercase hover:bg-gray-800 transition-colors">
-                                                    Сохранить продукт
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </motion.div>
-                        )}
-
-                        {activeAction === "DISCOUNT" && (
-                                <motion.div
-                                    key="discount-management-window"
-                                    initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, height: "auto", scale: 1 }}
-                                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
-                                    transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
-                                    style={{ display: "block" }}
-                                    className="overflow-hidden"
-                                >
-                                    <div className="border-2 border-black p-6 rounded-lg bg-white mt-4">
-                                        <h4 className="font-black uppercase text-sm mb-4 border-b-2 border-gray-100 pb-2">Управление скидками</h4>
-                                        <form onSubmit={handleUpdateDiscount} className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
-                                            <div>
-                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Выберите категорию</label>
-                                                <select
-                                                    value={discCatId}
-                                                    onChange={(e) => setDiscCatId(e.target.value)}
-                                                    className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none bg-white font-bold"
+                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Цвет</label>
+                                                <input
+                                                    type="text"
+                                                    value={varColor}
+                                                    onChange={(e) => setVarColor(e.target.value)}
+                                                    placeholder="Черный"
+                                                    className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none"
                                                     required
-                                                >
-                                                    <option value="" disabled>Выберите категорию...</option>
-                                                    {categoriesList.map(cat => (
-                                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                                    ))}
-                                                </select>
+                                                />
                                             </div>
                                             <div>
-                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Скидка (0.00 - 1.00)</label>
+                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Размер</label>
+                                                <input
+                                                    type="text"
+                                                    value={varSize}
+                                                    onChange={(e) => setVarSize(e.target.value)}
+                                                    placeholder="L / 42 / 32"
+                                                    className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none"
+                                                    required
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Вес (кг)</label>
                                                 <input
                                                     type="number"
                                                     step="0.01"
-                                                    value={discValue}
-                                                    onChange={(e) => setDiscValue(e.target.value)}
-                                                    placeholder="0.15"
+                                                    value={varWeight}
+                                                    onChange={(e) => setVarWeight(e.target.value)}
+                                                    placeholder="0.5"
                                                     className="w-full border-2 border-black p-2 text-sm rounded focus:outline-none"
-                                                    required
                                                 />
                                             </div>
-                                            <div className="sm:col-span-2">
-                                                <button
-                                                    type="submit"
-                                                    className="w-full sm:w-auto bg-black text-white px-6 py-3 text-xs font-bold uppercase hover:bg-gray-800 transition-colors"
-                                                >
-                                                    Применить скидку
-                                                </button>
+                                            <div>
+                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1 flex items-center gap-2">
+                                                    SKU (артикул)
+                                                    <label className="flex items-center gap-1 text-[10px] font-bold text-gray-400 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={varAutoSku}
+                                                            onChange={(e) => setVarAutoSku(e.target.checked)}
+                                                            className="accent-black"
+                                                        />
+                                                        Авто
+                                                    </label>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={varSku}
+                                                    onChange={(e) => {
+                                                        setVarSku(e.target.value.toUpperCase());
+                                                        setVarAutoSku(false);
+                                                    }}
+                                                    placeholder="SK-JKT-BLK-L"
+                                                    className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none font-mono"
+                                                    required
+                                                    readOnly={varAutoSku}
+                                                />
                                             </div>
-                                        </form>
-                                    </div>
-                                </motion.div>
+                                        </div>
+
+                                        <div className="flex justify-end">
+                                            <button
+                                                type="submit"
+                                                disabled={!varProductId || loading}
+                                                className="bg-black text-white px-6 py-3 text-xs font-bold uppercase hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                {loading ? (
+                                                    <span className="flex items-center gap-2"><Loader className="animate-spin w-4 h-4" /> Создание...</span>
+                                                ) : (
+                                                    "Создать вариант"
+                                                )}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {activeAction === "PRODUCT" && (
+                            <motion.div
+                                key="product-management-window"
+                                initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, height: "auto", scale: 1 }}
+                                exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                                transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+                                style={{ display: "block" }}
+                                className="overflow-hidden"
+                            >
+                                <div className="border-2 border-black p-6 rounded-lg bg-white mt-4">
+                                    <h4 className="font-black uppercase text-sm mb-4 border-b-2 border-gray-100 pb-2">Создать новый продукт</h4>
+                                    <form onSubmit={handleCreateProduct} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Бренд</label>
+                                            <input type="text" value={prodBrand} onChange={(e) => setProdBrand(e.target.value)} className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none" required />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Название</label>
+                                            <input type="text" value={prodTitle} onChange={(e) => setProdTitle(e.target.value)} className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none" required />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Категория</label>
+                                            <select value={prodCatId} onChange={(e) => setProdCatId(e.target.value)} className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none bg-white font-bold" required>
+                                                <option value="" disabled>Выберите категорию...</option>
+                                                {categoriesList.map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Порог ОПТА (шт)</label>
+                                            <input type="number" value={prodThreshold} onChange={(e) => setProdThreshold(e.target.value)} className="w-full border-2 border-black p-2 text-sm rounded focus:outline-none" required />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Розничная цена (₽)</label>
+                                            <input type="number" value={prodPriceR} onChange={(e) => setProdPriceR(e.target.value)} className="w-full border-2 border-black p-2 text-sm rounded focus:outline-none" required />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Оптовая цена (₽)</label>
+                                            <input type="number" value={prodPriceW} onChange={(e) => setProdPriceW(e.target.value)} className="w-full border-2 border-black p-2 text-sm rounded focus:outline-none" required />
+                                        </div>
+                                        <div className="sm:col-span-2">
+                                            <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Описание</label>
+                                            <textarea value={prodDesc} onChange={(e) => setProdDesc(e.target.value)} className="w-full border-2 border-black p-2 text-sm rounded focus:outline-none" rows={3} />
+                                        </div>
+                                        <div className="sm:col-span-2">
+                                            <button type="submit" className="w-full sm:w-auto bg-black text-white px-6 py-3 text-xs font-bold uppercase hover:bg-gray-800 transition-colors">Сохранить продукт</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {activeAction === "DISCOUNT" && (
+                            <motion.div
+                                key="discount-management-window"
+                                initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, height: "auto", scale: 1 }}
+                                exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                                transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+                                style={{ display: "block" }}
+                                className="overflow-hidden"
+                            >
+                                <div className="border-2 border-black p-6 rounded-lg bg-white mt-4">
+                                    <h4 className="font-black uppercase text-sm mb-4 border-b-2 border-gray-100 pb-2">Управление скидками</h4>
+                                    <form onSubmit={handleUpdateDiscount} className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                                        <div>
+                                            <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Выберите категорию</label>
+                                            <select value={discCatId} onChange={(e) => setDiscCatId(e.target.value)} className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none bg-white font-bold" required>
+                                                <option value="" disabled>Выберите категорию...</option>
+                                                {categoriesList.map(cat => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Скидка (0.00 - 1.00)</label>
+                                            <input type="number" step="0.01" value={discValue} onChange={(e) => setDiscValue(e.target.value)} placeholder="0.15" className="w-full border-2 border-black p-2 text-sm rounded focus:outline-none" required />
+                                        </div>
+                                        <div className="sm:col-span-2">
+                                            <button type="submit" className="w-full sm:w-auto bg-black text-white px-6 py-3 text-xs font-bold uppercase hover:bg-gray-800 transition-colors">Применить скидку</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </motion.div>
                         )}
 
                         {activeAction === "CATEGORY" && (
-                                <motion.div
-                                    key="category-management-window"
-                                    initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, height: "auto", scale: 1 }}
-                                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
-                                    transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
-                                    style={{ display: "block" }}
-                                    className="overflow-hidden"
-                                >
-                                    <div className="border-2 border-black p-6 rounded-lg bg-white mt-4">
-                                        <h4 className="font-black uppercase text-sm mb-4 border-b-2 border-gray-100 pb-2">Создать новую категорию</h4>
-                                        <form onSubmit={handleCreateCategory} className="space-y-4">
-                                            <div>
-                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Название новой категории</label>
-                                                <input
-                                                    type="text"
-                                                    value={categoryName}
-                                                    onChange={(e) => setCategoryName(e.target.value)}
-                                                    className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none"
-                                                    required
-                                                />
-                                            </div>
-                                            <button
-                                                type="submit"
-                                                className="w-full sm:w-auto bg-black text-white px-6 py-3 text-xs font-bold uppercase hover:bg-gray-800 transition-colors"
-                                            >
-                                                Создать категорию
-                                            </button>
-                                        </form>
-                                    </div>
-                                </motion.div>
+                            <motion.div
+                                key="category-management-window"
+                                initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, height: "auto", scale: 1 }}
+                                exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                                transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+                                style={{ display: "block" }}
+                                className="overflow-hidden"
+                            >
+                                <div className="border-2 border-black p-6 rounded-lg bg-white mt-4">
+                                    <h4 className="font-black uppercase text-sm mb-4 border-b-2 border-gray-100 pb-2">Создать новую категорию</h4>
+                                    <form onSubmit={handleCreateCategory} className="space-y-4">
+                                        <div>
+                                            <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Название новой категории</label>
+                                            <input type="text" value={categoryName} onChange={(e) => setCategoryName(e.target.value)} className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none" required />
+                                        </div>
+                                        <button type="submit" className="w-full sm:w-auto bg-black text-white px-6 py-3 text-xs font-bold uppercase hover:bg-gray-800 transition-colors">Создать категорию</button>
+                                    </form>
+                                </div>
+                            </motion.div>
                         )}
 
                         {activeAction === "WAREHOUSE" && (
-                                <motion.div
-                                    key="warehouse-management-window"
-                                    initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, height: "auto", scale: 1 }}
-                                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
-                                    transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
-                                    style={{ display: "block" }}
-                                    className="overflow-hidden"
-                                >
-                                    <div className="border-2 border-black p-6 rounded-lg bg-white mt-4">
-                                        <h4 className="font-black uppercase text-sm mb-4 border-b-2 border-gray-100 pb-2">Добавить новый склад</h4>
-                                        <form onSubmit={handleCreateWarehouse} className="space-y-4">
-                                            <div>
-                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Адрес нового склада</label>
-                                                <input
-                                                    type="text"
-                                                    value={warehouseAddress}
-                                                    onChange={(e) => setWarehouseAddress(e.target.value)}
-                                                    className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none"
-                                                    required
-                                                />
-                                            </div>
-                                            <button
-                                                type="submit"
-                                                className="w-full sm:w-auto bg-black text-white px-6 py-3 text-xs font-bold uppercase hover:bg-gray-800 transition-colors"
-                                            >
-                                                Добавить склад
-                                            </button>
-                                        </form>
-                                    </div>
-                                </motion.div>
+                            <motion.div
+                                key="warehouse-management-window"
+                                initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, height: "auto", scale: 1 }}
+                                exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                                transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+                                style={{ display: "block" }}
+                                className="overflow-hidden"
+                            >
+                                <div className="border-2 border-black p-6 rounded-lg bg-white mt-4">
+                                    <h4 className="font-black uppercase text-sm mb-4 border-b-2 border-gray-100 pb-2">Добавить новый склад</h4>
+                                    <form onSubmit={handleCreateWarehouse} className="space-y-4">
+                                        <div>
+                                            <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Адрес нового склада</label>
+                                            <input type="text" value={warehouseAddress} onChange={(e) => setWarehouseAddress(e.target.value)} className="w-full border-2 border-black p-2 text-sm uppercase rounded focus:outline-none" required />
+                                        </div>
+                                        <button type="submit" className="w-full sm:w-auto bg-black text-white px-6 py-3 text-xs font-bold uppercase hover:bg-gray-800 transition-colors">Добавить склад</button>
+                                    </form>
+                                </div>
+                            </motion.div>
                         )}
 
                         {activeAction === "STOCK" && (
-                                <motion.div
-                                    key="stock-management-window"
-                                    initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, height: "auto", scale: 1 }}
-                                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
-                                    transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
-                                    style={{ display: "block" }}
-                                    className="overflow-hidden"
-                                >
-                                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pt-2">
-                                        {/* ЛЕВАЯ КОЛОНКА: ОСТАТКИ */}
-                                        <div className="border-2 border-black p-4 rounded-lg bg-white h-[500px] flex flex-col">
-                                            <h4 className="font-black uppercase text-xs mb-3 border-b-2 pb-2">Текущие остатки на складе</h4>
-                                            <div className="flex-1 overflow-y-auto space-y-2">
-                                                {stockList.length > 0 ? (
-                                                    stockList.map((item: any) => (
-                                                        <div key={item.variantId} className="flex justify-between items-center p-2 border border-gray-100 rounded text-xs font-bold uppercase">
-                                                            <span>{item.title} <span className="text-gray-400">[{item.sku}]</span></span>
-                                                            <span className="bg-gray-100 px-2 py-1 rounded">{item.quantity} шт.</span>
-                                                        </div>
-                                                    ))
-                                                ) : (
-                                                    <div className="text-gray-400 text-xs italic p-2">Выберите склад для просмотра остатков</div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* ПРАВАЯ КОЛОНКА: ФОРМА */}
-                                        <div className="border-2 border-black p-4 rounded-lg bg-gray-50">
-                                            <h4 className="font-black uppercase text-xs mb-3 border-b-2 pb-2">Изменение остатков</h4>
-                                            <form onSubmit={handleUpdateStock} className="space-y-4">
-                                                {/* 1. Выбор склада */}
-                                                <div>
-                                                    <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Склад</label>
-                                                    <select
-                                                        value={stockWarehouseId}
-                                                        onChange={(e) => setStockWarehouseId(e.target.value)}
-                                                        className="w-full border-2 border-black p-2 text-sm rounded bg-white font-bold"
-                                                        required
-                                                    >
-                                                        <option value="" disabled>Выберите склад...</option>
-                                                        {warehousesList.map(w => <option key={w.id} value={w.id}>{w.address}</option>)}
-                                                    </select>
-                                                </div>
-
-                                                {/* 2 и 3: Товар и Вариант */}
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <select
-                                                        value={stockProductId}
-                                                        onChange={(e) => setStockProductId(e.target.value)}
-                                                        className="border-2 border-black p-2 text-sm rounded bg-white font-bold"
-                                                        required
-                                                    >
-                                                        <option value="">Товар...</option>
-                                                        {productsList.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
-                                                    </select>
-                                                    <select
-                                                        value={stockVariantId}
-                                                        onChange={(e) => setStockVariantId(e.target.value)}
-                                                        className="border-2 border-black p-2 text-sm rounded bg-white font-bold"
-                                                        required
-                                                        disabled={!stockProductId}
-                                                    >
-                                                        <option value="">Вариант...</option>
-                                                        {selectedProductVariants.map(v => <option key={v.id} value={v.id}>{v.sku} ({v.color})</option>)}
-                                                    </select>
-                                                </div>
-
-                                                {/* 4. Кол-во */}
-                                                <div>
-                                                    <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Количество (изменение)</label>
-                                                    <input
-                                                        type="number"
-                                                        value={stockQuantity}
-                                                        onChange={(e) => setStockQuantity(e.target.value)}
-                                                        placeholder="0"
-                                                        className="w-full border-2 border-black p-2 text-sm rounded"
-                                                        required
-                                                    />
-                                                </div>
-
-                                                <button
-                                                    type="submit"
-                                                    onClick={() => {
-                                                        getStockOnWarehouse({
-                                                            warehouseId: Number(stockWarehouseId),
-                                                            setData: setStockList,
-                                                            setError,
-                                                            setLoading
-                                                        });
-                                                    }}
-                                                    className="w-full bg-black text-white py-3 text-xs font-bold uppercase hover:bg-gray-800 transition-colors"
-                                                >
-                                                    Сохранить изменения
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                        )}
-                        {activeAction === "ORDER_MANAGEMENT" && (
-                                <motion.div
-                                    key="order-management-window"
-                                    initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, height: "auto", scale: 1 }}
-                                    exit={{ opacity: 0, height: 0, scale: 0.95 }}
-                                    transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
-                                    style={{ display: "block" }}
-                                    className="overflow-hidden"
-                                >
-                                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 pt-2 min-h-[500px]">
-                                        {/* ЛЕВАЯ КОЛОНКА: СПИСОК ЗАКАЗОВ */}
-                                        <div className="xl:col-span-1 border-2 border-black p-4 rounded-lg bg-white flex flex-col h-[500px]">
-                                            <h4 className="font-black uppercase text-xs mb-3 border-b-2 pb-2">Список заказов</h4>
-
-                                            <div className="flex-1 overflow-y-auto space-y-2 pr-2">
-                                                {ordersPage.content.map((order: any) => (
-                                                    <button
-                                                        key={order.id}
-                                                        onClick={() => {
-                                                            setSelectedOrder(order);
-                                                            setOrderId(String(order.id));
-                                                            setOrderStatus(order.status);
-                                                        }}
-                                                        className={`w-full flex items-center justify-between p-3 border-2 rounded transition-all duration-200 
-                                ${selectedOrder?.id === order.id
-                                                                ? "bg-black text-white border-black"
-                                                                : "bg-white border-gray-200 hover:border-black"}`}
-                                                    >
-                                                        <div className="flex flex-col items-start gap-1">
-                                                            <span className="text-[11px] font-black uppercase">Заказ №{order.id}</span>
-                                                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${selectedOrder?.id === order.id ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"
-                                                                }`}>
-                                                                {order.status}
-                                                            </span>
-                                                        </div>
-
-                                                        <div className="text-right">
-                                                            <span className="text-[11px] font-black">
-                                                                {formatPrice(order.totalPrice)}
-                                                            </span>
-                                                        </div>
-                                                    </button>
-                                                ))}
-                                            </div>
-
-                                            <div className="border-t-2 border-black mt-4 pt-2 flex justify-between items-center bg-gray-100 px-2">
-                                                <button
-                                                    disabled={ordersPage.first || loading}
-                                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))}
-                                                    className="text-[10px] font-black uppercase border-2 border-black px-2 py-1 hover:bg-black hover:text-white disabled:opacity-30"
-                                                >
-                                                    Назад
-                                                </button>
-                                                <span className="text-[10px] font-bold uppercase">
-                                                    Стр. {ordersPage.number + 1} из {ordersPage.totalPages}
-                                                </span>
-                                                <button
-                                                    disabled={ordersPage.last || loading}
-                                                    onClick={() => setCurrentPage(prev => prev + 1)}
-                                                    className="text-[10px] font-black uppercase border-2 border-black px-2 py-1 hover:bg-black hover:text-white disabled:opacity-30"
-                                                >
-                                                    Вперед
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* ПРАВАЯ КОЛОНКА: ДЕТАЛИ ЗАКАЗА */}
-                                        <div className="xl:col-span-2 space-y-6">
-                                            {selectedOrder ? (
-                                                <motion.div
-                                                    initial={{ opacity: 0, x: 20 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ duration: 0.3 }}
-                                                    className="space-y-6"
-                                                >
-                                                    <div className="border-2 border-black p-6 bg-white rounded-lg">
-                                                        <h4 className="font-black uppercase text-sm mb-4">Детали заказа №{selectedOrder.id}</h4>
-                                                        <div className="grid grid-cols-2 gap-4 text-xs">
-                                                            <p>Клиент: <span className="font-bold">{selectedOrder.userId}</span></p>
-                                                            <p>Адрес: <span className="font-bold">{selectedOrder.address}</span></p>
-                                                            <p>Оплата: <span className="font-bold">{selectedOrder.paymentMethod}</span></p>
-                                                            <p>Дата: <span className="font-bold">{new Date(selectedOrder.date).toLocaleString()}</span></p>
-                                                        </div>
+                            <motion.div
+                                key="stock-management-window"
+                                initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, height: "auto", scale: 1 }}
+                                exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                                transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+                                style={{ display: "block" }}
+                                className="overflow-hidden"
+                            >
+                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pt-2">
+                                    <div className="border-2 border-black p-4 rounded-lg bg-white h-[500px] flex flex-col">
+                                        <h4 className="font-black uppercase text-xs mb-3 border-b-2 pb-2">Текущие остатки на складе</h4>
+                                        <div className="flex-1 overflow-y-auto space-y-2">
+                                            {stockList.length > 0 ? (
+                                                stockList.map((item: any) => (
+                                                    <div key={item.variantId} className="flex justify-between items-center p-2 border border-gray-100 rounded text-xs font-bold uppercase">
+                                                        <span>{item.title} <span className="text-gray-400">[{item.sku}]</span></span>
+                                                        <span className="bg-gray-100 px-2 py-1 rounded">{item.quantity} шт.</span>
                                                     </div>
-
-                                                    <div className="border-2 border-black p-6 bg-gray-50 rounded-lg">
-                                                        <form onSubmit={handleUpdateStatus} className="space-y-4">
-                                                            <div>
-                                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Изменить статус</label>
-                                                                <select value={orderStatus} onChange={(e) => setOrderStatus(e.target.value)} className="w-full border-2 border-black p-2 text-sm uppercase rounded bg-white font-bold">
-                                                                    <option value="PROCESSING">В обработке</option>
-                                                                    <option value="ASSEMBLING">Собирается</option>
-                                                                    <option value="ASSEMBLED">Собран</option>
-                                                                    <option value="SHIPPING">Передан в доставку</option>
-                                                                    <option value="SHIPPED">Доставляется</option>
-                                                                    <option value="COMPLETED">Выполнен</option>
-                                                                    <option value="CANCELED">Отменен</option>
-                                                                </select>
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Комментарий к изменению</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={orderComment}
-                                                                    onChange={(e) => setOrderComment(e.target.value)}
-                                                                    placeholder="Причина или пояснение..."
-                                                                    className="w-full border-2 border-black p-2 text-sm rounded focus:outline-none"
-                                                                />
-                                                            </div>
-                                                            <button type="submit" className="w-full bg-black text-white py-3 text-xs font-bold uppercase hover:bg-gray-800 transition-colors">
-                                                                Сохранить статус
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </motion.div>
+                                                ))
                                             ) : (
-                                                <div className="h-full flex items-center justify-center border-2 border-dashed border-gray-300 p-10 text-gray-400 font-bold uppercase text-xs">
-                                                    Выберите заказ для управления
-                                                </div>
+                                                <div className="text-gray-400 text-xs italic p-2">Выберите склад для просмотра остатков</div>
                                             )}
                                         </div>
                                     </div>
-                                </motion.div>
+                                    <div className="border-2 border-black p-4 rounded-lg bg-gray-50">
+                                        <h4 className="font-black uppercase text-xs mb-3 border-b-2 pb-2">Изменение остатков</h4>
+                                        <form onSubmit={handleUpdateStock} className="space-y-4">
+                                            <div>
+                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Склад</label>
+                                                <select value={stockWarehouseId} onChange={(e) => setStockWarehouseId(e.target.value)} className="w-full border-2 border-black p-2 text-sm rounded bg-white font-bold" required>
+                                                    <option value="" disabled>Выберите склад...</option>
+                                                    {warehousesList.map(w => <option key={w.id} value={w.id}>{w.address}</option>)}
+                                                </select>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <select value={stockProductId} onChange={(e) => setStockProductId(e.target.value)} className="border-2 border-black p-2 text-sm rounded bg-white font-bold" required>
+                                                    <option value="">Товар...</option>
+                                                    {productsList.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+                                                </select>
+                                                <select value={stockVariantId} onChange={(e) => setStockVariantId(e.target.value)} className="border-2 border-black p-2 text-sm rounded bg-white font-bold" required disabled={!stockProductId}>
+                                                    <option value="">Вариант...</option>
+                                                    {selectedProductVariants.map(v => <option key={v.id} value={v.id}>{v.sku} ({v.color})</option>)}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Количество (изменение)</label>
+                                                <input type="number" value={stockQuantity} onChange={(e) => setStockQuantity(e.target.value)} placeholder="0" className="w-full border-2 border-black p-2 text-sm rounded" required />
+                                            </div>
+                                            <button type="submit" onClick={() => { getStockOnWarehouse({ warehouseId: Number(stockWarehouseId), setData: setStockList, setError, setLoading }); }} className="w-full bg-black text-white py-3 text-xs font-bold uppercase hover:bg-gray-800 transition-colors">Сохранить изменения</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {activeAction === "ORDER_MANAGEMENT" && (
+                            <motion.div
+                                key="order-management-window"
+                                initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, height: "auto", scale: 1 }}
+                                exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                                transition={{ duration: 0.4, ease: [0.04, 0.62, 0.23, 0.98] }}
+                                style={{ display: "block" }}
+                                className="overflow-hidden"
+                            >
+                                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 pt-2 min-h-[500px]">
+                                    <div className="xl:col-span-1 border-2 border-black p-4 rounded-lg bg-white flex flex-col h-[500px]">
+                                        <h4 className="font-black uppercase text-xs mb-3 border-b-2 pb-2">Список заказов</h4>
+                                        <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+                                            {ordersPage.content.map((order: any) => (
+                                                <button key={order.id} onClick={() => { setSelectedOrder(order); setOrderId(String(order.id)); setOrderStatus(order.status); }} className={`w-full flex items-center justify-between p-3 border-2 rounded transition-all duration-200 ${selectedOrder?.id === order.id ? "bg-black text-white border-black" : "bg-white border-gray-200 hover:border-black"}`}>
+                                                    <div className="flex flex-col items-start gap-1">
+                                                        <span className="text-[11px] font-black uppercase">Заказ №{order.id}</span>
+                                                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${selectedOrder?.id === order.id ? "bg-white/20 text-white" : "bg-gray-100 text-gray-600"}`}>{order.status}</span>
+                                                    </div>
+                                                    <div className="text-right"><span className="text-[11px] font-black">{formatPrice(order.totalPrice)}</span></div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <div className="border-t-2 border-black mt-4 pt-2 flex justify-between items-center bg-gray-100 px-2">
+                                            <button disabled={ordersPage.first || loading} onClick={() => setCurrentPage(prev => Math.max(prev - 1, 0))} className="text-[10px] font-black uppercase border-2 border-black px-2 py-1 hover:bg-black hover:text-white disabled:opacity-30">Назад</button>
+                                            <span className="text-[10px] font-bold uppercase">Стр. {ordersPage.number + 1} из {ordersPage.totalPages}</span>
+                                            <button disabled={ordersPage.last || loading} onClick={() => setCurrentPage(prev => prev + 1)} className="text-[10px] font-black uppercase border-2 border-black px-2 py-1 hover:bg-black hover:text-white disabled:opacity-30">Вперед</button>
+                                        </div>
+                                    </div>
+                                    <div className="xl:col-span-2 space-y-6">
+                                        {selectedOrder ? (
+                                            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }} className="space-y-6">
+                                                <div className="border-2 border-black p-6 bg-white rounded-lg">
+                                                    <h4 className="font-black uppercase text-sm mb-4">Детали заказа №{selectedOrder.id}</h4>
+                                                    <div className="grid grid-cols-2 gap-4 text-xs">
+                                                        <p>Клиент: <span className="font-bold">{selectedOrder.userId}</span></p>
+                                                        <p>Адрес: <span className="font-bold">{selectedOrder.address}</span></p>
+                                                        <p>Оплата: <span className="font-bold">{selectedOrder.paymentMethod}</span></p>
+                                                        <p>Дата: <span className="font-bold">{new Date(selectedOrder.date).toLocaleString()}</span></p>
+                                                    </div>
+                                                </div>
+                                                <div className="border-2 border-black p-6 bg-gray-50 rounded-lg">
+                                                    <form onSubmit={handleUpdateStatus} className="space-y-4">
+                                                        <div>
+                                                            <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Изменить статус</label>
+                                                            <select value={orderStatus} onChange={(e) => setOrderStatus(e.target.value)} className="w-full border-2 border-black p-2 text-sm uppercase rounded bg-white font-bold">
+                                                                <option value="PROCESSING">В обработке</option>
+                                                                <option value="ASSEMBLING">Собирается</option>
+                                                                <option value="ASSEMBLED">Собран</option>
+                                                                <option value="SHIPPING">Передан в доставку</option>
+                                                                <option value="SHIPPED">Доставляется</option>
+                                                                <option value="COMPLETED">Выполнен</option>
+                                                                <option value="CANCELED">Отменен</option>
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs uppercase font-bold text-gray-500 mb-1">Комментарий к изменению</label>
+                                                            <input type="text" value={orderComment} onChange={(e) => setOrderComment(e.target.value)} placeholder="Причина или пояснение..." className="w-full border-2 border-black p-2 text-sm rounded focus:outline-none" />
+                                                        </div>
+                                                        <button type="submit" className="w-full bg-black text-white py-3 text-xs font-bold uppercase hover:bg-gray-800 transition-colors">Сохранить статус</button>
+                                                    </form>
+                                                </div>
+                                            </motion.div>
+                                        ) : (
+                                            <div className="h-full flex items-center justify-center border-2 border-dashed border-gray-300 p-10 text-gray-400 font-bold uppercase text-xs">Выберите заказ для управления</div>
+                                        )}
+                                    </div>
+                                </div>
+                            </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
             )}
-
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="w-full rounded-lg border-2 p-6 bg-white space-y-4">
                     <div className="text-lg font-bold uppercase border-b-2 border-gray-100 pb-2">Управление товарами</div>
                     <div className="flex flex-col gap-2">
                         <button onClick={() => setActiveAction("PRODUCT")} className={`w-full text-start border-2 px-4 py-3 text-xs font-bold uppercase transition-colors rounded-md ${activeAction === "PRODUCT" ? "border-black bg-black text-white" : "border-gray-200 hover:border-black"}`}>+ Добавить новый продукт</button>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <button onClick={() => setActiveAction("VARIANT")} className={`w-full text-start border-2 px-4 py-3 text-xs font-bold uppercase transition-colors rounded-md ${activeAction === "VARIANT" ? "border-black bg-black text-white" : "border-gray-200 hover:border-black"}`}>+ Добавить новый вариант продукта</button>
                     </div>
                 </div>
 
@@ -1202,12 +1292,7 @@ export function ManagerPage() {
                                 <td className="py-3 pr-4 font-medium uppercase text-xs text-gray-400 border-r-2 border-gray-300 whitespace-nowrap w-[200px]">Обработка заказов</td>
                                 <td className="pl-4 py-2 flex items-center justify-between gap-4">
                                     <span className="text-xs uppercase text-gray-600">Просмотр и смена статусов</span>
-                                    <button
-                                        onClick={() => setActiveAction("ORDER_MANAGEMENT")}
-                                        className="border-2 border-black px-3 py-1 text-[10px] font-black uppercase hover:bg-black hover:text-white transition-colors"
-                                    >
-                                        Открыть менеджер заказов
-                                    </button>
+                                    <button onClick={() => setActiveAction("ORDER_MANAGEMENT")} className="border-2 border-black px-3 py-1 text-[10px] font-black uppercase hover:bg-black hover:text-white transition-colors">Открыть менеджер заказов</button>
                                 </td>
                             </tr>
                         </tbody>
@@ -1216,6 +1301,18 @@ export function ManagerPage() {
             </div>
         </div>
     );
+}
+
+// Вспомогательная функция транслитерации для автогенерации SKU
+function transliterate(text: string): string {
+    const map: Record<string, string> = {
+        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
+        'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+        'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+        'ф': 'f', 'х': 'h', 'ц': 'c', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+        'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+    };
+    return text.toLowerCase().split('').map(c => map[c] !== undefined ? map[c] : c).join('');
 }
 
 export function AdminPage() {
