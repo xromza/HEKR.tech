@@ -180,7 +180,7 @@ export default function OrderPage({
                                             <div className="flex items-center gap-4">
                                                 <div className="relative w-20 h-20 rounded border-2 border-gray-200 bg-white p-1 flex-shrink-0 overflow-hidden">
                                                     {item.mainImageUrl ? (
-                                                        <img src={item.mainImageUrl} alt={item.title} className="w-full h-full object-cover" />
+                                                        <img src={item.mainImageUrl} alt={item.title} className="w-full h-full object-contain" />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center bg-gray-50 text-[10px] text-gray-400 uppercase font-bold">No img</div>
                                                     )}
