@@ -2,16 +2,17 @@ package com.hekr.store.service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.hekr.store.dto.stock.StockResponseDto;
 import com.hekr.store.dto.stock.StockResponsePlainDto;
+import com.hekr.store.exceptions.BadRequestException;
 import com.hekr.store.exceptions.NotFoundException;
-import com.hekr.store.mapper.stock.StockResponseMapper;
 import com.hekr.store.mapper.stock.StockResponsePlainMapper;
+import com.hekr.store.model.order.OrderItem;
 import com.hekr.store.model.product.ProductVariant;
 import com.hekr.store.model.stock.Stock;
 import com.hekr.store.model.stock.StockId;
@@ -78,6 +79,25 @@ public class StockService {
         if (stock.getVersion() == null)
             stock = stockRepository.save(stock);
         return stockResponsePlainMapper.toResponse(stock);
+    }
+
+    @Transactional
+    public void revertStocks(Set<OrderItem> items, Long warehouseId) {
+        for (OrderItem item : items) {
+            addStock(item.getProductVariant().getId(), warehouseId, item.getQuantity());
+        }
+    }
+
+    @Transactional
+    public StockResponsePlainDto addStock(Long variantId, Long warehouseId, Integer diff) {
+        StockId stockId = new StockId(variantId, warehouseId);
+        Stock stock = stockRepository.findById(stockId).orElseThrow(() -> new NotFoundException("Склад не найден"));
+        Integer curQuantity = stock.getQuantity();
+        if (diff < -curQuantity) {
+            throw new BadRequestException("На складе не может быть отрицательное количество товара");
+        }
+        stock.setQuantity(curQuantity + diff);
+        return stockResponsePlainMapper.toResponse(stockRepository.save(stock));
     }
 
     private Stock createNewStock(StockId stockId, Long warehouseId, Long variantId) {
