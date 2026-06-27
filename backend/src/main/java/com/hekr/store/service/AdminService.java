@@ -17,6 +17,7 @@ public class AdminService {
     private final UserRepository userRepository;
 
     private final UserMapper userMapper;
+    
     @Transactional
     public UserResponseDto updateAccountStatus(Long id, Boolean approved) {
         User user = userRepository.findById(id)
@@ -24,4 +25,5 @@ public class AdminService {
         user.setIsApproved(approved);
         return userMapper.toResponse(userRepository.save(user));
     }
+
 }
