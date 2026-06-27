@@ -30,6 +30,18 @@ export default function CartPage() {
   useEffect(() => {
     setIsMounted(true);
   }, [])
+
+  const handleToOrder = () => {
+    const params = new URLSearchParams()
+    const variantIds: number[] | undefined = cartData?.items.map((item) => item.variantId);
+    const quantities: number[] | undefined = cartData?.items.map((item) => item.quantity);
+    if (variantIds && quantities) {
+      params.append("variants", variantIds.join(','));
+      params.append("quantity", quantities.join(','));
+    }
+    router.push(`/order?${params.toString()}`)
+  }
+
   return (
 
     <main className="h-full w-full mx-auto flex max-w-[1680px]">
@@ -46,7 +58,7 @@ export default function CartPage() {
               handleAction(() => deleteAllItems({ setError: setError, setLoading: setLoading }));
           }} className="w-full uppercase disabled:text-gray-400 text-xl enabled:cursor-pointer border-b-2">
             <div className="flex flex-row items-center">
-              <X className="inline" /> 
+              <X className="inline" />
               <span>Очистить</span>
             </div></button>
         </div>
@@ -75,7 +87,7 @@ export default function CartPage() {
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
-
+                          onClick={handleToOrder}
                           disabled={!cartData.canCheckout || cartData.items.length === 0} className="px-6 py-4 bg-gray-900 text-white uppercase cursor-pointer disabled:cursor-default transition-colors rounded">
                           Перейти к оформлению заказа
                         </motion.button>}
@@ -94,12 +106,3 @@ export default function CartPage() {
     </main>
   );
 }
-
-
-
-
-
-
-
-
-
