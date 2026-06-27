@@ -37,10 +37,16 @@ const processQueue = (error: any, token: string | null = null) => {
 api.interceptors.request.use(
     (config) => {
         const token = useToken.getState().accessToken;
+        const url = config.url || '';
+        const isAuthUrl = url.includes('/v1/auth/login') || url.includes('/v1/auth/refresh') || url.includes('/v1/auth/register');
 
-        if (token && config.headers && !config.url?.includes('/v1/auth/refresh')) {
+        if (isAuthUrl) {
+            delete config.headers.Authorization;
+            console.log("Auth request, Authorization header removed.");
+        } else if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+
         return config;
     },
     (error) => Promise.reject(error)
@@ -55,7 +61,7 @@ api.interceptors.response.use(
             && !(originalRequest as any)._retry
         ) {
             const errorData = error.response.data as any;
-            const isTokenExpired = isErrorResponse(errorData) && 
+            const isTokenExpired = isErrorResponse(errorData) &&
                 (errorData.error === "ExpiredJwt" || errorData.error === "TokenExpired" || errorData.error === "ExpiredToken" || errorData.description === "Токен устарел");
             if (isTokenExpired) {
                 if (isRefreshing) {
@@ -74,7 +80,7 @@ api.interceptors.response.use(
 
                 try {
                     console.log("[Axios Interceptor]: Токен устарел. Пытаюсь обновить через HttpOnly куку...");
-                    
+
                     const res = await axios.post<AuthAction>("/api/v1/auth/refresh", {}, {
                         withCredentials: true,
                         headers: { 'Content-Type': 'application/json' }
@@ -96,7 +102,7 @@ api.interceptors.response.use(
                 } catch (refreshError) {
                     processQueue(refreshError, null);
                     isRefreshing = false;
-                    
+
                     console.error("[Axios Interceptor]: Рефреш-кука тоже невалидна. Полный разлогин.");
                     useToken.getState().deleteSession();
 

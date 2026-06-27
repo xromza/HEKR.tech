@@ -3,6 +3,7 @@ import { Open_Sans } from "next/font/google";
 import Footer from "@/components/Footer";
 import "./globals.css";
 import Header from "@/components/Header";
+import AuthGuard from "@/components/AuthGuard";
 
 const openSans = Open_Sans({
   weight: "400",
@@ -32,9 +33,11 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <Header />
-        <div className="my-[150px] md:my-[200px]">
-          {children}
-        </div>
+        <AuthGuard>
+          <div className="my-[150px] md:my-[200px]">
+            {children}
+          </div>
+        </AuthGuard>
         <Footer />
       </body>
     </html>
