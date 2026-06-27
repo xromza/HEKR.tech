@@ -31,23 +31,20 @@ class HeaderServiceTest {
         @DisplayName("Успешное получение заголовка со всеми данными")
         void getHeader_Success_ReturnsHeaderWithAllData() {
             // Arrange
-            when(productService.countBrands()).thenReturn(5L);
-            when(productService.countWithSale()).thenReturn(3L);
             when(productService.countByCategoryId(1L)).thenReturn(10L);
             when(productService.countByCategoryId(2L)).thenReturn(7L);
+            when(productService.countByCategoryId(3L)).thenReturn(12L);
 
             // Act
             HeaderResponseDto result = headerService.getHeader();
 
             // Assert
             assertThat(result).isNotNull();
-            assertThat(result.getBrandCount()).isEqualTo(5L);
-            assertThat(result.getSaleCount()).isEqualTo(3L);
+            assertThat(result.getAccessoriesCount()).isEqualTo(12L);
             assertThat(result.getManCount()).isEqualTo(10L);
             assertThat(result.getWomenCount()).isEqualTo(7L);
 
-            verify(productService).countBrands();
-            verify(productService).countWithSale();
+            verify(productService).countByCategoryId(3L);
             verify(productService).countByCategoryId(1L);
             verify(productService).countByCategoryId(2L);
         }
@@ -56,8 +53,7 @@ class HeaderServiceTest {
         @DisplayName("Успешное получение заголовка с нулевыми значениями")
         void getHeader_AllCountsZero_ReturnsHeaderWithZeros() {
             // Arrange
-            when(productService.countBrands()).thenReturn(0L);
-            when(productService.countWithSale()).thenReturn(0L);
+            when(productService.countByCategoryId(3L)).thenReturn(0L);
             when(productService.countByCategoryId(1L)).thenReturn(0L);
             when(productService.countByCategoryId(2L)).thenReturn(0L);
 
@@ -66,13 +62,11 @@ class HeaderServiceTest {
 
             // Assert
             assertThat(result).isNotNull();
-            assertThat(result.getBrandCount()).isZero();
-            assertThat(result.getSaleCount()).isZero();
+            assertThat(result.getAccessoriesCount()).isZero();
             assertThat(result.getManCount()).isZero();
             assertThat(result.getWomenCount()).isZero();
 
-            verify(productService).countBrands();
-            verify(productService).countWithSale();
+            verify(productService).countByCategoryId(3L);
             verify(productService).countByCategoryId(1L);
             verify(productService).countByCategoryId(2L);
         }
@@ -81,8 +75,7 @@ class HeaderServiceTest {
         @DisplayName("Edge-case: большие значения счетчиков")
         void getHeader_LargeCounts_ReturnsHeaderWithLargeValues() {
             // Arrange
-            when(productService.countBrands()).thenReturn(1000L);
-            when(productService.countWithSale()).thenReturn(500L);
+            when(productService.countByCategoryId(3L)).thenReturn(500L);
             when(productService.countByCategoryId(1L)).thenReturn(1500L);
             when(productService.countByCategoryId(2L)).thenReturn(800L);
 
@@ -91,8 +84,7 @@ class HeaderServiceTest {
 
             // Assert
             assertThat(result).isNotNull();
-            assertThat(result.getBrandCount()).isEqualTo(1000L);
-            assertThat(result.getSaleCount()).isEqualTo(500L);
+            assertThat(result.getAccessoriesCount()).isEqualTo(500L);
             assertThat(result.getManCount()).isEqualTo(1500L);
             assertThat(result.getWomenCount()).isEqualTo(800L);
         }
@@ -101,8 +93,7 @@ class HeaderServiceTest {
         @DisplayName("Проверка, что все методы ProductService вызываются ровно один раз")
         void getHeader_AllProductServiceMethodsCalledOnce() {
             // Arrange
-            when(productService.countBrands()).thenReturn(1L);
-            when(productService.countWithSale()).thenReturn(1L);
+            when(productService.countByCategoryId(3L)).thenReturn(1L);
             when(productService.countByCategoryId(1L)).thenReturn(1L);
             when(productService.countByCategoryId(2L)).thenReturn(1L);
 
@@ -110,8 +101,7 @@ class HeaderServiceTest {
             headerService.getHeader();
 
             // Assert
-            verify(productService, times(1)).countBrands();
-            verify(productService, times(1)).countWithSale();
+            verify(productService, times(1)).countByCategoryId(3L);
             verify(productService, times(1)).countByCategoryId(1L);
             verify(productService, times(1)).countByCategoryId(2L);
         }
@@ -120,8 +110,6 @@ class HeaderServiceTest {
         @DisplayName("Проверка, что для женских и мужских товаров используются правильные ID категорий")
         void getHeader_UsesCorrectCategoryIds() {
             // Arrange
-            when(productService.countBrands()).thenReturn(0L);
-            when(productService.countWithSale()).thenReturn(0L);
             when(productService.countByCategoryId(anyLong())).thenReturn(0L);
 
             // Act
@@ -130,6 +118,7 @@ class HeaderServiceTest {
             // Assert
             verify(productService).countByCategoryId(1L); // мужские товары
             verify(productService).countByCategoryId(2L); // женские товары
+            verify(productService).countByCategoryId(3L); // акссесуары 
         }
     }
 }

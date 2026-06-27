@@ -42,6 +42,4 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "WHERE p.category.discount IS NOT NULL")
     Long countProductWithSale();
 
-    @Query("SELECT COUNT(DISTINCT p.brand) FROM Product p")
-    Long countDistinctBrands();
 }

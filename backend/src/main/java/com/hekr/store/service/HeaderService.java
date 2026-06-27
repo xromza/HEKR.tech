@@ -16,8 +16,7 @@ public class HeaderService {
     @Transactional(readOnly = true)
     public HeaderResponseDto getHeader() {
         return HeaderResponseDto.builder()
-                .brandCount(productService.countBrands())
-                .saleCount(productService.countWithSale())
+                .accessoriesCount(productService.countByCategoryId(CategoryType.ACCESSORIES.getId()))
                 .manCount(productService.countByCategoryId(CategoryType.MEN.getId()))
                 .womenCount(productService.countByCategoryId(CategoryType.WOMEN.getId()))
                 .build();

@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Getter
 public class HeaderResponseDto {
-    private Long saleCount;
+    private Long accessoriesCount;
     private Long manCount;
     private Long womenCount;
-    private Long brandCount; 
 }
