@@ -11,6 +11,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Column;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.MapsId;
 
@@ -31,15 +32,20 @@ public class OrderItem{
     @ManyToOne(fetch=FetchType.LAZY)
     @MapsId("orderId")
     @JoinColumn(name="order_id")
+    @NotNull
     private Order order;
     @ManyToOne(fetch=FetchType.LAZY)
     @MapsId("variantId")
     @JoinColumn(name="variant_id")
+    @NotNull
     private ProductVariant productVariant;
     @Column(name="quantity",nullable = false)
+    @NotNull
     private Integer quantity;
     @Column(name="price_at_purchase",nullable = false,precision =12,scale = 2)
+    @NotNull
     private BigDecimal priceAtPurchase;
     @Column(name="total_price",nullable = false,precision = 12,scale=2)
+    @NotNull
     private BigDecimal totalPrice;
 }

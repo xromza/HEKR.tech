@@ -1,11 +1,10 @@
 package com.hekr.store.service;
 
-import com.hekr.store.dto.cart.CartItemRequestDto;
+import com.hekr.store.dto.order.OrderItemRequestDto;
 import com.hekr.store.dto.order.OrderRequestDto;
 import com.hekr.store.dto.order.OrderResponseDto;
 import com.hekr.store.exceptions.NotEnoughItems;
 import com.hekr.store.exceptions.NotFoundException;
-import com.hekr.store.interfaces.ItemRequestInterface;
 import com.hekr.store.interfaces.UserProvider;
 import com.hekr.store.mapper.order.OrderMapper;
 import com.hekr.store.mapper.order.OrderResponseMapper;
@@ -200,13 +199,13 @@ class OrderServiceTest {
     class CreateOrderTests {
 
         private OrderRequestDto checkoutDto;
-        private List<ItemRequestInterface> requestItems;
+        private List<OrderItemRequestDto> requestItems;
         private List<Long> variantIds;
 
         @BeforeEach
         void setUp() {
             requestItems = List.of(
-                    CartItemRequestDto.builder()
+                    OrderItemRequestDto.builder()
                             .variantId(10000L)
                             .quantity(2)
                             .build());
