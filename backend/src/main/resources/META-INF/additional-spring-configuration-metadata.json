@@ -1,0 +1,17 @@
+{"properties": [
+  {
+    "name": "application.security.jwt.secret-key",
+    "type": "java.lang.String",
+    "description": "JWT Secret Key"
+  },
+  {
+    "name": "application.security.jwt.expiration",
+    "type": "java.lang.String",
+    "description": "JWT Access Token expiration interval in seconds"
+  },
+  {
+    "name": "application.security.jwt.refresh-token.expiration",
+    "type": "java.lang.String",
+    "description": "JWT Refresh Token expiration interval in seconds"
+  }
+]}

@@ -1,0 +1,2 @@
+INSERT INTO users (id, login, password_hash, role, created_at, is_approved, client_type, phone, email ) OVERRIDING SYSTEM VALUE VALUES (0, 'system', '0', 'ADMIN', CURRENT_TIMESTAMP, false, 'LEGAL', '0', '0');
+SELECT setval(pg_get_serial_sequence('users', 'id'), COALESCE(MAX(id), 1)) FROM users;
