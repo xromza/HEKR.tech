@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Minus, Plus, Loader, ArrowUp, Trash2, AlertCircle } from "lucide-react";
@@ -146,8 +146,7 @@ const PriceInfo = ({ price, quantity }: { price: any; quantity: number }) => {
   );
 };
 
-// --- Главная страница ---
-export default function OrderPage() {
+export function OrderPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const loginValue = useToken((state) => state.user?.login);
@@ -579,4 +578,18 @@ export default function OrderPage() {
       )}
     </main>
   );
+}
+
+export default function OrderPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="flex justify-center items-center min-h-[400px]">
+                    <Loader className="animate-spin" />
+                </div>
+            }
+        >
+            <OrderPageContent/>
+        </Suspense>
+    )
 }
