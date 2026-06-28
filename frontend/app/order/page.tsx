@@ -200,9 +200,13 @@ export function OrderPageContent() {
 
   const handleManualQuantity = (id: number, value: string) => {
     const val = parseInt(value);
+    if (isNaN(val) || val < 1) {
+      setQuantities(prev => ({ ...prev, [id]: 1 }));
+      return;
+    }
     setQuantities(prev => ({
       ...prev,
-      [id]: !isNaN(val) && val > 0 ? val : 1
+      [id]: Math.min(val, 2147483647)
     }));
   };
 
@@ -412,7 +416,7 @@ export function OrderPageContent() {
     <main className="h-full w-full mx-auto flex max-w-[1680px]">
       <div className="flex flex-col xl:flex-row w-full px-4 gap-6">
         <div className="flex-shrink-0 flex mb-4 xl:mb-0 items-center xl:items-start flex-col w-full xl:w-fit">
-          <OrderNav onScrollToForm={scrollToForm}/>
+          <OrderNav onScrollToForm={scrollToForm} />
         </div>
 
         <div className="flex-1 flex flex-col lg:flex-row gap-6 min-w-0">
@@ -506,6 +510,7 @@ export function OrderPageContent() {
                           <input
                             type="number"
                             min="1"
+                            max="2147483647"
                             value={qty}
                             onChange={(e) => handleManualQuantity(item.variantId, e.target.value)}
                             disabled={!isSelected}
@@ -581,15 +586,15 @@ export function OrderPageContent() {
 }
 
 export default function OrderPage() {
-    return (
-        <Suspense
-            fallback={
-                <div className="flex justify-center items-center min-h-[400px]">
-                    <Loader className="animate-spin" />
-                </div>
-            }
-        >
-            <OrderPageContent/>
-        </Suspense>
-    )
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center items-center min-h-[400px]">
+          <Loader className="animate-spin" />
+        </div>
+      }
+    >
+      <OrderPageContent />
+    </Suspense>
+  )
 }
