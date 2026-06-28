@@ -9,7 +9,6 @@ export const OrderErrorAlert = ({
   items: any[];
   onDismiss?: () => void;
 }) => {
-  // Простая строка-ошибка
   if (typeof error === "string") {
     return (
       <div className="relative bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg animate-in slide-in-from-top-2 duration-300">
@@ -32,7 +31,6 @@ export const OrderErrorAlert = ({
     );
   }
 
-  // Мапа ошибок: { variantId: сообщение }
   const errorEntries = Object.entries(error);
 
   return (

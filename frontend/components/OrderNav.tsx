@@ -17,14 +17,12 @@ export default function OrderNav({ onScrollToForm }: OrderNavProps) {
 
   return (
     <div className="flex-shrink-0 flex mb-4 items-center md:items-start flex-col px-6 w-full md:w-fit">
-      {/* Заголовок — точно как "личный кабинет" в профиле */}
       <div className="flex flex-row gap-2 items-center justify-center md:justify-start mb-5 w-full">
         <div className="uppercase font-bold text-[3rem] leading-none text-center md:text-left">
           Оформление<br className="hidden md:inline" /> заказа
         </div>
       </div>
 
-      {/* Кнопка "К форме" — только на мобильной версии */}
       <button
         onClick={onScrollToForm}
         className="pt-2 hover:text-black text-gray-400 w-full uppercase text-xl text-start cursor-pointer transition-colors border-b-2 mb-2 md:hidden"
@@ -35,7 +33,6 @@ export default function OrderNav({ onScrollToForm }: OrderNavProps) {
         </div>
       </button>
 
-      {/* Навигация — в точности как кнопки в профиле */}
       <div className="flex flex-col gap-2 w-full">
         {navItems.map((item) => (
           <button
