@@ -87,9 +87,14 @@ export async function checkout({
         setData(res.data);
         return true;
     } catch (err: any) {
-        const serverErrors = err.error || err.response?.data?.error;
-        const mainMessage = err.description || err.response?.data?.description || "Произошла ошибка при заказе всей корзины";
-        if (serverErrors) {
+        const errorData = err.response?.data;
+        
+        const mainMessage = errorData?.description || "Произошла ошибка при заказе";
+        const errorMap = errorData?.errors;
+
+        if (errorMap) {
+            setError(errorMap); 
+        } else {
             setError(mainMessage);
         }
         return false;

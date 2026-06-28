@@ -53,7 +53,7 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
             {thumbnails.map((img, index) => (
               <div
                 key={img.sortOrder}
-                onClick={() => openSlider(index)}
+                onClick={() => openSlider(index+1)}
                 className="flex-1 bg-[#FBFAF8] rounded-lg overflow-hidden flex items-center justify-center cursor-pointer hover:opacity-80 transition"
               >
                 <img

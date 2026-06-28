@@ -125,7 +125,8 @@ public class GlobalExceptionHandler {
         @ExceptionHandler(NotEnoughItems.class)
         public ResponseEntity<MapLongErrorResponseDto> handleNEI(NotEnoughItems ex) {
                 return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(
-                                MapLongErrorResponseDto.builder().error(ex.getMessage()).errors(ex.getErrors()).build());
+                                MapLongErrorResponseDto.builder().error(ex.getMessage()).errors(ex.getErrors())
+                                                .build());
         }
 
         @ExceptionHandler(EmptyException.class)
@@ -187,6 +188,16 @@ public class GlobalExceptionHandler {
                                 .build());
         }
 
+        @ExceptionHandler(BadRequestException.class)
+        public ResponseEntity<ErrorResponseDto> handleBadRequest(BadRequestException ex) {
+                return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .body(ErrorResponseDto.builder()
+                                                .error("BadRequest")
+                                                .description(ex.getMessage())
+                                                .build());
+        }
+
         @ExceptionHandler(ExpiredJwtException.class)
         public ResponseEntity<ErrorResponseDto> handleExpiredJwt(ExpiredJwtException ex) {
                 return ResponseEntity
@@ -199,7 +210,7 @@ public class GlobalExceptionHandler {
 
         @ExceptionHandler(OptimisticLockException.class)
         public ResponseEntity<ErrorResponseDto> handleOptimisticLockException(OptimisticLockException ex) {
-                                return ResponseEntity
+                return ResponseEntity
                                 .status(HttpStatus.CONFLICT)
                                 .body(ErrorResponseDto.builder()
                                                 .error("DataChanged")

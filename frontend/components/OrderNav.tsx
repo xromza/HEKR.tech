@@ -1,6 +1,5 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import useMobile from '@/hooks/useMobile';
 import { Home, ShoppingCart, UserCircle2, ArrowDown } from 'lucide-react';
 
 interface OrderNavProps {
@@ -9,56 +8,48 @@ interface OrderNavProps {
 
 export default function OrderNav({ onScrollToForm }: OrderNavProps) {
   const router = useRouter();
-  const isMobile = useMobile(1024);
 
-  // Мобильная версия
-  if (isMobile) {
-    return (
-      <aside className="w-full bg-white border-b border-gray-200 p-4 flex flex-row items-center justify-between sticky top-0 z-10 shadow-sm">
-        <h1 className="text-2xl font-extrabold uppercase tracking-tight">Оформление заказа</h1>
-        <nav className="flex flex-row space-x-4 items-center">
-          <div className="flex items-center gap-2 text-gray-900 hover:text-black cursor-pointer" onClick={() => router.push("/")}>
-            <Home className="w-6 h-6" />
-          </div>
-          <div className="flex items-center gap-2 text-gray-900 hover:text-black cursor-pointer" onClick={() => router.push("/cart")}>
-            <ShoppingCart className="w-6 h-6" />
-          </div>
-          <div className="flex items-center gap-2 text-gray-900 hover:text-black cursor-pointer" onClick={() => router.push("/profile")}>
-            <UserCircle2 className="w-6 h-6" />
-          </div>
-          {/* Кнопка для скролла к форме */}
-          <button
-            onClick={onScrollToForm}
-            className="flex items-center gap-1 bg-black text-white px-3 py-1.5 rounded-full text-xs uppercase tracking-wider hover:bg-gray-800 transition"
-          >
-            <ArrowDown className="w-4 h-4" />
-            <span className="hidden sm:inline">К форме</span>
-          </button>
-        </nav>
-      </aside>
-    );
-  }
+  const navItems = [
+    { title: "Главная", icon: Home, href: "/" },
+    { title: "Корзина", icon: ShoppingCart, href: "/cart" },
+    { title: "Личный кабинет", icon: UserCircle2, href: "/profile" },
+  ];
 
-  // Десктопная версия
   return (
-    <aside className="w-[30%] min-w-[250px] bg-white border-r border-gray-200 p-6 flex flex-col sticky top-0 h-screen">
-      <h1 className="text-4xl font-extrabold uppercase tracking-tight">
-        Оформление<br />заказа
-      </h1>
-      <nav className="space-y-4 text-sm">
-        <div className="flex items-center gap-2 text-gray-900 hover:text-black cursor-pointer border-b-2" onClick={() => router.push("/")}>
-          <Home className="w-4 h-4" />
-          <span className="text-xl uppercase">Главная</span>
+    <div className="flex-shrink-0 flex mb-4 items-center md:items-start flex-col px-6 w-full md:w-fit">
+      {/* Заголовок — точно как "личный кабинет" в профиле */}
+      <div className="flex flex-row gap-2 items-center justify-center md:justify-start mb-5 w-full">
+        <div className="uppercase font-bold text-[3rem] leading-none text-center md:text-left">
+          Оформление<br className="hidden md:inline" /> заказа
         </div>
-        <div className="flex items-center gap-2 text-gray-900 hover:text-black cursor-pointer border-b-2" onClick={() => router.push("/cart")}>
-          <ShoppingCart className="w-4 h-4" />
-          <span className="text-xl uppercase">Корзина</span>
+      </div>
+
+      {/* Кнопка "К форме" — только на мобильной версии */}
+      <button
+        onClick={onScrollToForm}
+        className="pt-2 hover:text-black text-gray-400 w-full uppercase text-xl text-start cursor-pointer transition-colors border-b-2 mb-2 md:hidden"
+      >
+        <div className="flex flex-row items-center gap-2">
+          <ArrowDown className="w-5 h-5" />
+          <span>К форме доставки</span>
         </div>
-        <div className="flex items-center gap-2 text-gray-900 hover:text-black cursor-pointer border-b-2" onClick={() => router.push("/profile")}>
-          <UserCircle2 className="w-4 h-4" />
-          <span className="text-xl uppercase">Личный кабинет</span>
-        </div>
-      </nav>
-    </aside>
+      </button>
+
+      {/* Навигация — в точности как кнопки в профиле */}
+      <div className="flex flex-col gap-2 w-full">
+        {navItems.map((item) => (
+          <button
+            key={item.title}
+            onClick={() => router.push(item.href)}
+            className="pt-2 hover:text-black text-gray-400 w-full uppercase text-xl text-start cursor-pointer transition-colors border-b-2"
+          >
+            <div className="flex flex-row items-center gap-2">
+              <item.icon className="w-5 h-5" />
+              <span>{item.title}</span>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }

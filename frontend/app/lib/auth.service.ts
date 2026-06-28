@@ -43,6 +43,21 @@ export async function refreshToken({
     }
 }
 
+export async function verifySession(): Promise<{ isValid: boolean; status?: number }> {
+    try {
+        const res = await api.get("/v1/auth/verify", {
+            withCredentials: true
+        });
+        return { isValid: true, status: res.status };
+    } catch (err: any) {
+        const status = err.response?.status;
+        console.debug("[VerifySession]: Токен невалиден, статус:", status);
+        
+        // Возвращаем объект, чтобы AuthGuard понимал, что делать дальше
+        return { isValid: false, status };
+    }
+}
+
 export async function login({
     loginValue,
     passwordValue,

@@ -112,8 +112,5 @@ public class ProductService {
         return productRepository.countProductWithSale();
     }
 
-    public Long countBrands() {
-        return productRepository.countDistinctBrands();
-    }
 
 }

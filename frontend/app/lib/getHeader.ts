@@ -14,7 +14,7 @@ export async function getHeader(): Promise<HeaderInterface> {
   }
   catch (error) {
     console.error("Fetch error during build/runtime:", error);
-    const zero: HeaderInterface = {manCount: 0, womenCount: 0, saleCount: 0, brandCount: 0};
+    const zero: HeaderInterface = {manCount: 0, womenCount: 0, accessoriesCount: 0};
     return zero;
   }
 }

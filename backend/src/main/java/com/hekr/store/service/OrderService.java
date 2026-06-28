@@ -5,11 +5,15 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.hekr.store.dto.order.OrderItemRequestDto;
 import com.hekr.store.dto.order.OrderRequestDto;
 import com.hekr.store.dto.order.OrderResponseDto;
 import com.hekr.store.dto.order.OrderStatusHistoryResponseDto;
@@ -69,6 +73,12 @@ public class OrderService {
             return simpleOrderResponseMapper.toDtoList(orderRepository.findByUserIdSimple(user.getId()));
     }
 
+    @Transactional(readOnly = true)
+    public Page<OrderResponseDto> getAllOrders(Pageable pageable) {
+        Page<Order> order = orderRepository.findAll(pageable);
+        return order.map(orderResponseMapper::toDto);
+    }
+
     public OrderResponseDto getOrder(Long id) {
         Order order = orderRepository.findByIdWithItemsAndHistory(id)
                 .orElseThrow(() -> new NotFoundException("Заказ не найден"));
@@ -76,13 +86,12 @@ public class OrderService {
         return orderResponseMapper.toDto(order);
     }
 
-
     @Transactional
     public OrderResponseDto createOrder(UserDetails userDetails, OrderRequestDto dto) {
         Warehouse warehouse = warehouseService.findById(dto.getWarehouseId());
         User user = userProvider.getApprovedUserByLogin(userDetails.getUsername());
-        List<ItemRequestInterface> items = dto.getItems();
-        List<Long> ids = items.stream().map(ItemRequestInterface::getVariantId).toList();
+        List<OrderItemRequestDto> items = dto.getItems();
+        List<Long> ids = items.stream().map(OrderItemRequestDto::getVariantId).toList();
         Map<Long, Stock> stocks = stockService.getStocksMapByVariantIdsAndWarehouseId(dto.getWarehouseId(), ids);
         Map<Long, ProductVariant> variants = productVariantService.getAllVariantsByIds(ids);
         validateStock(stocks, items);
@@ -130,7 +139,7 @@ public class OrderService {
         return orderResponseMapper.toDto(saved);
     }
 
-    public void validateStock(Map<Long, Stock> stocks, List<ItemRequestInterface> items) {
+    public void validateStock(Map<Long, Stock> stocks, List<OrderItemRequestDto> items) {
         if (items.isEmpty()) {
             throw new EmptyException("Заказ не может быть пустым");
         }
@@ -154,7 +163,10 @@ public class OrderService {
         String login = userDetails.getUsername();
         User user = userProvider.getApprovedUserByLogin(login);
         Order order = findById(orderId);
-
+        if (Status.CANCELED.equals(status)) {
+            Set<OrderItem> items = order.getItems();
+            stockService.revertStocks(items, order.getWarehouse().getId());
+        }
         OrderStatusHistory orderStatusHistory = OrderStatusHistory.builder()
                 .newStatus(status)
                 .changedAt(LocalDateTime.now())
@@ -162,6 +174,9 @@ public class OrderService {
                 .comment(comment)
                 .order(order)
                 .build();
+
+        order.setStatus(status);
+        orderRepository.save(order);
         return orderStatusHistoryMapper.toDto(orderStatusHistoryRepository.save(orderStatusHistory));
     }
 }

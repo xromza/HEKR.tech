@@ -1,5 +1,7 @@
 package com.hekr.store.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,10 @@ public class CategoryService {
     protected Category getCategoryById(Long categoryId) {
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Категория товара не найдена"));
+    }
+
+    public List<CategoryResponseDto> getAllCategories() {
+        return categoryResponseMapper.toResponseList(categoryRepository.findAll());
     }
 
     @Transactional

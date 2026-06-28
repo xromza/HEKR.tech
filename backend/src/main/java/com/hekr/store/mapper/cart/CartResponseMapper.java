@@ -16,11 +16,10 @@ import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Mapper(componentModel = "spring", uses = CartItemResponseMapper.class)
+@RequiredArgsConstructor
 public abstract class CartResponseMapper {
-    @Autowired
     private CartItemResponseMapper itemMapper;
 
     public CartResponseDto toDto(List<Cart> carts) {

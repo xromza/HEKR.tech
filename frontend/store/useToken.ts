@@ -13,10 +13,7 @@ interface TokenInterface {
     updateSession: (token: string, user: UserInfo) => void; 
     updateToken: (token: string) => void; 
     deleteSession: () => void;
-    clearTimeoutRef: () => void;
 }
-
-let logoutTimeout: NodeJS.Timeout | null = null;
 
 const isSessionExpired = (expireStr: string | null): boolean => {
     if (!expireStr) return false;
@@ -52,34 +49,13 @@ const getInitialState = () => {
 };
 
 export const useToken = create<TokenInterface>()((set, get) => {
-    
-    const startLogoutTimer = (expireTimestamp: string) => {
-        if (typeof window === 'undefined') return;
-        
-        if (logoutTimeout) clearTimeout(logoutTimeout);
-
-        const delay = Number(expireTimestamp) - Date.now();
-        
-        if (delay <= 0) {
-            get().deleteSession();
-        } else {
-            logoutTimeout = setTimeout(() => {
-                console.log("[Zustand]: Время сессии вышло! Автоматический разлогин.");
-                get().deleteSession();
-            }, delay);
-        }
-    };
-
     const initialState = getInitialState();
-    if (initialState.expire) {
-        startLogoutTimer(initialState.expire);
-    }
 
     return {
         ...initialState,
 
         updateSession: (token, user) => {
-            const SESSION_TTL = 3600000;
+            const SESSION_TTL = 3600000; 
             const calculatedExpire = (Date.now() + SESSION_TTL).toString();
 
             if (typeof window !== "undefined") {
@@ -94,8 +70,6 @@ export const useToken = create<TokenInterface>()((set, get) => {
                 user: { login: user.login, role: user.role }, 
                 expire: calculatedExpire 
             });
-
-            startLogoutTimer(calculatedExpire);
         },
 
         updateToken: (token) => {
@@ -110,16 +84,7 @@ export const useToken = create<TokenInterface>()((set, get) => {
             set({ accessToken: token });
         },
 
-        clearTimeoutRef: () => {
-            if (logoutTimeout) {
-                clearTimeout(logoutTimeout);
-                logoutTimeout = null;
-            }
-        },
-
         deleteSession: () => {
-            if (logoutTimeout) clearTimeout(logoutTimeout);
-
             if (typeof window !== "undefined") {
                 localStorage.removeItem("token");
                 localStorage.removeItem("user_login");

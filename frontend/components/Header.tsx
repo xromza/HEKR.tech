@@ -6,13 +6,8 @@ import { HeaderItem } from '@/types/HeaderItem';
 
 export default async function Header() {
   const header = await getHeader();
-   const categoryPath = "/category"
+  const categoryPath = "/category"
   const headerItems: HeaderItem[] = [
-    {
-      title: "sale",
-      count: header.saleCount,
-      link: categoryPath + "/sale"
-    },
     {
       title: "мужская коллекция",
       count: header.manCount,
@@ -22,6 +17,11 @@ export default async function Header() {
       title: "Женская коллекция",
       count: header.womenCount,
       link: categoryPath + "/woman"
+    },
+    {
+      title: "Аксессуары",
+      count: header.accessoriesCount,
+      link: categoryPath + "/accessories"
     },
     {
       title: "Каталог",

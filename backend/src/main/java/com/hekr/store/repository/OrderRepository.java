@@ -3,6 +3,8 @@ package com.hekr.store.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +12,8 @@ import org.springframework.data.jpa.repository.Query;
 import com.hekr.store.model.order.Order;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
+
+    Page<Order> findAll(Pageable pageable);
     @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items WHERE o.id = :id")
     Optional<Order> findByIdWithItems(Long id);
 

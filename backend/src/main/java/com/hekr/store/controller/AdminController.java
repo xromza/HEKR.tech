@@ -1,5 +1,6 @@
 package com.hekr.store.controller;
 
+import com.hekr.store.service.AdminService;
 import com.hekr.store.service.CategoryService;
 import com.hekr.store.service.DiscountService;
 
@@ -10,12 +11,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.hekr.store.dto.category.CategoryRequestDto;
 import com.hekr.store.dto.category.CategoryResponseDto;
 import com.hekr.store.dto.discount.DiscountDto;
+import com.hekr.store.dto.order.OrderResponseDto;
 import com.hekr.store.dto.order.OrderStatusHistoryRequestDto;
 import com.hekr.store.dto.order.OrderStatusHistoryResponseDto;
 import com.hekr.store.dto.product.ProductRequestDto;
 import com.hekr.store.dto.product.ProductResponseDto;
 import com.hekr.store.dto.product.ProductVariantRequestDto;
 import com.hekr.store.dto.product.ProductVariantResponseDto;
+import com.hekr.store.dto.stock.StockResponsePlainDto;
 import com.hekr.store.dto.user.UserResponseDto;
 import com.hekr.store.mapper.user.UserMapper;
 import com.hekr.store.model.stock.Stock;
@@ -32,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -44,7 +48,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
 public class AdminController {
     private final WarehouseService warehouseService;
@@ -56,6 +60,8 @@ public class AdminController {
     private final ProductVariantService productVariantService;
     private final CategoryService categoryService;
     private final DiscountService discountService;
+    private final AdminService adminService;
+
     @GetMapping("/warehouse")
     public ResponseEntity<List<Warehouse>> getWarehouses() {
         return ResponseEntity.ok(warehouseService.findAll());
@@ -67,47 +73,69 @@ public class AdminController {
     }
 
     @PutMapping("/stock/{warehouseId}")
-    public ResponseEntity<Stock> updateStock(@PathVariable Long warehouseId,
+    public ResponseEntity<StockResponsePlainDto> updateStock(@PathVariable Long warehouseId,
             @RequestParam Long variantId, @RequestBody Integer quantity) {
         return ResponseEntity.ok(stockService.upsertStock(variantId, warehouseId, quantity));
     }
 
     @GetMapping("/stock/{warehouseId}")
-    public ResponseEntity<List<Stock>> getStockOnWarehouse(@PathVariable Long warehouseId) {
+    public ResponseEntity<List<StockResponsePlainDto>> getStockOnWarehouse(@PathVariable Long warehouseId) {
         return ResponseEntity.ok(stockService.getAllByWarehouseId(warehouseId));
     }
 
     @GetMapping("/stock/{warehouseId}/")
-    public ResponseEntity<Stock> getVariantStockOnWarehouse(@PathVariable Long warehouseId, @RequestParam Long variantId) {
+    public ResponseEntity<Stock> getVariantStockOnWarehouse(@PathVariable Long warehouseId,
+            @RequestParam Long variantId) {
         return ResponseEntity.ok(stockService.getByVariantIdAndWarehouseId(variantId, warehouseId));
     }
+
     @GetMapping("/users")
-    public ResponseEntity<List<UserResponseDto>> getUsers(Pageable pageable, @RequestParam Boolean approved) {
-        return ResponseEntity.ok(userMapper.toResponseList(userService.getAll(pageable, approved)));
+    public ResponseEntity<Page<UserResponseDto>> getUsers(Pageable pageable, @RequestParam Boolean approved) {
+        return ResponseEntity.ok(userService.getAll(pageable));
+    }
+
+    @PatchMapping("/users/{id}")
+    public ResponseEntity<UserResponseDto> updateAccountStatus(@PathVariable Long id, @RequestParam Boolean approved) {
+        return ResponseEntity.ok(adminService.updateAccountStatus(id, approved));
     }
 
     @PatchMapping("/orders/{orderId}/status")
-    public ResponseEntity<OrderStatusHistoryResponseDto> updateStatus(@AuthenticationPrincipal UserDetails userDetails, @PathVariable Long orderId, @RequestBody OrderStatusHistoryRequestDto request) {
-        return ResponseEntity.ok(orderService.updateStatus(userDetails, orderId, request.getStatus(), request.getComment()));
+    public ResponseEntity<OrderStatusHistoryResponseDto> updateStatus(@AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long orderId, @RequestBody OrderStatusHistoryRequestDto request) {
+        return ResponseEntity
+                .ok(orderService.updateStatus(userDetails, orderId, request.getStatus(), request.getComment()));
     }
+
+    @GetMapping("/orders")
+    public ResponseEntity<Page<OrderResponseDto>> getOrders(Pageable pageable) {
+        return ResponseEntity.ok(orderService.getAllOrders(pageable));
+    }
+    
 
     @PostMapping("/products")
     public ResponseEntity<ProductResponseDto> createProduct(@RequestBody ProductRequestDto productRequestDto) {
         return ResponseEntity.ok(productService.createProduct(productRequestDto));
     }
-    
+
     @PostMapping("/categories")
     public ResponseEntity<CategoryResponseDto> createCategory(@RequestBody CategoryRequestDto dto) {
         return ResponseEntity.ok(categoryService.createCategory(dto));
     }
+
     @PostMapping("/products/{productId}/variants")
-    public ResponseEntity<ProductVariantResponseDto> createVariant(@PathVariable Long productId, @RequestBody ProductVariantRequestDto dto) {
+    public ResponseEntity<ProductVariantResponseDto> createVariant(@PathVariable Long productId,
+            @RequestBody ProductVariantRequestDto dto) {
         return ResponseEntity.ok(productVariantService.createVariant(dto, productId));
+    }
+
+    @GetMapping("/users/{id}")
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(userMapper.toResponse(userService.findById(id)));
     }
 
     @PatchMapping("/discounts/{categoryId}")
     public ResponseEntity<DiscountDto> updateDiscount(@PathVariable Long categoryId, @RequestBody BigDecimal discount) {
         return ResponseEntity.ok(discountService.updateDiscount(categoryId, discount));
     }
-    
+
 }

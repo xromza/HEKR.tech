@@ -1,6 +1,5 @@
 export interface HeaderInterface {
-    saleCount: number,
+    accessoriesCount: number,
     manCount: number,
     womenCount: number,
-    brandCount: number
 }

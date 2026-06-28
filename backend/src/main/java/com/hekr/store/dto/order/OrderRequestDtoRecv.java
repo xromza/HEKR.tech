@@ -17,8 +17,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class OrderRequestDto {
-    List<OrderItemRequestDto> items;
+public class OrderRequestDtoRecv {
+    List<ItemRequestInterface> items;
     @Schema(description = "Id склада", example = "1")
     @NotNull
     private Long warehouseId;
