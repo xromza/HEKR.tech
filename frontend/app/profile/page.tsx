@@ -547,7 +547,7 @@ function OrdersPage({ orders, router }: { orders: OrderInterface[] | null, route
                                             <img
                                                 src={item.mainImageUrl}
                                                 alt={item.title}
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-contain"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center bg-gray-50 text-[10px] text-gray-400 uppercase font-bold">

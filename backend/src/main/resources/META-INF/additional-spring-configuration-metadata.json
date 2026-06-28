@@ -12,6 +12,6 @@
   {
     "name": "application.security.jwt.refresh-token.expiration",
     "type": "java.lang.String",
-    "description": "JWT Access Token expiration interval in seconds"
+    "description": "JWT Refresh Token expiration interval in seconds"
   }
 ]}

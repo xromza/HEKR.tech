@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.hekr</groupId>
 	<artifactId>store</artifactId>
-	<version>0.5</version>
+	<version>1.0</version>
 	<name>HEKR.tech</name>
 	<description>Clothes Store HEKR</description>
 	<url>https://hekr.tech/</url>

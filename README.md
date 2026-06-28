@@ -12,14 +12,14 @@
 
 ## 🏗 Архитектурные особенности
 
-### 🛡 Security & Auth (JWT + HttpOnly)
+### 🛡 Security & Auth
 Реализована отказоустойчивая система аутентификации, исключающая XSS-уязвимости:
 * **Stateless Access:** Короткоживущие Access-токены для авторизации запросов.
 * **Database-backed Refresh:** Длинноживущие токены хранятся в PostgreSQL для управления сессиями.
 * **HttpOnly Cookies:** Refresh-токены защищены от доступа через JS на стороне клиента.
 * **Axios Interceptors:** Автоматическое обновление сессии при истечении Access-токена (Silent Refresh).
 
-### 📊 Database Design (Table-per-Type)
+### 📊 Database Design
 Для работы с разными типами контрагентов применена стратегия наследования таблиц:
 * **Users Core:** Базовая таблица с аутентификационными данными и ролями (`CLIENT`, `MANAGER`, `ADMIN`).
 * **Individual Details:** Расширенные данные физических лиц (паспортные данные, контакты).
@@ -32,7 +32,7 @@
 
 ### Backend
 * **Core:** Spring Boot 4, Spring Security, Spring Data JPA.
-* **Database:** PostgreSQL 18 (нормализованная схема с историей статусов заказов).
+* **Database:** PostgreSQL 16
 * **API:** RESTful API с полной спецификацией в Markdown и Swagger OpenAPI.
 
 ### Frontend
@@ -74,9 +74,8 @@
 | **Дизайнер** | Капитонов П. О. ([pavalapi](https://github.com/Pavel-Kapitonov)) |
 | **Frontend-разработчик** | Капитонов П. О. ([pavalapi](https://github.com/Pavel-Kapitonov)) |
 | **Frontend-разработчик** | Приймак А. Д. ([Priymalex](https://github.com/Priymalex)) |
-| **Тестировщик Frontend** | Капитонов П. О. ([pavalapi](https://github.com/Pavel-Kapitonov)) |
-| **Тестировщик Frontend** | Приймак А. Д. ([Priymalex](https://github.com/Priymalex))|
+| **Ручной тестировщик Frontend** | Крючков Д. А. ([mysit](https://github.com/mysit)) |
 | **Тестировщик Backend** | Ливерова А. В. ([angelinaliverova06-eng](https://github.com/angelinaliverova06-eng))|
 | **Backend-разработчик** | Овсепян Н. А. ([kklaha](https://github.com/kklaha)) |
 | **DevOps** | Петров К. Д. ([xromza](https://github.com/xromza/)) |
-| **Full stack-разработчик** | Петров К. Д. ([xromza](https://github.com/xromza/)) |
+| **Fullstack-разработчик** | Петров К. Д. ([xromza](https://github.com/xromza/)) |

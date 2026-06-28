@@ -13,12 +13,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production'
+      ? { exclude: ['error', 'warn'] }
+      : false,
+  },
   async rewrites() {
     return [
       {
-        // Когда фронт шлет запрос на /api/v1/..., Next.js перенаправит его на бэк
         source: '/api/:path*',
-        destination: 'http://localhost:8080/api/:path*', 
+        destination: 'http://localhost:8080/api/:path*',
       },
     ];
   }
